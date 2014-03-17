@@ -1,0 +1,63 @@
+#ifndef _CRACK_H_
+#define _CRACK_H_
+
+#include <map>
+#include <string>
+#include <pthread.h>
+
+struct crack_block;
+class Crack;
+
+struct lauch_param
+{
+	int pid;
+	pthread_t tid;
+	int read_fd;
+	int write_fd;
+	float progress;
+	float speed;
+	float retain_time;
+};
+
+struct thread_param
+{
+	Crack* crack;
+	char guid[40];
+};
+
+class Crack
+{
+protected:
+	Crack(void);
+	virtual ~Crack(void);
+	int Exec(const char* guid, const char* path, const char* params, void* (*monitor)(void*));
+	int CleanUp(const char* guid);
+	int UpdateStatus(const char* guid, float progress, float speed, float remainTime);
+	
+	std::map<std::string, struct lauch_param> running;
+
+public:
+	int StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short deviceId);
+	int StopCrack(const char* guid);
+	
+	//读取调用进程的stdout和stderr的输出信息
+	//非阻塞, -1表示没有数据， 0表示进程已经结束，其他表示实际读入的数据量
+	int ReadFromLancher(const char* guid, char* buf, int n);
+	
+	//往调用进程里面写信息：模拟调用进程的stdin
+	//非阻塞, 0表示进程已经结束，其他表示实际写入的数据量
+	int WriteToLancher(const char* guid, const char* buf, int n);
+
+	//以下的虚函数需要在现每个解密软件实现
+	
+	//启动
+	virtual int Launcher(const crack_block* item, bool gpu, unsigned short deviceId) = 0;
+	
+	//终止
+	virtual int Kill(const char* guid) = 0;
+	
+	//获取进度
+	virtual int ObtainProgress(const char* guid, float* progress, float* speed, float* time) = 0;
+};
+
+#endif
