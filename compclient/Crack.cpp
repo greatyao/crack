@@ -112,7 +112,7 @@ int Crack::Exec(const char* guid, const char* path, const char* params, void* (*
 			pthread_create(&tid, NULL, monitor, (void *)p);
 		}
 		
-		struct lauch_param p = {pid, tid, fd2[0], fd1[1], 0, 0, 0};
+		struct lauch_param p = {pid, tid, fd2[0], fd1[1], 0, 0, 0, 0};
 		running[guid] = p;
 		
 		return pid;
@@ -191,7 +191,7 @@ int Crack::CleanUp(const char* guid)
 	return 0;
 }
 
-int Crack::UpdateStatus(const char* guid, float progress, float speed, float remainTime)
+int Crack::UpdateStatus(const char* guid, float progress, float speed, float elapseTime, float remainTime)
 {
 	std::map<std::string, lauch_param>::iterator it = running.find(guid);
 	if(it == running.end())
@@ -200,5 +200,6 @@ int Crack::UpdateStatus(const char* guid, float progress, float speed, float rem
 	it->second.progress = progress;
 	it->second.speed = speed;
 	it->second.retain_time = remainTime;
+	it->second.cost_time = elapseTime;
 	return 0;
 }

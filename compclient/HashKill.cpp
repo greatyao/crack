@@ -142,6 +142,24 @@ int HashKill::Launcher(const crack_block* item, bool gpu, unsigned short deviceI
 		
 }
 
+static float GetSpeed(const char* speed)
+{
+	int n = strlen(speed);
+	char s[64];
+	strcpy(s, speed);
+	
+	char f = s[n-1];
+	if(f == 'M'){
+		s[n-1] = 0;
+		return (float)atoi(s)*1000*1000;
+	} else if(f == 'k'){
+		s[n-1] = 0;
+		return atoi(s)*1000;
+	}	
+	
+	return atoi(speed);
+}
+
 void *HashKill::MonitorThread(void *p)
 {
 	thread_param* param = (thread_param*)p;
@@ -149,7 +167,7 @@ void *HashKill::MonitorThread(void *p)
 	char guid[40];
 	memcpy(guid, param->guid, sizeof(guid));
 	free(param);
-	clock_t t0 = clock();
+	time_t t0 = time(NULL);
 	
 	char buffer[2048] = {0};
 	int n;
@@ -174,18 +192,22 @@ void *HashKill::MonitorThread(void *p)
 		buffer[n] = 0;
 		//CLog::Log(LOG_LEVEL_NOMAL,"read[%d]: %s", n, buffer);
 		s = buffer;
-		//CLog::Log(LOG_LEVEL_NOMAL, "output %s", s.c_str()); 
 				
 		idx = s.rfind("Progress:");//进度标志
 		if(idx != string::npos){
 			idx2 = s.find("\r", idx);
 			if(idx2 != string::npos){
 				string s2 = s.substr(idx, idx2-idx);
-				sscanf(s2.c_str(), "Progress: %d%%  Speed: %s c/s (avg: %s c/s) Cracked: %d passwords",
-						&progress, speed1, avgspeed, &ncount);
-				//CLog::Log(LOG_LEVEL_NOMAL,"%s", s2.c_str());
-				//CLog::Log(LOG_LEVEL_NOMAL, "%d %d %d\n", idx, idx2, s2.length()); 
-				CLog::Log(LOG_LEVEL_NOMAL,"%d %s %s %d\n", progress, speed1, avgspeed, ncount);
+				int ret = sscanf(s2.c_str(), "Progress: %d%%  Speed: %*s c/s (avg: %s c/s) Cracked: %d passwords",
+						&progress, avgspeed, &ncount);
+				if(ret == 3){
+					CLog::Log(LOG_LEVEL_NOMAL,"%d %s %d\n", progress, avgspeed, ncount);
+					float ct = time(NULL)-t0;
+					float rt = (progress==0) ? 1e50 : 100/progress*ct;
+					float speed = GetSpeed(avgspeed);
+					CLog::Log(LOG_LEVEL_NOMAL,"%d %g %g %g\n", progress, speed, ct, rt);
+					hashkill->UpdateStatus(guid, progress, speed, ct, rt);
+				}
 			}
 		}
 		

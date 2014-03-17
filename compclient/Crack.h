@@ -16,6 +16,7 @@ struct lauch_param
 	int write_fd;
 	float progress;
 	float speed;
+	float cost_time;
 	float retain_time;
 };
 
@@ -32,7 +33,7 @@ protected:
 	virtual ~Crack(void);
 	int Exec(const char* guid, const char* path, const char* params, void* (*monitor)(void*));
 	int CleanUp(const char* guid);
-	int UpdateStatus(const char* guid, float progress, float speed, float remainTime);
+	int UpdateStatus(const char* guid, float progress, float speed, float elapseTime, float remainTime);
 	
 	std::map<std::string, struct lauch_param> running;
 
