@@ -5,10 +5,10 @@
 #pragma warning (disable:4995)
 #include <Strsafe.h>
 #else
-#define EWHERESTR  "\033[1;31m[crackctrl]\033[0m (%s:%d) "
+#define EWHERESTR  "\033[1;31m[crackctrl]\033[0m "
 #define EWHEREARG  __FILE__, __LINE__
 #define elogerr(...)     fprintf(stderr, __VA_ARGS__)
-#define elog(_fmt, ...)  elogerr(EWHERESTR _fmt, EWHEREARG, __VA_ARGS__)
+#define elog(_fmt, ...)  elogerr(EWHERESTR _fmt, __VA_ARGS__)
 
 #define WWHERESTR  "\033[1;33m[crackctrl]\033[0m "
 #define wlogwarn(...)     fprintf(stderr, __VA_ARGS__)
