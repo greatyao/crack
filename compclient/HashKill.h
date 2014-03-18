@@ -15,9 +15,6 @@ public:
 	
 	//终止
 	virtual int Kill(const char* guid);
-	
-	//获取进度
-	virtual int ObtainProgress(const char* guid, float* progress, float* speed, float* time);
 };
 
 #endif

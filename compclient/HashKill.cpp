@@ -183,7 +183,7 @@ void *HashKill::MonitorThread(void *p)
 	string s;
 	int idx, idx2;
 	int progress, ncount;
-	char speed1[128], avgspeed[128];	
+	char avgspeed[128];	
 	char text[32];
 	while(1)
 	{
@@ -210,11 +210,13 @@ void *HashKill::MonitorThread(void *p)
 						&progress, avgspeed, &ncount);
 				if(ret == 3){
 					CLog::Log(LOG_LEVEL_NOMAL,"%d %s %d\n", progress, avgspeed, ncount);
-					float ct = time(NULL)-t0;
-					float rt = (progress==0) ? FLT_MAX : 100/progress*ct;
+					unsigned int ct = time(NULL)-t0;
+					unsigned rt = (progress==0) ? 0xFFFFFFFF : 100/progress*ct;
 					float speed = GetSpeed(avgspeed);
-					CLog::Log(LOG_LEVEL_NOMAL,"%d %g %g %g\n", progress, speed, ct, rt);
+					CLog::Log(LOG_LEVEL_NOMAL,"%d %g %d %d\n", progress, speed, ct, rt);
 					hashkill->UpdateStatus(guid, progress, speed, ct, rt);
+					if(hashkill->statusFunc)
+							hashkill->statusFunc(guid, progress, speed, rt);
 				}
 			}
 		}
@@ -232,6 +234,8 @@ void *HashKill::MonitorThread(void *p)
 						CLog::Log(LOG_LEVEL_NOMAL, "%d [%s]\n", s2.length(), s2.c_str());
 						sscanf(s2.c_str(), "%*s %*s %s", text);
 						CLog::Log(LOG_LEVEL_NOMAL, "[%s]\n", text);
+						if(hashkill->doneFunc)
+							hashkill->doneFunc(guid, true, text);
 					}
 				}
 			}
@@ -255,9 +259,4 @@ int HashKill::Kill(const char* guid)
 {
 	char ctrl_c = char(03);
 	return this->WriteToLancher(guid, &ctrl_c, 1);
-}
-
-int HashKill::ObtainProgress(const char* guid, float* progress, float* speed, float* time)
-{
-	return 0;
 }
