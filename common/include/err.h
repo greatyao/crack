@@ -14,5 +14,6 @@
 #define ERR_INVALIDDATA			-9		//从socket端接收到不正确的格式数据
 #define ERR_CONNECTIONLOST		-10		//与socket断开连接
 #define ERR_INTERNALCLIENT		-11		//Client内部错误
+#define ERR_TIMEOUT				-12		//超时
 
 #endif
