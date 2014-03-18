@@ -36,7 +36,7 @@ int clauncher::ReportDone(char* guid, bool cracked, const char* passwd)
 	
 	ResourcePool::Get().Lock();
 	
-	CLog::Log(LOG_LEVEL_ERROR, "clauncher: complete crack task\n");
+	CLog::Log(LOG_LEVEL_NOTICE, "clauncher: complete crack task\n");
 	ResourcePool::Get().SetToRecover(prsp, cracked, passwd);
 	
 	ResourcePool::Get().UnLock();

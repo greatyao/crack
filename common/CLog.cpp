@@ -17,6 +17,10 @@
 #define HWHERESTR  "\033[1m[crackctrl]\033[0m "
 #define hlogstd(...)     fprintf(stderr, __VA_ARGS__)
 #define hlog(_fmt, ...)  hlogstd(HWHERESTR _fmt,  __VA_ARGS__)
+
+#define NWHERESTR  "\033[1;32m[crackctrl]\033[0m "
+#define nlogstd(...)     fprintf(stderr, __VA_ARGS__)
+#define nlog(_fmt, ...)  nlogstd(NWHERESTR _fmt,  __VA_ARGS__)
 #endif
 
 bool   CLog::m_bInited = false;
@@ -115,8 +119,10 @@ int CLog::Printf(unsigned int uLevel,const char * buffer)
 		hlog("%s", buffer);
 	else if(uLevel == LOG_LEVEL_WARNING)
 		wlog("%s", buffer);
-	else
+	else if(uLevel == LOG_LEVEL_ERROR)
 		elog("%s", buffer);
+	else
+		nlog("%s", buffer);
 
 #endif
 }
