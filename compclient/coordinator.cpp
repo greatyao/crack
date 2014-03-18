@@ -10,7 +10,8 @@
 #include "coordinator.h"
 #include "resourceslotpool.h"
 #include "CLog.h"
-
+#include "Client.h"
+#include "algorithm_types.h"
 
 ccoordinator::ccoordinator()
 {
@@ -29,51 +30,47 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 {
 	ccoordinator *p = (ccoordinator*)par;
 	struct _resourceslotpool *prsp;
-	unsigned uStatus = 0;
+	unsigned status = 0;
+	int ret;
+	crack_block item;
 	
 	while(1)
 	{
 		if(p->m_bStop) break;
-	
-		//这里需要从网络获取workitem数据，只有有数据才会进行下一步
-
-		//do
+			
+		//从资源池获取可用的计算单元
 		ResourcePool::Get().Lock();
-		prsp = ResourcePool::Get().CoordinatorQuery(uStatus);
+		prsp = ResourcePool::Get().CoordinatorQuery(status);
 
-		if(!uStatus)
-		{
-			CLog::Log(LOG_LEVEL_WARNING,"ccoordinator: find non resource\n");
+		if(!status)
 			goto next;
-		}
+		
+		CLog::Log(LOG_LEVEL_NOMAL, "ccoordinator: fetch workitem %d\n", item.algo);
 		
 		//处理
-		switch(uStatus)
+		if(status == RS_STATUS_READY)
 		{
-			case RS_STATUS_READY:
-				{
-					//从服务器申请任务，并且将资源状态设置为RS_STATUS_AVAILABLE
-					CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator: allocate one resource\n");
-					ResourcePool::Get().SetToAvailable(prsp);
-				}
-				break;
-			case RS_STATUS_RECOVERED:
-				{	
-					//提交结果到服务器，并释放资源池
-					CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator: submit result\n");
-					ResourcePool::Get().SetToReady(prsp);
-				}
-				break;
-			case RS_STATUS_UNRECOVERED:
-				{	
-					//提交结果到服务器，并释放资源池
-					CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator: submit result\n");
-					ResourcePool::Get().SetToReady(prsp);
-				}
-				break;
-			default:
-				break;
+			//这里需要从网络获取workitem数据，只有有数据才会进行下一步
+			ret = Client::Get().GetWorkItemFromServer(&item, sizeof(item));
+			if(ret < 0)	continue;
+		
+			//从服务器申请任务，并且将资源状态设置为RS_STATUS_AVAILABLE
+			CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator: allocate compute unit\n");
+			ResourcePool::Get().SetToAvailable(prsp, &item);
 		}
+		else if(status == RS_STATUS_RECOVERED)
+		{	
+			//提交结果到服务器，并释放资源池
+			CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator: submit result\n");
+			ResourcePool::Get().SetToReady(prsp);
+		}
+		else if(status == RS_STATUS_UNRECOVERED)
+		{	
+			//提交结果到服务器，并释放资源池
+			CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator: submit result\n");
+			ResourcePool::Get().SetToReady(prsp);
+		}
+		
 next:	
 		ResourcePool::Get().UnLock();
 		Sleep(3000);
