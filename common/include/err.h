@@ -9,5 +9,10 @@
 #define ERR_NO_SUPPORT_CHARSET	-4		//不支持该字符集
 #define ERR_FAILED_KILL			-5		//终止失败
 #define ERR_LAUCH_TASK			-6		//启动失败
+#define ERR_COMPRESS			-7		//压缩数据失败
+#define ERR_UNCOMPRESS			-8		//解压缩数据失败
+#define ERR_INVALIDDATA			-9		//从socket端接收到不正确的格式数据
+#define ERR_CONNECTIONLOST		-10		//与socket断开连接
+#define ERR_INTERNALCLIENT		-11		//Client内部错误
 
 #endif
