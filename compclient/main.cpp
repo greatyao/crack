@@ -4,6 +4,8 @@
 #include "coordinator.h"
 #include "launcher.h"
 #include "CLog.h"
+#include "Client.h"
+
 #if defined(__CYGWIN__) || defined(__linux__)
 #include <unistd.h>
 #endif
@@ -15,6 +17,8 @@ int main(int argc, char *argv[])
 		CLog::InitLogSystem(LOG_TO_FILE, true, "sys.log");
 	else
 		CLog::InitLogSystem(LOG_TO_SCREEN, true, NULL);
+		
+	Client::Get().Connect("192.168.18.117", 5150);
 
 	//申请资源池类
 	ResourcePool::Get().Init();
@@ -36,11 +40,9 @@ int main(int argc, char *argv[])
 	
 	//结束，清理
 	delete pcc;
-	//delete pcl;
-
-	//delete pcomp;
+	delete pcl;
 
 	//关闭日志系统
-	//CLog::ReleaseLogSystem();
+	CLog::ReleaseLogSystem();
 	return 0;
 }

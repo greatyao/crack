@@ -22,6 +22,7 @@ SRCS+= HashKill.cpp
 SRCS+= launcher.cpp
 SRCS+= resourceslotpool.cpp
 SRCS+= coordinator.cpp
+SRCS+= Client.cpp
 SRCS+= main.cpp
  
 VPATH+= ../common/
@@ -33,7 +34,7 @@ CPPFLAGS+= -I.
 CPPFLAGS+= -I../common/include
 CPPFLAGS+= -I../common
 CPPFLAGS+= -O2 -g -Wall -Wno-unused-parameter
-LIBS+= -lrt -lpthread -lcrypto -ldl
+LIBS+= -lrt -lpthread -lcrypto -ldl -lz
 LIBS+= $(OCLLIBS)
  
 #TOOLCHAIN= arm-linux-
