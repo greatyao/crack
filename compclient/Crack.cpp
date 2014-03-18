@@ -1,6 +1,7 @@
 #include "Crack.h"
 #include "algorithm_types.h"
 #include "err.h"
+#include "CLog.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -96,6 +97,7 @@ int Crack::Exec(const char* guid, const char* path, const char* params, void* (*
 
 		if(execv(path, args) < 0){
 			perror("execl");
+			_exit(ERR_LAUCH_TASK);
 		}
 		_exit(127);
 	} else {
@@ -103,6 +105,16 @@ int Crack::Exec(const char* guid, const char* path, const char* params, void* (*
 		close(fd2[1]);   
 		int flag = fcntl(fd2[0], F_GETFL, 0);
 		fcntl(fd2[0], F_SETFL, flag|O_NONBLOCK);
+		
+		usleep(1000*300);
+		int status = -1;
+		int rv = waitpid(pid, &status, WNOHANG);
+		if(rv > 0){
+			CLog::Log(LOG_LEVEL_ERROR, "exec: failed to start child process\n");
+			close(fd1[1]);
+			close(fd2[0]);   
+			return ERR_LAUCH_TASK;    		
+		}
 
 		pthread_t tid;
 		{

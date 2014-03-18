@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <string>
+#include <float.h> 
 
 using std::string;
 
@@ -137,9 +138,16 @@ int HashKill::Launcher(const crack_block* item, bool gpu, unsigned short deviceI
 		sprintf(others, "-t %d", platformId);
 
 	sprintf(cmd, fmt, start, end, charsets[charset], others, item->john);
+	
+	int pid = this->Exec(item->guid, path, cmd, MonitorThread);
+	
+	if(pid > 0){
+		CLog::Log(LOG_LEVEL_NOMAL, "hashkill: [pid=%d] laucher %s\n", pid, cmd);
+	}else{
+		CLog::Log(LOG_LEVEL_ERROR, "hashkill: failed to laucher %s[%d]\n", cmd, pid);
+	}
 
-	return this->Exec(item->guid, path, cmd, MonitorThread);
-		
+	return pid;	
 }
 
 static float GetSpeed(const char* speed)
@@ -203,7 +211,7 @@ void *HashKill::MonitorThread(void *p)
 				if(ret == 3){
 					CLog::Log(LOG_LEVEL_NOMAL,"%d %s %d\n", progress, avgspeed, ncount);
 					float ct = time(NULL)-t0;
-					float rt = (progress==0) ? 1e50 : 100/progress*ct;
+					float rt = (progress==0) ? FLT_MAX : 100/progress*ct;
 					float speed = GetSpeed(avgspeed);
 					CLog::Log(LOG_LEVEL_NOMAL,"%d %g %g %g\n", progress, speed, ct, rt);
 					hashkill->UpdateStatus(guid, progress, speed, ct, rt);
