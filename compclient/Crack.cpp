@@ -18,10 +18,18 @@
 
 Crack::Crack(void)
 {
+	this->doneFunc = NULL;
+	this->statusFunc = NULL;
 }
 
 Crack::~Crack(void)
 {
+}
+
+void Crack::RegisterCallback(ProcessDone done, ProgressStatus status)
+{
+	this->doneFunc = done;
+	this->statusFunc = status;
 }
 
 int Crack::StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short deviceId)
@@ -203,7 +211,7 @@ int Crack::CleanUp(const char* guid)
 	return 0;
 }
 
-int Crack::UpdateStatus(const char* guid, float progress, float speed, float elapseTime, float remainTime)
+int Crack::UpdateStatus(const char* guid, int progress, float speed, unsigned int elapseTime, unsigned int remainTime)
 {
 	std::map<std::string, lauch_param>::iterator it = running.find(guid);
 	if(it == running.end())

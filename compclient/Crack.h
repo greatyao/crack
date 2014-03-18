@@ -14,10 +14,10 @@ struct lauch_param
 	pthread_t tid;
 	int read_fd;
 	int write_fd;
-	float progress;
+	int progress;
 	float speed;
-	float cost_time;
-	float retain_time;
+	unsigned int cost_time;
+	unsigned int retain_time;
 };
 
 struct thread_param
@@ -26,6 +26,9 @@ struct thread_param
 	char guid[40];
 };
 
+typedef int (*ProcessDone)(char* guid, bool cracked, const char* passwd);
+typedef int (*ProgressStatus)(char* guid, int progress, float speed, unsigned int remainTime);
+
 class Crack
 {
 protected:
@@ -33,13 +36,18 @@ protected:
 	virtual ~Crack(void);
 	int Exec(const char* guid, const char* path, const char* params, void* (*monitor)(void*));
 	int CleanUp(const char* guid);
-	int UpdateStatus(const char* guid, float progress, float speed, float elapseTime, float remainTime);
+	int UpdateStatus(const char* guid, int progress, float speed, unsigned int elapseTime, unsigned int remainTime);
 	
 	std::map<std::string, struct lauch_param> running;
+	ProcessDone doneFunc;
+	ProgressStatus statusFunc;
 
 public:
 	int StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short deviceId);
 	int StopCrack(const char* guid);
+	
+	//注册回调函数
+	void RegisterCallback(ProcessDone done, ProgressStatus status);
 	
 	//读取调用进程的stdout和stderr的输出信息
 	//非阻塞, -1表示没有数据， 0表示进程已经结束，其他表示实际读入的数据量
@@ -56,9 +64,6 @@ public:
 	
 	//终止
 	virtual int Kill(const char* guid) = 0;
-	
-	//获取进度
-	virtual int ObtainProgress(const char* guid, float* progress, float* speed, float* time) = 0;
 };
 
 #endif
