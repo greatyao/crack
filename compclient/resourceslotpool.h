@@ -37,19 +37,21 @@ enum{
 	DEVICE_FPGA  //FPGA Worker
 }; 
 
+struct crack_block;
+
 struct _resourceslotpool
 {
-	char		    m_string_worker_guid[40];//解密单元工作者编号
+	char		    m_guid[40];				//解密单元工作者编号
 	unsigned short	m_worker_type;			//工作者类型，CPU,GPU,FPGA
 	unsigned short	m_device;				//GPU的platform|设备ID/CPU的ID
 	unsigned short	m_rs_status;			//当前slot状态
-	unsigned short  m_progress_workitem;		//workitem对应的进度
+	unsigned short  m_progress;				//workitem对应的进度
 	bool	 	    m_b_islocked;			//互斥锁
 	bool 		    m_is_recovered;			//密码是否恢复成功
 	string		    m_string_pars;			//解密单元参数
-	char		    m_string_password[32];	//如果解密成功，这里保存密码明文
-
-	_resourceslotpool();
+	char		    m_password[32];			//如果解密成功，这里保存密码明文
+	crack_block*	m_item;					//解密的workitem，需要动态分配
+	unsigned short  m_shared;				//是否与其他device的共享
 };
 
 class ResourcePool
@@ -84,13 +86,17 @@ public:
 	
 	//Launcher查询接口
 	struct _resourceslotpool* LauncherQuery(unsigned &u_status);
+	
+	struct _resourceslotpool* QueryByGuid(const char* guid);
 		
 	/***************************************************************
 	处理接口
 	***************************************************************/
 	void SetToReady(struct _resourceslotpool*);
 	void SetToOccupied(struct _resourceslotpool*);
-	void SetToAvailable(struct _resourceslotpool*);
+	void SetToAvailable(struct _resourceslotpool*, crack_block* item);
+	void SetToRecover(struct _resourceslotpool*, bool cracked, const char* passwd);
+	
 	//可以增加其他处理函数。
 };
 

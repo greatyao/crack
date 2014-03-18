@@ -1,6 +1,7 @@
 #include "resourceslotpool.h"
-#include <CL/cl.h>
 #include "CLog.h"
+#include "algorithm_types.h"
+#include <CL/cl.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -158,8 +159,6 @@ struct _resourceslotpool* ResourcePool::CoordinatorQuery(unsigned &u_status)
 	struct _resourceslotpool* p_rsp = 0;
 	u_status = 0;
 	
-	//printf("%s %d\n", __FUNCTION__, m_base_coordinator);
-
 	//if(!m_bIsLauncher)
 	{
 		//¥¶¿Ì
@@ -167,7 +166,7 @@ struct _resourceslotpool* ResourcePool::CoordinatorQuery(unsigned &u_status)
 		for(; m_base_coordinator<m_rs_pool.size(); m_base_coordinator++)
 		{
 			struct _resourceslotpool* p = m_rs_pool[m_base_coordinator];
-			if(p->m_rs_status==RS_STATUS_READY)
+			if(p->m_rs_status>=RS_STATUS_READY && p->m_rs_status<=RS_STATUS_UNRECOVERED) 
 			{
 				u_status = p->m_rs_status;
 				p_rsp = p;
@@ -205,10 +204,29 @@ struct _resourceslotpool* ResourcePool::LauncherQuery(unsigned &u_status)
 	}
 	return p_rsp;
 }
+
+struct _resourceslotpool* ResourcePool::QueryByGuid(const char* guid)
+{
+	struct _resourceslotpool* p_rsp = 0;
+	for(int i = 0; i<m_rs_pool.size(); i++)
+	{
+		struct _resourceslotpool* p = m_rs_pool[i];
+		if(strcmp(guid, p->m_guid) == 0)
+			return p;
+	}
+	
+	return p_rsp;
+}
+
 	
 void ResourcePool::SetToReady(struct _resourceslotpool*p)
 {
 	p->m_rs_status = RS_STATUS_READY;
+	if(p->m_item){
+		free(p->m_item);
+		p->m_item = 0;
+	}
+	memset(p->m_guid, 0, sizeof(p->m_guid));
 }
 
 void ResourcePool::SetToOccupied(struct _resourceslotpool*p)
@@ -216,7 +234,18 @@ void ResourcePool::SetToOccupied(struct _resourceslotpool*p)
 	p->m_rs_status = RS_STATUS_OCCUPIED;
 }
 
-void ResourcePool::SetToAvailable(struct _resourceslotpool*p)
+void ResourcePool::SetToAvailable(struct _resourceslotpool*p, crack_block* item)
 {
 	p->m_rs_status = RS_STATUS_AVAILABLE;
+	if(p->m_item)	free(p->m_item);
+	p->m_item = (crack_block*)malloc(sizeof(crack_block));
+	memcpy(p->m_item, item, sizeof(crack_block));
+	strcpy(p->m_guid, item->guid);
+}
+
+void ResourcePool::SetToRecover(struct _resourceslotpool* p, bool cracked, const char* passwd)
+{
+	p->m_rs_status = cracked ? RS_STATUS_RECOVERED : RS_STATUS_FAILED;
+	if(cracked)
+		strncpy(p->m_password, passwd, sizeof(p->m_password));
 }
