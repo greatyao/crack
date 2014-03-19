@@ -24,6 +24,11 @@ Crack::Crack(void)
 
 Crack::~Crack(void)
 {
+	std::map<std::string, lauch_param>::iterator it;
+	for(it = running.begin(); it != running.end(); it++)
+	{
+		pthread_cancel(it->second.tid);
+	}
 }
 
 void Crack::RegisterCallback(ProcessDone done, ProgressStatus status)
