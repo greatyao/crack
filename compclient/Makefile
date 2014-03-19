@@ -1,3 +1,5 @@
+MKDIR_P = /usr/bin/mkdir -p
+
 OS_NAME = $(shell uname -o)
 LC_OS_NAME = $(shell echo $(OS_NAME) | tr '[A-Z]' '[a-z]')
 
@@ -55,6 +57,10 @@ all: compclient
  
 compclient: $(OBJS)
 	$(LD) -o $@ $(LDFLAGS) $(OBJS) $(LIBS)
+	test -z "../bin/$(ARCH)" || { \
+	  echo " $(MKDIR_P) '../bin/$(ARCH)'"; \
+	  $(MKDIR_P) "../bin/$(ARCH)"; \
+	}
 	mv compclient ../bin/$(ARCH)/
 
 clean:

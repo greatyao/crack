@@ -102,8 +102,8 @@ int HashKill::Launcher(const crack_block* item, bool gpu, unsigned short deviceI
 {
 	unsigned short platformId = deviceId >> 8;
 	deviceId &= 0xff;
-	crack_algorithm algo = item->algo;
-	crack_charset charset = item->charset;
+	unsigned char algo = item->algo;
+	unsigned char charset = item->charset;
 	unsigned short start = item->start;
 	unsigned short end = item->end;
 	const char* hash = item->john;
