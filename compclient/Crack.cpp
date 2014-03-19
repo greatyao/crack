@@ -43,7 +43,7 @@ int Crack::StartCrack(const crack_block* item, const char* guid, bool gpu, unsig
 	return 0;
 }
 
-int Crack::StopCrack(const char* guid)
+int Crack::Kill(const char* guid)
 {
 	std::map<std::string, lauch_param>::iterator it = running.find(guid);
 	if(it == running.end())
@@ -52,7 +52,11 @@ int Crack::StopCrack(const char* guid)
 		return ERR_NO_THISTASK;
 	}
 
-	int status = this->Kill(guid);
+	int pid = it->second.pid;
+	if(pid <= 0)
+		return ERR_NO_THISTASK;
+	
+	int status = kill(pid, SIGKILL);
 	if(status < 0)
 	{
 		//ÖÕÖ¹ÈÎÎñÊ§°Ü
@@ -61,6 +65,12 @@ int Crack::StopCrack(const char* guid)
 
 	running.erase(it);
 	return 0;
+}
+	
+
+int Crack::StopCrack(const char* guid)
+{
+	return this->Kill(guid);
 }
 
 int Crack::Exec(const char* guid, const char* path, const char* params, void* (*monitor)(void*))

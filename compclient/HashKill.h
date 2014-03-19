@@ -12,9 +12,6 @@ public:
 	static void *MonitorThread(void *p);
 
 	virtual int Launcher(const crack_block* item, bool gpu, unsigned short deviceId);
-	
-	//жуж╧
-	virtual int Kill(const char* guid);
 };
 
 #endif

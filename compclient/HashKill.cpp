@@ -254,9 +254,3 @@ write:
 	}
 	return NULL;
 }
-
-int HashKill::Kill(const char* guid)
-{
-	char ctrl_c = char(03);
-	return this->WriteToLancher(guid, &ctrl_c, 1);
-}

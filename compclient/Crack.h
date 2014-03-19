@@ -35,6 +35,7 @@ protected:
 	Crack(void);
 	virtual ~Crack(void);
 	int Exec(const char* guid, const char* path, const char* params, void* (*monitor)(void*));
+	int Kill(const char* guid);
 	int CleanUp(const char* guid);
 	int UpdateStatus(const char* guid, int progress, float speed, unsigned int elapseTime, unsigned int remainTime);
 	
@@ -61,9 +62,6 @@ public:
 	
 	//∆Ù∂Ø
 	virtual int Launcher(const crack_block* item, bool gpu, unsigned short deviceId) = 0;
-	
-	//÷’÷π
-	virtual int Kill(const char* guid) = 0;
 };
 
 #endif
