@@ -78,6 +78,7 @@ enum crack_algorithm
 	algo_wpa,             //WPA-PSK plugin
 };
 
+//workitem
 struct crack_block
 {
 	unsigned char algo;		//解密算法
@@ -85,20 +86,42 @@ struct crack_block
 	unsigned char type;		//解密类型
 	unsigned char special;	//是否是文件解密（pdf+office+rar+zip）
 	char guid[40];			//服务端的workitem的GUID
-	char john[256];			//格式：$md5$*e10adc3949ba59abbe56e057f20f883e 其中md5为加密算法，后面的为hash值
+	char john[HASHFILE_MAX_PLAIN_LENGTH];			//格式：e10adc3949ba59abbe56e057f20f883e 后面的为hash值
 							//如果是文件解密，这里存放文件名
-	unsigned short start;	//比如从000-99999999，则charset定义为charset_num，start=3， end=8，end2=9，假设为000-77777777，此时end2=7（7为charset_num中的数字7所在的索引）
-	unsigned short end;
+	unsigned short start;	//开始长度
+	unsigned short end;		//结束长度
+	//以下两个是索引
+	unsigned short start2;	//55555-99999:start2=5,end2=9	000-55555:start2=0,end2=5
 	unsigned short end2;
 	char custom[0]; //用户自定义的字符集
 };
 
+//hash
 struct crack_hash
 {
 	char hash[HASHFILE_MAX_PLAIN_LENGTH];
 	char salt[HASHFILE_MAX_PLAIN_LENGTH];
 	char salt2[HASHFILE_MAX_PLAIN_LENGTH];
 };
+
+//解密任务
+struct crack_task
+{
+	unsigned char algo;		//解密算法
+	unsigned char charset;	//解密字符集
+	unsigned char type;		//解密类型
+	unsigned char special;	//是否是文件解密（pdf+office+rar+zip）
+	unsigned char filename[256];	//用户传过来的文件名
+	char guid[40];			//用户端的任务的GUID
+	int count;				//需要解密的Hash个数（如果是文件=1）
+	struct crack_hash[0];			//这里需要动态申请
+	
+};
+
+//这里描述一下crack_task/crack_hash/crack_block三者的关系
+//用户上传一个解密任务（解密文件、算法、字符集、字符长度），
+//服务端解析文件得到若干个crack_hash（可以保存在crack_task里面，需要动态申请），
+//然后切割算法将其分割成若干个crack_block
 
 struct hash_list_s
 {
