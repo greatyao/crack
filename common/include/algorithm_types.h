@@ -114,7 +114,7 @@ struct crack_task
 	unsigned char filename[256];	//用户传过来的文件名
 	char guid[40];			//用户端的任务的GUID
 	int count;				//需要解密的Hash个数（如果是文件=1）
-	struct crack_hash[0];			//这里需要动态申请
+	struct crack_hash hashes[0];			//这里需要动态申请
 	
 };
 
