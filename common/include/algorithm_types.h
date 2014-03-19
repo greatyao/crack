@@ -1,6 +1,9 @@
 #ifndef ALGORITHM_TYPES_H
 #define ALGORITHM_TYPES_H
 
+#define HASHFILE_MAX_PLAIN_LENGTH 128
+#define HASHFILE_MAX_LINE_LENGTH 256	
+
 enum crack_charset
 {
 	charset_num,		//0123456789
@@ -23,7 +26,7 @@ enum crack_type
 
 enum crack_algorithm
 {
-	algo_md4,             //MD4 plugin
+	algo_md4=0x01,        //MD4 plugin
 	algo_md5,             //MD5 plugin
 	algo_md5md5,          //md5(md5(pass)) plugin
 	algo_md5unix,         //MD5(Unix) plugin (shadow files)
@@ -87,5 +90,25 @@ struct crack_block
 	unsigned short end2;
 	char custom[0]; //用户自定义的字符集
 };
+
+struct crack_hash
+{
+	char hash[HASHFILE_MAX_PLAIN_LENGTH];
+	char salt[HASHFILE_MAX_PLAIN_LENGTH];
+	char salt2[HASHFILE_MAX_PLAIN_LENGTH];
+};
+
+struct hash_list_s
+{
+    char *username;
+    char *hash;
+    char *salt;
+    char *salt2;
+    struct hash_list_s *prev;
+    struct hash_list_s *next;
+    struct hash_list_s *indexprev;
+    struct hash_list_s *indexnext;
+};
+
 
 #endif

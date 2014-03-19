@@ -3,7 +3,7 @@
 
 
 #define ERR_SUCCEED				0
-#define ERR_INVALID_PARAM		-1		//workitem非法
+#define ERR_INVALID_PARAM		-1		//参数非法
 #define ERR_NO_THISTASK			-2		//没有该任务
 #define ERR_NO_SUPPORT_ALGO		-3		//不支持该解密类型	
 #define ERR_NO_SUPPORT_CHARSET	-4		//不支持该字符集
@@ -15,5 +15,6 @@
 #define ERR_CONNECTIONLOST		-10		//与socket断开连接
 #define ERR_INTERNALCLIENT		-11		//Client内部错误
 #define ERR_TIMEOUT				-12		//超时
+#define ERR_FILENOEXIST			-13		//文件打开失败
 
 #endif
