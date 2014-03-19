@@ -27,12 +27,19 @@ SRCS+= main.cpp
  
 VPATH+= ../common/
 SRCS+= CLog.cpp
+
+VPATH+= ../plugins/
+SRCS+= plugin.cpp
+SRCS+= loadfiles.cpp
+SRCS+= md5.cpp
+
  
 CPPFLAGS+= -D_XOPEN_SOURCE -DTEST
 CPPFLAGS+= -fPIC
 CPPFLAGS+= -I.
 CPPFLAGS+= -I../common/include
 CPPFLAGS+= -I../common
+CPPFLAGS+= -I../plugins
 CPPFLAGS+= -O2 -g -Wall -Wno-unused-parameter
 LIBS+= -lrt -lpthread -lcrypto -ldl -lz
 LIBS+= $(OCLLIBS)
