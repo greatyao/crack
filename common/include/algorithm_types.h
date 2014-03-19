@@ -80,11 +80,13 @@ enum crack_algorithm
 
 struct crack_block
 {
-	crack_algorithm algo;
-	crack_charset charset;
-	crack_type type;
-	char guid[40];
+	unsigned char algo;		//解密算法
+	unsigned char charset;	//解密字符集
+	unsigned char type;		//解密类型
+	unsigned char special;	//是否是文件解密（pdf+office+rar+zip）
+	char guid[40];			//服务端的workitem的GUID
 	char john[256];			//格式：$md5$*e10adc3949ba59abbe56e057f20f883e 其中md5为加密算法，后面的为hash值
+							//如果是文件解密，这里存放文件名
 	unsigned short start;	//比如从000-99999999，则charset定义为charset_num，start=3， end=8，end2=9，假设为000-77777777，此时end2=7（7为charset_num中的数字7所在的索引）
 	unsigned short end;
 	unsigned short end2;
