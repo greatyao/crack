@@ -43,7 +43,7 @@ CPPFLAGS+= -I../common/include
 CPPFLAGS+= -I../common
 CPPFLAGS+= -I../plugins
 CPPFLAGS+= -O2 -g -Wall -Wno-unused-parameter
-LIBS+= -lrt -lpthread -lcrypto -ldl -lz
+LIBS+= -lpthread -ldl -lz
 LIBS+= $(OCLLIBS)
  
 #TOOLCHAIN= arm-linux-
