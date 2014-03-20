@@ -189,12 +189,14 @@ void *HashKill::MonitorThread(void *p)
 	{
 		n = hashkill->ReadFromLancher(guid, buffer, sizeof(buffer)-1);
 		t1 = time(NULL);
-		if(n == 0) {
+		if(n == ERR_CHILDEXIT) {
 			CLog::Log(LOG_LEVEL_NOMAL,"%s: Detected child exit\n", __FUNCTION__);
 			break;
 		}else if(n < 0){
 			goto write;
-		} 
+		} else if(n == 0){
+			continue;
+		}
 		buffer[n] = 0;
 		s = buffer;
 				
@@ -246,7 +248,7 @@ write:
 		{
 			t2 = t1;
 			n = hashkill->WriteToLancher(guid, "\n", 1);
-			if(n == ERR_NO_THISTASK || n == 0)
+			if(n == ERR_CHILDEXIT)
 			{			
 				CLog::Log(LOG_LEVEL_NOMAL,"%s: Detected child exit2\n", __FUNCTION__);
 				break;

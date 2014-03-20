@@ -179,7 +179,7 @@ int Crack::ReadFromLancher(const char* guid, char* buf, int n)
 	int rv = waitpid(pid, &status, WNOHANG);
 	if(rv > 0){
 		CleanUp(guid);
-		return 0;    //子进程已经结束		
+		return ERR_CHILDEXIT;    //子进程已经结束		
 	}
 
 	if (-1 == rv && EINTR != errno){
@@ -223,7 +223,7 @@ int Crack::WriteToLancher(const char* guid, const char* buf, int n)
 	int rv = waitpid(pid, &status, WNOHANG);
 	if(rv > 0){
 		CleanUp(guid);
-		return 0;    //子进程已经结束		
+		return ERR_CHILDEXIT;    //子进程已经结束		
 	}
 
 	if (-1 == rv && EINTR != errno){
