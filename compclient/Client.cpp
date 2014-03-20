@@ -223,9 +223,32 @@ int Client::Write(const void* data, int size)
 	return bufLen;
 }
 
-int Client::GetWorkItemFromServer(void* data, int size)
+int Client::ReportStatusToServer(crack_status* status)
 {
-	crack_block* item = (crack_block*)data;
+	unsigned char cmd = CMD_WORKITEM_STATUS;
+	char buffer[sizeof(crack_status)+1];
+	memcpy(buffer, &cmd, 1);
+	memcpy(buffer+1, status, sizeof(*status));
+	
+	int m = Write(buffer, sizeof(buffer));
+	if(m == ERR_CONNECTIONLOST) connected = 0;
+	return m;
+}
+	
+int Client::ReportResultToServer(crack_result* result)
+{
+	unsigned char cmd = CMD_WORKITEM_RESULT;
+	char buffer[sizeof(crack_result)+1];
+	memcpy(buffer, &cmd, 1);
+	memcpy(buffer+1, result, sizeof(*result));
+	
+	int m = Write(buffer, sizeof(buffer));
+	if(m == ERR_CONNECTIONLOST) connected = 0;
+	return m;
+}
+
+int Client::GetWorkItemFromServer(crack_block* item)
+{
 	char buffer[1024*2] = {0};
 	unsigned char cmd = CMD_GET_A_WORKITEM;
 	Lock lk(&mutex);

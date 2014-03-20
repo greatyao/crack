@@ -3,6 +3,10 @@
 
 #include <pthread.h>
 
+struct crack_status;
+struct crack_result;
+struct crack_block;
+
 class Client
 {
 public:
@@ -12,7 +16,14 @@ public:
 	
 	int WriteToServer(const void* data, int size);
 	
-	int GetWorkItemFromServer(void* data, int size);
+	//从服务端获取workitem
+	int GetWorkItemFromServer(crack_block* item);
+	
+	//通报服务端解密状态
+	int ReportStatusToServer(crack_status* status);
+	
+	//通报服务端解密解密结果
+	int ReportResultToServer(crack_result* result);
 	
 	static void* MonitorThread(void* p);
 	
