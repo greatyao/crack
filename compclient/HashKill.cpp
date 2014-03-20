@@ -69,7 +69,7 @@ static struct hash_parameter all_support_hashes[] =
 	{algo_mssql_2000,   "-p mssql-2000 -b%d:%d:%s %s %s"},
 	{algo_mssql_2005,   "-p mssql-2005 -b%d:%d:%s %s %s"},
 	{algo_mssql_2012,   "-p mssql-2012 -b%d:%d:%s %s %s"},
-	{algo_mysql5,       "-p mssql5 -b%d:%d:%s %s %s"},
+	{algo_mysql5,       "-p mysql5 -b%d:%d:%s %s %s"},
 	{algo_nsldap,       "-p nsldap -b%d:%d:%s %s %s"},
 	{algo_nsldaps,      "-p nsldaps -b%d:%d:%s %s %s"},
 	{algo_ntlm,         "-p ntlm -b%d:%d:%s %s %s"},
@@ -140,7 +140,7 @@ int HashKill::Launcher(const crack_block* item, bool gpu, unsigned short deviceI
 
 	sprintf(cmd, fmt, start, end, charsets[charset], others, item->john);
 	
-	int pid = this->Exec(item->guid, path, cmd, MonitorThread);
+	int pid = this->Exec(item->guid, path, cmd, MonitorThread, true, true, false);
 	
 	if(pid > 0){
 		CLog::Log(LOG_LEVEL_NOMAL, "hashkill: [pid=%d] laucher %s\n", pid, cmd);
@@ -190,7 +190,7 @@ void *HashKill::MonitorThread(void *p)
 		n = hashkill->ReadFromLancher(guid, buffer, sizeof(buffer)-1);
 		t1 = time(NULL);
 		if(n == 0) {
-			CLog::Log(LOG_LEVEL_NOMAL,"monitorthread: [done]\n");
+			CLog::Log(LOG_LEVEL_NOMAL,"%s: Detected child exit\n", __FUNCTION__);
 			break;
 		}else if(n < 0){
 			goto write;
@@ -233,7 +233,7 @@ void *HashKill::MonitorThread(void *p)
 						{
 							cracked = true;
 							strcpy(text, temp);
-							CLog::Log(LOG_LEVEL_NOTICE, "################ [%s] ################\n", text);
+							CLog::Log(LOG_LEVEL_NOTICE, "++++++++++ \"%s\" ++++++++++\n", text);
 							goto write;
 						}
 					}
@@ -242,11 +242,15 @@ void *HashKill::MonitorThread(void *p)
 		}
 		
 write:	
-		if(t1 - t2 >= 2 || s.rfind("Bye bye") != string::npos)
+		if(t1 - t2 >= 2)
 		{
 			t2 = t1;
 			n = hashkill->WriteToLancher(guid, "\n", 1);
-			CLog::Log(LOG_LEVEL_NOMAL, "write %d\n", n);
+			if(n == ERR_NO_THISTASK || n == 0)
+			{			
+				CLog::Log(LOG_LEVEL_NOMAL,"%s: Detected child exit2\n", __FUNCTION__);
+				break;
+			}
 		}
 	}
 	
