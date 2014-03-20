@@ -239,6 +239,7 @@ int Client::GetWorkItemFromServer(void* data, int size)
 	int n = Read(buffer, sizeof(buffer));
 	
 	static crack_block all_items[] = {
+		{algo_sha1,		charset_num,	bruteforce,  0, "D", "8cb2237d0679ca88db6464eac60da96345513964", 1, 7, 0, 0},
 		{algo_lm,		charset_num,	bruteforce,  0, "01", "AEBD4DE384C7EC43AAD3B435B51404EE", 1, 6, 0, 0},
 		{algo_oscommerce,charset_num,	bruteforce,  0, "02", "d6b0ab7f1c8ab8f514db9a6d85de160a:abc", 1, 6, 0, 0},
 		{algo_desunix,	charset_num,	bruteforce,  0,	"03", "27EP4PuToKUSI", 1, 6, 0, 0},
@@ -252,12 +253,11 @@ int Client::GetWorkItemFromServer(void* data, int size)
 		{algo_mssql_2005,charset_num,	bruteforce,  0, "A", "0x01004D53456421450CD84AB5AF29A49A90BDBC1AFB0EFBDAF259", 1, 6, 0, 0},
 		{algo_mysql5,	charset_num,	bruteforce,  0, "B", "*00a51f3f48415c7d4e8908980d443c29c69b60c9", 1, 7, 0, 0},
 		{algo_pixmd5,	charset_num,	bruteforce,  0, "C", "u0-pixmd5:UwiM/pkFcM.xYc8s", 1, 7, 0, 0},
-		{algo_sha1,		charset_num,	bruteforce,  0, "D", "8cb2237d0679ca88db6464eac60da96345513964", 1, 7, 0, 0},
 		//{algo_sha512,	charset_num,	bruteforce,  0, "E", "3627909a29c31381a071ec27f7c9ca97726182aed29a7ddd2e54353322cfb30abb9e3a6df2ac2c20fe23436311d678564d0c8d305930575f60e2d3d048184d79", 1, 7, 0}
 	};
 	static int mm = 0;
 	memcpy(item, &all_items[mm], sizeof(*item));
-	mm = mm ++ % sizeof(all_items)/sizeof(all_items[0]);
+	mm = (++mm)  % (sizeof(all_items)/sizeof(all_items[0]));
 					
 	return n;
 }
