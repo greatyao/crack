@@ -179,8 +179,23 @@ int Crack::ReadFromLancher(const char* guid, char* buf, int n)
 		CleanUp(guid);
 		return 0;
 	}
-
-	return read(it->second.read_fd, buf, n);
+	
+	int fd = it->second.read_fd;
+	//下面是200毫秒的等待直至有数据可读
+	{
+		fd_set read_fdset;        
+		struct timeval timeout;             
+	
+		FD_ZERO(&read_fdset);        
+		FD_SET(fd, &read_fdset);             
+		timeout.tv_sec = 0;        
+		timeout.tv_usec = 25*1000;             
+		int ret = select(fd + 1, &read_fdset, NULL, NULL, &timeout); 
+		if (ret == 0)
+			return ERR_TIMEOUT;
+	}
+	
+	return read(fd, buf, n);
 
 #endif
 }
