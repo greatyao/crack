@@ -7,6 +7,7 @@
 #include <errno.h>
 #define Sleep(a) usleep(a*1000)
 #endif
+#include <string.h>
 #include "coordinator.h"
 #include "resourceslotpool.h"
 #include "CLog.h"
@@ -49,7 +50,7 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 		if(status == RS_STATUS_READY)
 		{
 			//这里需要从网络获取workitem数据，只有有数据才会进行下一步
-			ret = Client::Get().GetWorkItemFromServer(&item, sizeof(item));
+			ret = Client::Get().GetWorkItemFromServer(&item);
 			if(ret < 0)	continue;
 			CLog::Log(LOG_LEVEL_NOMAL, "ccoordinator: fetch workitem %s\n", item.john);
 		
@@ -57,16 +58,20 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 			CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator: allocate compute unit\n");
 			ResourcePool::Get().SetToAvailable(prsp, &item);
 		}
-		else if(status == RS_STATUS_RECOVERED)
+		else if(status == RS_STATUS_RECOVERED || status == RS_STATUS_UNRECOVERED)
 		{	
 			//提交结果到服务器，并释放资源池
 			CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator: submit result\n");
-			ResourcePool::Get().SetToReady(prsp);
-		}
-		else if(status == RS_STATUS_UNRECOVERED)
-		{	
-			//提交结果到服务器，并释放资源池
-			CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator: submit result\n");
+			crack_result result;
+			strcpy(result.guid, prsp->m_guid);
+			if(prsp->m_is_recovered){
+				result.status = WORK_ITEM_CRACKED;
+				strncpy(result.password, prsp->m_password, sizeof(result.password));
+			} else{
+				result.status = WORK_ITEM_UNCRACKED;
+			}
+			//TODO:需要考虑如果服务器宕机，需要将解密结果持久化:-)
+			Client::Get().ReportResultToServer(&result);
 			ResourcePool::Get().SetToReady(prsp);
 		}
 		

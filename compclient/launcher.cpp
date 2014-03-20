@@ -2,7 +2,9 @@
 #include "resourceslotpool.h"
 #include "CLog.h"
 #include "algorithm_types.h"
+#include "Client.h"
 #include "HashKill.h"
+
 Crack* hashkill = new HashKill();
 
 #include <string.h>
@@ -52,6 +54,14 @@ int clauncher::ReportStatus(char* guid, int progress, float speed, unsigned int 
 {
 	CLog::Log(LOG_LEVEL_NOMAL, "clauncher: Progress:%d%% Speed:%g c/s Remaing %u sec\n", 
 		progress, speed, remainTime);
+		
+	crack_status status;
+	strncpy(status.guid, guid, sizeof(status.guid));
+	status.progress = progress;
+	status.speed = speed;
+	status.remainTime = remainTime;
+	Client::Get().ReportStatusToServer(&status);
+	
 	return 0;
 }
 
@@ -76,22 +86,29 @@ void *clauncher::Thread(void*par)//扫描线程
 				{
 					//提交给解密插件执行，执行完毕设置执行结果
 					crack_block* block = prsp->m_item;
-					CLog::Log(LOG_LEVEL_NOMAL,"clauncher: doing crack task\n");
-					if(hashkill->StartCrack(block, block->guid, prsp->m_worker_type == DEVICE_GPU, prsp->m_device) < 0){
-						//通知服务端解锁这个workitem
-						;
+					bool lauched = hashkill->StartCrack(block, block->guid, prsp->m_worker_type == DEVICE_GPU, prsp->m_device) == 0;
+					CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator: launch task %s\n", lauched?"succeed":"failed");
+					
+					crack_result result;
+					strcpy(result.guid, prsp->m_guid);
+					result.status = lauched ? WORK_ITEM_WORKING : WORK_ITEM_UNLOCK;
+					Client::Get().ReportResultToServer(&result);
+			
+					if(!lauched){
+						ResourcePool::Get().SetToFailed(prsp);
 					} else{
 						ResourcePool::Get().SetToOccupied(prsp);
-						//通知服务端这个workitem已经被我所用
 					}
 				}
 				break;
 			case RS_STATUS_FAILED:
-				{	//重新初始化资源池，并释放资源池
+				{	
+					//重新初始化资源池，并释放资源池
 					CLog::Log(LOG_LEVEL_NOMAL,"clauncher: find failed task\n");
 					ResourcePool::Get().SetToReady(prsp);
 				}
 				break;
+	
 			//case RS_STATUS_OCCUPIED://由解密插件提交解密结果以后处理
 			//	{//正在执行解密任务
 			//		CLog::Log(LOG_LEVEL_NOMAL,"clauncher 解密任务执行中\n");
