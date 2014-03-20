@@ -78,7 +78,8 @@ int Crack::StopCrack(const char* guid)
 	return this->Kill(guid);
 }
 
-int Crack::Exec(const char* guid, const char* path, const char* params, void* (*monitor)(void*))
+int Crack::Exec(const char* guid, const char* path, const char* params, void* (*monitor)(void*),
+				bool dupStdin, bool dupStdout, bool dupStderr)
 {
 #if defined(WIN32) || defined(WIN64)
 	return 0;
@@ -111,10 +112,15 @@ int Crack::Exec(const char* guid, const char* path, const char* params, void* (*
 	} else if(pid == 0){
 		close(fd1[1]);
 		close(fd2[0]);
-		close(0);close(1);close(2);
-		dup2(fd1[0], STDIN_FILENO);
-		dup2(fd2[1], STDOUT_FILENO);
-        dup2(fd2[1], STDERR_FILENO);
+		close(0);
+		close(1);
+		close(2);
+		if(dupStdin)
+			dup2(fd1[0], STDIN_FILENO);
+		if(dupStdout)
+			dup2(fd2[1], STDOUT_FILENO);
+        if(dupStderr)
+			dup2(fd2[1], STDERR_FILENO);
         close(fd1[0]);  
 		close(fd2[1]);
 
@@ -139,16 +145,17 @@ int Crack::Exec(const char* guid, const char* path, const char* params, void* (*
 			return ERR_LAUCH_TASK;    		
 		}
 
+		struct lauch_param p = {pid, (pthread_t)-1, fd2[0], fd1[1], 0, 0, 0, 0};
+		running[guid] = p;
+		
 		pthread_t tid;
 		{
 			thread_param* p = (thread_param*)malloc(sizeof(*p));
 			memcpy(p->guid, guid, sizeof(p->guid));
 			p->crack = this;
 			pthread_create(&tid, NULL, monitor, (void *)p);
+			running[guid].tid = tid;
 		}
-		
-		struct lauch_param p = {pid, tid, fd2[0], fd1[1], 0, 0, 0, 0};
-		running[guid] = p;
 		
 		return pid;
 	}
@@ -189,7 +196,7 @@ int Crack::ReadFromLancher(const char* guid, char* buf, int n)
 		FD_ZERO(&read_fdset);        
 		FD_SET(fd, &read_fdset);             
 		timeout.tv_sec = 0;        
-		timeout.tv_usec = 25*1000;             
+		timeout.tv_usec = 500*1000;             
 		int ret = select(fd + 1, &read_fdset, NULL, NULL, &timeout); 
 		if (ret == 0)
 			return ERR_TIMEOUT;

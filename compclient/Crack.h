@@ -34,7 +34,8 @@ class Crack
 protected:
 	Crack(void);
 	virtual ~Crack(void);
-	int Exec(const char* guid, const char* path, const char* params, void* (*monitor)(void*));
+	int Exec(const char* guid, const char* path, const char* params, void* (*monitor)(void*), 
+				bool dupStdin = true, bool dupStdout = true, bool dupStderr = false);
 	int Kill(const char* guid);
 	int CleanUp(const char* guid);
 	int UpdateStatus(const char* guid, int progress, float speed, unsigned int elapseTime, unsigned int remainTime);
