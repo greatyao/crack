@@ -238,13 +238,26 @@ int Client::GetWorkItemFromServer(void* data, int size)
 	
 	int n = Read(buffer, sizeof(buffer));
 	
-	item->algo = algo_md5;
-	item->charset = charset_lalphanum;
-	item->type = bruteforce;
-	sprintf(item->guid, "%p", item);
-	strcpy(item->john, "63cb5261f4610ba648fcd5e1b72c3173");
-	item->start = 4;
-	item->end = 7;
+	static crack_block all_items[] = {
+		{algo_lm,		charset_num,	bruteforce,  0, "01", "AEBD4DE384C7EC43AAD3B435B51404EE", 1, 6, 0, 0},
+		{algo_oscommerce,charset_num,	bruteforce,  0, "02", "d6b0ab7f1c8ab8f514db9a6d85de160a:abc", 1, 6, 0, 0},
+		{algo_desunix,	charset_num,	bruteforce,  0,	"03", "27EP4PuToKUSI", 1, 6, 0, 0},
+		{algo_desunix,	charset_num,	bruteforce,  0,	"04", "27EP4PuToKUSi", 1, 6, 0, 0},
+		{algo_nsldap,	charset_num,	bruteforce,  0, "05", "{SHA}jLIjfQZ5yojbZGTqxg2pY0VROWQ=", 1, 7, 0, 0},
+		{algo_nsldaps,	charset_num,	bruteforce,  0,	"06", "{SSHA}P2oLaAFiExs+MexEjZ5R+KYbtrBhSHhzWnM4VA==", 1, 6, 0, 0},
+		{algo_md4,		charset_num,	bruteforce,  0, "07", "23580e2a459f7ea40f9efa148b63cafb", 1, 6, 0, 0},
+		{algo_md5,		charset_num,	bruteforce,  0, "08", "827ccb0eea8a706c4c34a16891f84e7b", 1, 6, 0, 0},
+		{algo_md5md5,	charset_num,	bruteforce,  0, "09", "1f32aa4c9a1d2ea010adcf2348166a04", 1, 6, 0, 0},
+		//{algo_mssql_2000,charset_num,	bruteforce,  0, "9", "0x010077393477CB2764D565692A0DE0D5308C3E19FEE51223EC1ACB2764D565692A0DE0D5308C3E19FEE51223EC1A", 1, 6, 0},
+		{algo_mssql_2005,charset_num,	bruteforce,  0, "A", "0x01004D53456421450CD84AB5AF29A49A90BDBC1AFB0EFBDAF259", 1, 6, 0, 0},
+		{algo_mysql5,	charset_num,	bruteforce,  0, "B", "*00a51f3f48415c7d4e8908980d443c29c69b60c9", 1, 7, 0, 0},
+		{algo_pixmd5,	charset_num,	bruteforce,  0, "C", "u0-pixmd5:UwiM/pkFcM.xYc8s", 1, 7, 0, 0},
+		{algo_sha1,		charset_num,	bruteforce,  0, "D", "8cb2237d0679ca88db6464eac60da96345513964", 1, 7, 0, 0},
+		//{algo_sha512,	charset_num,	bruteforce,  0, "E", "3627909a29c31381a071ec27f7c9ca97726182aed29a7ddd2e54353322cfb30abb9e3a6df2ac2c20fe23436311d678564d0c8d305930575f60e2d3d048184d79", 1, 7, 0}
+	};
+	static int mm = 0;
+	memcpy(item, &all_items[mm], sizeof(*item));
+	mm = mm ++ % sizeof(all_items)/sizeof(all_items[0]);
 					
 	return n;
 }
