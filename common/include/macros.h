@@ -20,9 +20,12 @@ enum
 	////踢人
 	CMD_KICK_OFF_CLIENT,
 	//
-	////获取一条任务的分解项 WORKITEM
-	CMD_GET_A_WORKITEM,
-	//发送解密插件获得的结果
+	
+	//// (计算单元和服务端)
+	CMD_GET_A_WORKITEM,		//获取一条任务的分解项 WORKITEM
+	CMD_WORKITEM_STATUS,	//计算单元上报解密状态
+	CMD_WORKITEM_RESULT,	//计算单元上报解密结果
+	
 
 	//上传任务的时候，服务器端返回任务分配的GUID号
 	CMD_RET_TASK_GUID,
