@@ -20,6 +20,7 @@ endif
 
 
 SRCS+= Crack.cpp
+SRCS+= oclHashcat.cpp
 SRCS+= HashKill.cpp
 SRCS+= launcher.cpp
 SRCS+= resourceslotpool.cpp
