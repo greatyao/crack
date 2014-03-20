@@ -16,5 +16,6 @@
 #define ERR_INTERNALCLIENT		-11		//Client内部错误
 #define ERR_TIMEOUT				-12		//超时
 #define ERR_FILENOEXIST			-13		//文件打开失败
+#define ERR_CHILDEXIT			-14		//子进程已经结束
 
 #endif
