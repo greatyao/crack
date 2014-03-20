@@ -250,7 +250,7 @@ void ResourcePool::SetToAvailable(struct _resourceslotpool*p, crack_block* item)
 
 void ResourcePool::SetToRecover(struct _resourceslotpool* p, bool cracked, const char* passwd)
 {
-	p->m_rs_status = cracked ? RS_STATUS_RECOVERED : RS_STATUS_FAILED;
+	p->m_rs_status = cracked ? RS_STATUS_RECOVERED : RS_STATUS_UNRECOVERED;
 	p->m_is_recovered = cracked;
 	if(cracked)
 		strncpy(p->m_password, passwd, sizeof(p->m_password));
