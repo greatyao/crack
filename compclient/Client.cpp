@@ -57,32 +57,34 @@ void* Client::MonitorThread(void* p)
 		
 	sleep(5);
 
-conn:	
-	while(client->connected != 2)
-	{
-		CLog::Log(LOG_LEVEL_NOMAL, "client: reconnect to server\n");
-		ret = client->Connect(client->ip, client->port);
-			
-		sleep(10);
-	}
-	CLog::Log(LOG_LEVEL_NOMAL, "------------------------------\n");
-		
 	while(1)
 	{
-		sleep(10);
-		
-		Lock lk(&client->mutex);
-		unsigned char cmd = TOKEN_HEARTBEAT;
-		int n = client->Write(&cmd, sizeof(cmd));
-		if(n == ERR_CONNECTIONLOST) 
+		while(client->connected != 2)
 		{
-			client->connected = 0;
-			goto conn;
+			CLog::Log(LOG_LEVEL_NOMAL, "Client: reconnect to server\n");
+			ret = client->Connect(client->ip, client->port);
+				
+			sleep(10);
 		}
-		
-		//后续考虑心跳包里面是否有结束某个workitem的解密工作
-		int m = client->Read(buf, sizeof(buf));
-		printf("read %d %d\n", m, buf[0]);
+		CLog::Log(LOG_LEVEL_NOMAL, "------------------------------\n");
+			
+		while(1)
+		{
+			sleep(10);
+			
+			Lock lk(&client->mutex);
+			unsigned char cmd = TOKEN_HEARTBEAT;
+			int n = client->Write(&cmd, sizeof(cmd));
+			if(n == ERR_CONNECTIONLOST) 
+			{
+				client->connected = 0;
+				break;
+			}
+			
+			//后续考虑心跳包里面是否有结束某个workitem的解密工作
+			int m = client->Read(buf, sizeof(buf));
+			CLog::Log(LOG_LEVEL_NOMAL, "Client: Read hearbreak %d %d\n", m, buf[0]);
+		}
 	}
 	
 	return NULL;
@@ -108,7 +110,7 @@ int Client::Connect(const char* ip, unsigned short port)
 	sck = socket(AF_INET, SOCK_STREAM, 0);
 	if(sck < 0)
 	{
-		CLog::Log(LOG_LEVEL_WARNING, "client: failed to create socket");
+		CLog::Log(LOG_LEVEL_WARNING, "Client: failed to create socket");
 		connected = 0;
 		close(sck);
 		return ERR_INTERNALCLIENT;
@@ -119,11 +121,11 @@ int Client::Connect(const char* ip, unsigned short port)
 	s_add.sin_family = AF_INET;
 	s_add.sin_addr.s_addr = inet_addr(ip);
 	s_add.sin_port = htons(port);
-	CLog::Log(LOG_LEVEL_NOMAL, "client: connecting to %s:%d\n", ip, port);
+	CLog::Log(LOG_LEVEL_NOMAL, "Client: connecting to %s:%d\n", ip, port);
 
 	if(connect(sck,(struct sockaddr *)&s_add, sizeof(struct sockaddr)))
 	{
-		CLog::Log(LOG_LEVEL_WARNING, "client: failed to connect to %s:%d\n", ip, port);
+		CLog::Log(LOG_LEVEL_WARNING, "Client: failed to connect to %s:%d\n", ip, port);
 		connected = 0;
 		close(sck);
 		return ERR_INTERNALCLIENT;
@@ -170,6 +172,9 @@ int Client::Read(void* data, int size)
 {	
 	unsigned char hdr[HDR_SIZE];
 	
+	if(connected != 2)
+		return ERR_CONNECTIONLOST;
+	
 	if(read_timeout(sck, 5) < 0)
 		return ERR_TIMEOUT;
 		
@@ -200,6 +205,9 @@ int Client::Read(void* data, int size)
 
 int Client::Write(const void* data, int size)
 {
+	if(connected != 2)
+		return ERR_CONNECTIONLOST;
+		
 	unsigned long destLen = 1.001*size + 12;
 	unsigned char* dest = new unsigned char[HDR_SIZE+destLen];
 	int ret = compress(dest+HDR_SIZE, &destLen, (const Bytef*)data, size);
@@ -262,6 +270,15 @@ int Client::GetWorkItemFromServer(crack_block* item)
 	
 	int n = Read(buffer, sizeof(buffer));
 	
+	CLog::Log(LOG_LEVEL_NOMAL, "GetWorkItemFromServer: %d\n", n);
+#if 0	
+	if(buffer[0] == CMD_GET_A_WORKITEM && n == sizeof(*item)+1)
+	{
+		memcpy(item, buffer+1, sizeof(*item));
+		return n-1;
+	}
+	return n;
+#else
 	static crack_block all_items[] = {
 		{algo_sha1,		charset_num,	bruteforce,  0, "D", "8cb2237d0679ca88db6464eac60da96345513964", 1, 7, 0, 0},
 		{algo_lm,		charset_num,	bruteforce,  0, "01", "AEBD4DE384C7EC43AAD3B435B51404EE", 1, 6, 0, 0},
@@ -283,5 +300,6 @@ int Client::GetWorkItemFromServer(crack_block* item)
 	memcpy(item, &all_items[mm], sizeof(*item));
 	mm = (++mm)  % (sizeof(all_items)/sizeof(all_items[0]));
 					
-	return n;
+	return sizeof(*item);
+#endif
 }
