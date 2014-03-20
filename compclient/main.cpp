@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <signal.h>
+#include <stdlib.h>
 
 #include "resourceslotpool.h"
 #include "coordinator.h"
@@ -20,6 +21,8 @@ static void handle_signal(int sig)
 	if(sig == SIGTERM || sig == SIGINT || sig == SIGQUIT){
 		CLog::Log(LOG_LEVEL_WARNING, "Caught signal %d, exiting\n", sig);
 		exit_signal = 1;
+	} else if(sig == SIGPIPE){
+		CLog::Log(LOG_LEVEL_WARNING, "Caught pipe %d\n", sig);
 	}
 }
 
@@ -28,6 +31,7 @@ static int main_loop()
 	signal(SIGTERM, handle_signal); //* 下面设置三个信号的处理方法 
 	signal(SIGINT, handle_signal); 
 	signal(SIGQUIT, handle_signal); 
+	signal(SIGPIPE, handle_signal); 
 	
 	int j = 0;
 	while(!exit_signal) {
