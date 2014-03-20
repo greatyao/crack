@@ -8,13 +8,14 @@
 #include <string.h>
 #include <string>
 #include <float.h> 
+#include <unistd.h>
 
 using std::string;
 
 #ifdef __CYGWIN__
-const char* path = "hashkill.exe";
+static const char* path = "hashkill.exe";
 #else
-const char* path = "/usr/local/bin/hashkill";
+static const char* path = "/usr/local/bin/hashkill";
 #endif
 
 struct hash_parameter{
@@ -175,30 +176,26 @@ void *HashKill::MonitorThread(void *p)
 	char guid[40];
 	memcpy(guid, param->guid, sizeof(guid));
 	free(param);
-	time_t t0 = time(NULL);
-	
+	time_t t0 = time(NULL), t1, t2 = t0;
+	bool cracked = false;
 	char buffer[2048] = {0};
 	int n;
-	int cumm = 0;
 	string s;
 	int idx, idx2;
 	int progress, ncount;
-	char avgspeed[128];	
-	char text[32];
+	char temp[128];	
+	char text[128] = {0};
 	while(1)
 	{
 		n = hashkill->ReadFromLancher(guid, buffer, sizeof(buffer)-1);
+		t1 = time(NULL);
 		if(n == 0) {
-			printf("[done]\n");
+			CLog::Log(LOG_LEVEL_NOMAL,"monitorthread: [done]\n");
 			break;
 		}else if(n < 0){
-			cumm ++;
-			if(cumm == 5) goto write;
-			sleep(1);
-			continue;
+			goto write;
 		} 
 		buffer[n] = 0;
-		//CLog::Log(LOG_LEVEL_NOMAL,"read[%d]: %s", n, buffer);
 		s = buffer;
 				
 		idx = s.rfind("Progress:");//进度标志
@@ -207,12 +204,12 @@ void *HashKill::MonitorThread(void *p)
 			if(idx2 != string::npos){
 				string s2 = s.substr(idx, idx2-idx);
 				int ret = sscanf(s2.c_str(), "Progress: %d%%  Speed: %*s c/s (avg: %s c/s) Cracked: %d passwords",
-						&progress, avgspeed, &ncount);
+						&progress, temp, &ncount);
 				if(ret == 3){
-					CLog::Log(LOG_LEVEL_NOMAL,"%d %s %d\n", progress, avgspeed, ncount);
-					unsigned int ct = time(NULL)-t0;
+					CLog::Log(LOG_LEVEL_NOMAL,"%d %s %d\n", progress, temp, ncount);
+					unsigned int ct = t1-t0;
 					unsigned rt = (progress==0) ? 0xFFFFFFFF : 100/progress*ct;
-					float speed = GetSpeed(avgspeed);
+					float speed = GetSpeed(temp);
 					CLog::Log(LOG_LEVEL_NOMAL,"%d %g %d %d\n", progress, speed, ct, rt);
 					hashkill->UpdateStatus(guid, progress, speed, ct, rt);
 					if(hashkill->statusFunc)
@@ -221,36 +218,40 @@ void *HashKill::MonitorThread(void *p)
 			}
 		}
 		
-		if(ncount > 0){
+		//if(idx == string::npos || ncount > 0)
+		{
 			idx =  s.rfind("Preimage:\n");//破解标志
 			if(idx != string::npos){
 				idx += strlen("Preimage:\n");
-				idx2 = s.find("----------\n", idx);
+				idx2 = s.find("---\n", idx);
 				if(idx2 != string::npos){
-					idx2 += strlen("----------\n");
+					idx2 += strlen("---\n");
 					int idx3 = s.find("\n", idx2);
 					if(idx2 != string::npos){
 						string s2 = s.substr(idx2, idx3-idx2);
-						CLog::Log(LOG_LEVEL_NOMAL, "%d [%s]\n", s2.length(), s2.c_str());
-						sscanf(s2.c_str(), "%*s %*s %s", text);
-						CLog::Log(LOG_LEVEL_NOMAL, "[%s]\n", text);
-						if(hashkill->doneFunc)
-							hashkill->doneFunc(guid, true, text);
+						if(sscanf(s2.c_str(), "%*s %*s %s", temp) == 1)
+						{
+							cracked = true;
+							strcpy(text, temp);
+							CLog::Log(LOG_LEVEL_NOTICE, "################ [%s] ################\n", text);
+							goto write;
+						}
 					}
 				}
 			}
 		}
 		
-		idx = s.rfind("Bye bye");//结束标志
-		if(idx != string::npos){
-			continue;
-		}
-		
 write:	
-		cumm = 0;
-		n = hashkill->WriteToLancher(guid, "\n", 1);
-		//CLog::Log(LOG_LEVEL_NOMAL, "write %d\n", n);
-		sleep(2);
+		if(t1 - t2 >= 2 || s.rfind("Bye bye") != string::npos)
+		{
+			t2 = t1;
+			n = hashkill->WriteToLancher(guid, "\n", 1);
+			CLog::Log(LOG_LEVEL_NOMAL, "write %d\n", n);
+		}
 	}
+	
+	if(hashkill->doneFunc)
+		hashkill->doneFunc(guid, cracked, text);
+
 	return NULL;
 }
