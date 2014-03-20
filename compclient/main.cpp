@@ -1,4 +1,4 @@
-#include <stdio.h>
+ï»¿#include <stdio.h>
 #include <signal.h>
 #include <stdlib.h>
 
@@ -28,7 +28,7 @@ static void handle_signal(int sig)
 
 static int main_loop()
 {
-	signal(SIGTERM, handle_signal); //* ÏÂÃæÉèÖÃÈı¸öĞÅºÅµÄ´¦Àí·½·¨ 
+	signal(SIGTERM, handle_signal); //* ä¸‹é¢è®¾ç½®ä¸‰ä¸ªä¿¡å·çš„å¤„ç†æ–¹æ³• 
 	signal(SIGINT, handle_signal); 
 	signal(SIGQUIT, handle_signal); 
 	signal(SIGPIPE, handle_signal); 
@@ -43,7 +43,7 @@ static int main_loop()
 
 int main(int argc, char *argv[])
 {
-	//³õÊ¼»¯ÈÕÖ¾ÏµÍ³£¨Ò»¸ö³ÌĞò£¬Ö»ĞèÒªÔÚ×î³õ³õÊ¼»¯Ò»´Î£©
+	//åˆå§‹åŒ–æ—¥å¿—ç³»ç»Ÿï¼ˆä¸€ä¸ªç¨‹åºï¼Œåªéœ€è¦åœ¨æœ€åˆåˆå§‹åŒ–ä¸€æ¬¡ï¼‰
 	if(argc == 1)
 		CLog::InitLogSystem(LOG_TO_FILE, true, "sys.log");
 	else
@@ -60,26 +60,26 @@ int main(int argc, char *argv[])
 		
 	Client::Get().Connect("192.168.18.117", 5150);
 
-	//ÉêÇë×ÊÔ´³ØÀà
+	//ç”³è¯·èµ„æºæ± ç±»
 	ResourcePool::Get().Init();
 	
 	//cclient *pcomp = new cclient(); 
-	//³õÊ¼»¯coordinator
+	//åˆå§‹åŒ–coordinator
 	ccoordinator *pcc = new ccoordinator();
-	//³õÊ¼»¯launcher
+	//åˆå§‹åŒ–launcher
 	clauncher *pcl = new clauncher();
-	//Æô¶¯coordinator
+	//å¯åŠ¨coordinator
 	pcc->Start();
-	//Æô¶¯launcher
+	//å¯åŠ¨launcher
 	pcl->Start();
 
 	int ret = main_loop();
 	
-	//½áÊø£¬ÇåÀí
+	//ç»“æŸï¼Œæ¸…ç†
 	delete pcc;
 	delete pcl;
 
-	//¹Ø±ÕÈÕÖ¾ÏµÍ³
+	//å…³é—­æ—¥å¿—ç³»ç»Ÿ
 	CLog::ReleaseLogSystem();
 	return ret;
 }

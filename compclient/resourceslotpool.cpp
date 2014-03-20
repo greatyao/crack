@@ -1,4 +1,4 @@
-#include "resourceslotpool.h"
+Ôªø#include "resourceslotpool.h"
 #include "CLog.h"
 #include "algorithm_types.h"
 #include <CL/cl.h>
@@ -161,7 +161,7 @@ struct _resourceslotpool* ResourcePool::CoordinatorQuery(unsigned &u_status)
 	
 	//if(!m_bIsLauncher)
 	{
-		//¥¶¿Ì
+		//Â§ÑÁêÜ
 		m_base_coordinator%=m_rs_pool.size();
 		for(; m_base_coordinator<m_rs_pool.size(); m_base_coordinator++)
 		{
@@ -187,7 +187,7 @@ struct _resourceslotpool* ResourcePool::LauncherQuery(unsigned &u_status)
 
 	//if(m_bIsLauncher)
 	{
-		//¥¶¿Ì
+		//Â§ÑÁêÜ
 		m_base_launcher%=m_rs_pool.size();
 		for(; m_base_launcher<m_rs_pool.size(); m_base_launcher++)
 		{
@@ -234,6 +234,11 @@ void ResourcePool::SetToOccupied(struct _resourceslotpool*p)
 	p->m_rs_status = RS_STATUS_OCCUPIED;
 }
 
+void ResourcePool::SetToFailed(struct _resourceslotpool*p)
+{
+	p->m_rs_status = RS_STATUS_FAILED;
+}
+
 void ResourcePool::SetToAvailable(struct _resourceslotpool*p, crack_block* item)
 {
 	p->m_rs_status = RS_STATUS_AVAILABLE;
@@ -246,6 +251,7 @@ void ResourcePool::SetToAvailable(struct _resourceslotpool*p, crack_block* item)
 void ResourcePool::SetToRecover(struct _resourceslotpool* p, bool cracked, const char* passwd)
 {
 	p->m_rs_status = cracked ? RS_STATUS_RECOVERED : RS_STATUS_FAILED;
+	p->m_is_recovered = cracked;
 	if(cracked)
 		strncpy(p->m_password, passwd, sizeof(p->m_password));
 }

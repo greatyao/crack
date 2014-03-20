@@ -1,4 +1,4 @@
-#include "launcher.h"
+ï»¿#include "launcher.h"
 #include "resourceslotpool.h"
 #include "CLog.h"
 #include "algorithm_types.h"
@@ -36,7 +36,11 @@ int clauncher::ReportDone(char* guid, bool cracked, const char* passwd)
 	
 	ResourcePool::Get().Lock();
 	
-	CLog::Log(LOG_LEVEL_NOTICE, "clauncher: complete crack task\n");
+	if(cracked)
+		CLog::Log(LOG_LEVEL_NOTICE, "clauncher: Crack password %s\n", passwd);
+	else
+		CLog::Log(LOG_LEVEL_ERROR, "clauncher: Crack non password\n");
+	
 	ResourcePool::Get().SetToRecover(prsp, cracked, passwd);
 	
 	ResourcePool::Get().UnLock();
@@ -51,7 +55,7 @@ int clauncher::ReportStatus(char* guid, int progress, float speed, unsigned int 
 	return 0;
 }
 
-void *clauncher::Thread(void*par)//É¨ÃèÏß³Ì
+void *clauncher::Thread(void*par)//æ‰«æçº¿ç¨‹
 {
 	clauncher *p = (clauncher*)par;
 	struct _resourceslotpool *prsp;
@@ -65,30 +69,32 @@ void *clauncher::Thread(void*par)//É¨ÃèÏß³Ì
 		if(!uStatus)
 			goto next;
 		
-		//´¦Àí
+		//å¤„ç†
 		switch(uStatus)
 		{
 			case RS_STATUS_AVAILABLE:
 				{
-					//Ìá½»¸ø½âÃÜ²å¼şÖ´ĞĞ£¬Ö´ĞĞÍê±ÏÉèÖÃÖ´ĞĞ½á¹û
+					//æäº¤ç»™è§£å¯†æ’ä»¶æ‰§è¡Œï¼Œæ‰§è¡Œå®Œæ¯•è®¾ç½®æ‰§è¡Œç»“æœ
 					crack_block* block = prsp->m_item;
 					CLog::Log(LOG_LEVEL_NOMAL,"clauncher: doing crack task\n");
 					if(hashkill->StartCrack(block, block->guid, prsp->m_worker_type == DEVICE_GPU, prsp->m_device) < 0){
+						//é€šçŸ¥æœåŠ¡ç«¯è§£é”è¿™ä¸ªworkitem
 						;
 					} else{
 						ResourcePool::Get().SetToOccupied(prsp);
+						//é€šçŸ¥æœåŠ¡ç«¯è¿™ä¸ªworkitemå·²ç»è¢«æˆ‘æ‰€ç”¨
 					}
 				}
 				break;
 			case RS_STATUS_FAILED:
-				{	//ÖØĞÂ³õÊ¼»¯×ÊÔ´³Ø£¬²¢ÊÍ·Å×ÊÔ´³Ø
+				{	//é‡æ–°åˆå§‹åŒ–èµ„æºæ± ï¼Œå¹¶é‡Šæ”¾èµ„æºæ± 
 					CLog::Log(LOG_LEVEL_NOMAL,"clauncher: find failed task\n");
 					ResourcePool::Get().SetToReady(prsp);
 				}
 				break;
-			//case RS_STATUS_OCCUPIED://ÓÉ½âÃÜ²å¼şÌá½»½âÃÜ½á¹ûÒÔºó´¦Àí
-			//	{//ÕıÔÚÖ´ĞĞ½âÃÜÈÎÎñ
-			//		CLog::Log(LOG_LEVEL_NOMAL,"clauncher ½âÃÜÈÎÎñÖ´ĞĞÖĞ\n");
+			//case RS_STATUS_OCCUPIED://ç”±è§£å¯†æ’ä»¶æäº¤è§£å¯†ç»“æœä»¥åå¤„ç†
+			//	{//æ­£åœ¨æ‰§è¡Œè§£å¯†ä»»åŠ¡
+			//		CLog::Log(LOG_LEVEL_NOMAL,"clauncher è§£å¯†ä»»åŠ¡æ‰§è¡Œä¸­\n");
 			//		p->m_pcrsp->SetToReady(prsp);
 			//	}
 				break;
@@ -96,7 +102,7 @@ void *clauncher::Thread(void*par)//É¨ÃèÏß³Ì
 		}
 next:
 		ResourcePool::Get().UnLock();
-		//Ëæ±ãµÈ´ıÒ»ÏÂ£¬ÕâÀï½ö¹©²âÊÔ£¬Êµ¼Ê²»ĞèÒª
+		//éšä¾¿ç­‰å¾…ä¸€ä¸‹ï¼Œè¿™é‡Œä»…ä¾›æµ‹è¯•ï¼Œå®é™…ä¸éœ€è¦
 		Sleep(3000);
 	}
 	
@@ -105,7 +111,7 @@ next:
 	return 0;
 }
 
-void clauncher::Start(void)//¿ªÊ¼É¨ÃèÏß³Ì
+void clauncher::Start(void)//å¼€å§‹æ‰«æçº¿ç¨‹
 {	
 	if(m_bThreadRunning==true)
 	{
@@ -133,7 +139,7 @@ void clauncher::Start(void)//¿ªÊ¼É¨ÃèÏß³Ì
 		m_bThreadRunning = true;
 	}
 }
-void clauncher::Stop(void)//Í£Ö¹É¨ÃèÏß³Ì
+void clauncher::Stop(void)//åœæ­¢æ‰«æçº¿ç¨‹
 {
 	if(m_bThreadRunning==false)
 	{
@@ -144,10 +150,10 @@ void clauncher::Stop(void)//Í£Ö¹É¨ÃèÏß³Ì
 	int returnValue = pthread_join(m_pThread, NULL);
 	if( returnValue != 0 )
 	{
-		CLog::Log(LOG_LEVEL_ERROR,"clauncher Ïß³ÌÍË³öÊ§°Ü£¬´íÎó´úÂë: %d\n", returnValue);
+		CLog::Log(LOG_LEVEL_ERROR,"clauncher: failed to exit thread: %d\n", errno);
 	}
 	else{
-		CLog::Log(LOG_LEVEL_NOMAL,"clauncher É¨ÃèÏß³Ì³É¹¦ÍË³ö\n");
+		CLog::Log(LOG_LEVEL_NOMAL,"clauncher: exit thread\n");
 	}
 	m_bThreadRunning = false;
 }

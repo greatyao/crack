@@ -1,4 +1,4 @@
-#if defined(WIN32) || defined(WIN64)
+ï»¿#if defined(WIN32) || defined(WIN64)
 #include <winsock2.h>
 #include <windows.h>
 #pragma comment(lib,"pthreadVC2.lib")
@@ -26,7 +26,7 @@ ccoordinator::~ccoordinator()
 	}
 }
 
-void *ccoordinator::Thread(void*par)//É¨ÃèÏß³Ì + ´Ósocket»ñÈ¡item
+void *ccoordinator::Thread(void*par)//æ‰«æçº¿ç¨‹ + ä»socketè·å–item
 {
 	ccoordinator *p = (ccoordinator*)par;
 	struct _resourceslotpool *prsp;
@@ -38,35 +38,34 @@ void *ccoordinator::Thread(void*par)//É¨ÃèÏß³Ì + ´Ósocket»ñÈ¡item
 	{
 		if(p->m_bStop) break;
 			
-		//´Ó×ÊÔ´³Ø»ñÈ¡¿ÉÓÃµÄ¼ÆËãµ¥Ôª
+		//ä»èµ„æºæ± è·å–å¯ç”¨çš„è®¡ç®—å•å…ƒ
 		ResourcePool::Get().Lock();
 		prsp = ResourcePool::Get().CoordinatorQuery(status);
 
 		if(!status)
 			goto next;
 		
-		CLog::Log(LOG_LEVEL_NOMAL, "ccoordinator: fetch workitem %d\n", item.algo);
-		
-		//´¦Àí
+		//å¤„ç†
 		if(status == RS_STATUS_READY)
 		{
-			//ÕâÀïĞèÒª´ÓÍøÂç»ñÈ¡workitemÊı¾İ£¬Ö»ÓĞÓĞÊı¾İ²Å»á½øĞĞÏÂÒ»²½
+			//è¿™é‡Œéœ€è¦ä»ç½‘ç»œè·å–workitemæ•°æ®ï¼Œåªæœ‰æœ‰æ•°æ®æ‰ä¼šè¿›è¡Œä¸‹ä¸€æ­¥
 			ret = Client::Get().GetWorkItemFromServer(&item, sizeof(item));
 			if(ret < 0)	continue;
+			CLog::Log(LOG_LEVEL_NOMAL, "ccoordinator: fetch workitem %s\n", item.john);
 		
-			//´Ó·şÎñÆ÷ÉêÇëÈÎÎñ£¬²¢ÇÒ½«×ÊÔ´×´Ì¬ÉèÖÃÎªRS_STATUS_AVAILABLE
+			//ä»æœåŠ¡å™¨ç”³è¯·ä»»åŠ¡ï¼Œå¹¶ä¸”å°†èµ„æºçŠ¶æ€è®¾ç½®ä¸ºRS_STATUS_AVAILABLE
 			CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator: allocate compute unit\n");
 			ResourcePool::Get().SetToAvailable(prsp, &item);
 		}
 		else if(status == RS_STATUS_RECOVERED)
 		{	
-			//Ìá½»½á¹ûµ½·şÎñÆ÷£¬²¢ÊÍ·Å×ÊÔ´³Ø
+			//æäº¤ç»“æœåˆ°æœåŠ¡å™¨ï¼Œå¹¶é‡Šæ”¾èµ„æºæ± 
 			CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator: submit result\n");
 			ResourcePool::Get().SetToReady(prsp);
 		}
 		else if(status == RS_STATUS_UNRECOVERED)
 		{	
-			//Ìá½»½á¹ûµ½·şÎñÆ÷£¬²¢ÊÍ·Å×ÊÔ´³Ø
+			//æäº¤ç»“æœåˆ°æœåŠ¡å™¨ï¼Œå¹¶é‡Šæ”¾èµ„æºæ± 
 			CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator: submit result\n");
 			ResourcePool::Get().SetToReady(prsp);
 		}
@@ -79,11 +78,11 @@ next:
 	fprintf(stderr, "leaving %s\n", __FUNCTION__);
 	return 0;
 }
-void ccoordinator::Start(void)//¿ªÊ¼É¨ÃèÏß³Ì
+void ccoordinator::Start(void)//å¼€å§‹æ‰«æçº¿ç¨‹
 {	
 	if(m_bThreadRunning)
 	{
-		CLog::Log(LOG_LEVEL_WARNING,"ccoordinator É¨ÃèÏß³ÌÔËĞĞÖĞ£¬²»ĞèÒªÔÙ´´½¨\n");
+		CLog::Log(LOG_LEVEL_WARNING,"ccoordinator æ‰«æçº¿ç¨‹è¿è¡Œä¸­ï¼Œä¸éœ€è¦å†åˆ›å»º\n");
 		return;
 	}
 	
@@ -107,11 +106,11 @@ void ccoordinator::Start(void)//¿ªÊ¼É¨ÃèÏß³Ì
 		m_bThreadRunning = 1;
 	}
 }
-void ccoordinator::Stop(void)//Í£Ö¹É¨ÃèÏß³Ì
+void ccoordinator::Stop(void)//åœæ­¢æ‰«æçº¿ç¨‹
 {
 	if(m_bThreadRunning==0)
 	{
-		CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator Ã»ÓĞÉ¨ÃèÏß³ÌÔÚÔËĞĞ\n");
+		CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator æ²¡æœ‰æ‰«æçº¿ç¨‹åœ¨è¿è¡Œ\n");
 		return;
 	}
 
@@ -119,10 +118,10 @@ void ccoordinator::Stop(void)//Í£Ö¹É¨ÃèÏß³Ì
 	int returnValue = pthread_join(m_pThread, NULL);
 	if( returnValue != 0 )
 	{
-		CLog::Log(LOG_LEVEL_ERROR,"ccoordinator Ïß³ÌÍË³öÊ§°Ü£¬´íÎó´úÂë: %d\n", returnValue);
+		CLog::Log(LOG_LEVEL_ERROR,"ccoordinator: failed to exit thread: %d\n", errno);
 	}
 	else{
-		CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator É¨ÃèÏß³Ì³É¹¦ÍË³ö\n");
+		CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator: exit thread\n");
 	}
 	m_bThreadRunning = 0;
 }

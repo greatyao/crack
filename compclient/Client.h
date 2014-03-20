@@ -1,4 +1,4 @@
-#ifndef __CLIENT_H__
+ï»¿#ifndef __CLIENT_H__
 #define __CLIENT_H__
 
 #include <pthread.h>
@@ -28,7 +28,7 @@ private:
 	int sck;
 	char ip[16];
 	unsigned short port;
-	int connected;//0±íÊ¾¶Ï¿ª£¬1±íÊ¾ÕıÔÚÁ¬£¬2±íÊ¾Á¬½ÓÉÏÁË
+	int connected;//0è¡¨ç¤ºæ–­å¼€ï¼Œ1è¡¨ç¤ºæ­£åœ¨è¿ï¼Œ2è¡¨ç¤ºè¿æ¥ä¸Šäº†
 	pthread_t tid;
 	pthread_mutex_t mutex;
 };

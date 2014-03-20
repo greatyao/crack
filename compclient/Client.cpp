@@ -1,4 +1,4 @@
-#include <unistd.h>
+﻿#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h> 
@@ -80,6 +80,7 @@ conn:
 			goto conn;
 		}
 		
+		//后续考虑心跳包里面是否有结束某个workitem的解密工作
 		int m = client->Read(buf, sizeof(buf));
 		printf("read %d %d\n", m, buf[0]);
 	}
@@ -208,7 +209,7 @@ int Client::Write(const void* data, int size)
 		return ERR_COMPRESS;
 	}
 	
-	//���ݰ���ʽΪ��flag|packetlen|unziplen|zipdata
+	//数据包格式为：flag|packetlen|unziplen|zipdata
 	unsigned bufLen = HDR_SIZE + destLen;
 	memcpy(dest, pack_flag, sizeof(pack_flag));
 	memcpy(dest+5, &bufLen, sizeof(bufLen));

@@ -1,4 +1,4 @@
-#include "Crack.h"
+ï»¿#include "Crack.h"
 #include "algorithm_types.h"
 #include "err.h"
 #include "CLog.h"
@@ -39,7 +39,7 @@ void Crack::RegisterCallback(ProcessDone done, ProgressStatus status)
 
 int Crack::StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short deviceId)
 {
-	//Ê×ÏÈĞèÒªÑéÖ¤Êı¾İµÄÓĞĞ§ĞÔ
+	//é¦–å…ˆéœ€è¦éªŒè¯æ•°æ®çš„æœ‰æ•ˆæ€§
 
 
 	int pid = this->Launcher(item, gpu, deviceId);
@@ -53,7 +53,7 @@ int Crack::Kill(const char* guid)
 	std::map<std::string, lauch_param>::iterator it = running.find(guid);
 	if(it == running.end())
 	{
-		//·Ç·¨µÄ£¬Ã»ÓĞ¸Ã½âÃÜÈÎÎñ
+		//éæ³•çš„ï¼Œæ²¡æœ‰è¯¥è§£å¯†ä»»åŠ¡
 		return ERR_NO_THISTASK;
 	}
 
@@ -64,7 +64,7 @@ int Crack::Kill(const char* guid)
 	int status = kill(pid, SIGKILL);
 	if(status < 0)
 	{
-		//ÖÕÖ¹ÈÎÎñÊ§°Ü
+		//ç»ˆæ­¢ä»»åŠ¡å¤±è´¥
 		return ERR_FAILED_KILL;
 	}
 
@@ -167,7 +167,7 @@ int Crack::ReadFromLancher(const char* guid, char* buf, int n)
 	std::map<std::string, lauch_param>::iterator it = running.find(guid);
 	if(it == running.end())
 	{
-		//·Ç·¨µÄ£¬Ã»ÓĞ¸Ã½âÃÜÈÎÎñ
+		//éæ³•çš„ï¼Œæ²¡æœ‰è¯¥è§£å¯†ä»»åŠ¡
 		return ERR_NO_THISTASK;
 	}
 	int pid = it->second.pid;
@@ -179,7 +179,7 @@ int Crack::ReadFromLancher(const char* guid, char* buf, int n)
 	int rv = waitpid(pid, &status, WNOHANG);
 	if(rv > 0){
 		CleanUp(guid);
-		return 0;    //×Ó½ø³ÌÒÑ¾­½áÊø		
+		return 0;    //å­è¿›ç¨‹å·²ç»ç»“æŸ		
 	}
 
 	if (-1 == rv && EINTR != errno){
@@ -188,7 +188,7 @@ int Crack::ReadFromLancher(const char* guid, char* buf, int n)
 	}
 	
 	int fd = it->second.read_fd;
-	//ÏÂÃæÊÇ200ºÁÃëµÄµÈ´ıÖ±ÖÁÓĞÊı¾İ¿É¶Á
+	//ä¸‹é¢æ˜¯200æ¯«ç§’çš„ç­‰å¾…ç›´è‡³æœ‰æ•°æ®å¯è¯»
 	{
 		fd_set read_fdset;        
 		struct timeval timeout;             
@@ -212,7 +212,7 @@ int Crack::WriteToLancher(const char* guid, const char* buf, int n)
 	std::map<std::string, lauch_param>::iterator it = running.find(guid);
 	if(it == running.end())
 	{
-		//·Ç·¨µÄ£¬Ã»ÓĞ¸Ã½âÃÜÈÎÎñ
+		//éæ³•çš„ï¼Œæ²¡æœ‰è¯¥è§£å¯†ä»»åŠ¡
 		return ERR_NO_THISTASK;
 	}
 	int pid = it->second.pid;
@@ -223,7 +223,7 @@ int Crack::WriteToLancher(const char* guid, const char* buf, int n)
 	int rv = waitpid(pid, &status, WNOHANG);
 	if(rv > 0){
 		CleanUp(guid);
-		return 0;    //×Ó½ø³ÌÒÑ¾­½áÊø		
+		return 0;    //å­è¿›ç¨‹å·²ç»ç»“æŸ		
 	}
 
 	if (-1 == rv && EINTR != errno){

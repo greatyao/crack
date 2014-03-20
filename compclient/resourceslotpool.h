@@ -1,5 +1,5 @@
-/***************************************************************
-×ÊÔ´³Ø,×îºó±à¼­ 2014Äê1ÔÂ22ÈÕ
+ï»¿/***************************************************************
+èµ„æºæ± ,æœ€åç¼–è¾‘ 2014å¹´1æœˆ22æ—¥
 ***************************************************************/
 #ifndef __RS_POOL__H___
 #define __RS_POOL__H___
@@ -15,17 +15,17 @@ using namespace std;
 
 
 enum{
-	RS_STATUS_UNDEFINED,	//Î´¶¨Òå
+	RS_STATUS_UNDEFINED,	//æœªå®šä¹‰
 	
 	//Coordinator
-	RS_STATUS_READY,	//RS¿ÕÏĞ×´Ì¬£¨¾ÍĞ÷×´Ì¬£©£¬¿ÉÒÔÈÃCoordinatorÏò·şÎñÆ÷ÉêÇë½âÃÜÈÎÎñ
-	RS_STATUS_RECOVERED,	//½âÃÜÈÎÎñ´¦Àí³É¹¦£¬ĞèÒª½«½á¹ûÉÏ´«
-	RS_STATUS_UNRECOVERED,	//½âÃÜ½áÊø
+	RS_STATUS_READY,	//RSç©ºé—²çŠ¶æ€ï¼ˆå°±ç»ªçŠ¶æ€ï¼‰ï¼Œå¯ä»¥è®©Coordinatorå‘æœåŠ¡å™¨ç”³è¯·è§£å¯†ä»»åŠ¡
+	RS_STATUS_RECOVERED,	//è§£å¯†ä»»åŠ¡å¤„ç†æˆåŠŸï¼Œéœ€è¦å°†ç»“æœä¸Šä¼ 
+	RS_STATUS_UNRECOVERED,	//è§£å¯†ç»“æŸ
 
 	//Launcher
-	RS_STATUS_AVAILABLE,//CoordinatorÒÑ¾­½«½âÃÜÈÎÎñ·ÅÖÃºÃ£¬µÈ´ıLauncher´¦Àí
-	RS_STATUS_FAILED,	//½âÃÜÈÎÎñ´¦ÀíÊ§°Ü£¬Launcher½«ÆäÖØÖÃµ½READY×´Ì¬
-	RS_STATUS_OCCUPIED, //ÕıÔÚ´¦Àí½âÃÜÈÎÎñ,RS_STATUS_AVAILABLEÖ®ºóÉèÖÃµÄ×´Ì¬
+	RS_STATUS_AVAILABLE,//Coordinatorå·²ç»å°†è§£å¯†ä»»åŠ¡æ”¾ç½®å¥½ï¼Œç­‰å¾…Launcherå¤„ç†
+	RS_STATUS_FAILED,	//è§£å¯†ä»»åŠ¡å¤„ç†å¤±è´¥ï¼ŒLauncherå°†å…¶é‡ç½®åˆ°READYçŠ¶æ€
+	RS_STATUS_OCCUPIED, //æ­£åœ¨å¤„ç†è§£å¯†ä»»åŠ¡,RS_STATUS_AVAILABLEä¹‹åè®¾ç½®çš„çŠ¶æ€
 
 	//other
 	RS_STATUS_MAX
@@ -41,17 +41,17 @@ struct crack_block;
 
 struct _resourceslotpool
 {
-	char		    m_guid[40];				//½âÃÜµ¥Ôª¹¤×÷Õß±àºÅ
-	unsigned short	m_worker_type;			//¹¤×÷ÕßÀàĞÍ£¬CPU,GPU,FPGA
-	unsigned short	m_device;				//GPUµÄplatform|Éè±¸ID/CPUµÄID
-	unsigned short	m_rs_status;			//µ±Ç°slot×´Ì¬
-	unsigned short  m_progress;				//workitem¶ÔÓ¦µÄ½ø¶È
-	bool	 	    m_b_islocked;			//»¥³âËø
-	bool 		    m_is_recovered;			//ÃÜÂëÊÇ·ñ»Ö¸´³É¹¦
-	string		    m_string_pars;			//½âÃÜµ¥Ôª²ÎÊı
-	char		    m_password[32];			//Èç¹û½âÃÜ³É¹¦£¬ÕâÀï±£´æÃÜÂëÃ÷ÎÄ
-	crack_block*	m_item;					//½âÃÜµÄworkitem£¬ĞèÒª¶¯Ì¬·ÖÅä
-	unsigned short  m_shared;				//ÊÇ·ñÓëÆäËûdeviceµÄ¹²Ïí
+	char		    m_guid[40];				//è§£å¯†å•å…ƒå·¥ä½œè€…ç¼–å·
+	unsigned short	m_worker_type;			//å·¥ä½œè€…ç±»å‹ï¼ŒCPU,GPU,FPGA
+	unsigned short	m_device;				//GPUçš„platform|è®¾å¤‡ID/CPUçš„ID
+	unsigned short	m_rs_status;			//å½“å‰slotçŠ¶æ€
+	unsigned short  m_progress;				//workitemå¯¹åº”çš„è¿›åº¦
+	bool	 	    m_b_islocked;			//äº’æ–¥é”
+	bool 		    m_is_recovered;			//å¯†ç æ˜¯å¦æ¢å¤æˆåŠŸ
+	string		    m_string_pars;			//è§£å¯†å•å…ƒå‚æ•°
+	char		    m_password[32];			//å¦‚æœè§£å¯†æˆåŠŸï¼Œè¿™é‡Œä¿å­˜å¯†ç æ˜æ–‡
+	crack_block*	m_item;					//è§£å¯†çš„workitemï¼Œéœ€è¦åŠ¨æ€åˆ†é…
+	unsigned short  m_shared;				//æ˜¯å¦ä¸å…¶ä»–deviceçš„å…±äº«
 };
 
 class ResourcePool
@@ -60,8 +60,8 @@ private:
 	bool	m_b_inited;
 	pthread_mutex_t mutex;
 	
-	vector <struct _resourceslotpool *> m_rs_pool;//´æ·ÅËùÓĞµÄ¼ÆËã×ÊÔ´
-	vector <struct _resourceslotpool *> m_done_pool;//´æ·Å¼ÆËã½áÊøµÄ×ÊÔ´£¬±ØÒªÊ±Çå¿Õ
+	vector <struct _resourceslotpool *> m_rs_pool;//å­˜æ”¾æ‰€æœ‰çš„è®¡ç®—èµ„æº
+	vector <struct _resourceslotpool *> m_done_pool;//å­˜æ”¾è®¡ç®—ç»“æŸçš„èµ„æºï¼Œå¿…è¦æ—¶æ¸…ç©º
 
 	unsigned m_base_coordinator;
 	unsigned m_base_launcher;
@@ -77,27 +77,28 @@ public:
 	void Lock(void);
 	void UnLock(void);	
 	/***************************************************************
-	ÂÖÁ÷²éÑ¯»úÖÆ
+	è½®æµæŸ¥è¯¢æœºåˆ¶
 	***************************************************************/
 	unsigned m_bIsLauncher;
 
-	//Coordinator²éÑ¯½Ó¿Ú
+	//CoordinatoræŸ¥è¯¢æ¥å£
 	struct _resourceslotpool* CoordinatorQuery(unsigned &u_status);
 	
-	//Launcher²éÑ¯½Ó¿Ú
+	//LauncheræŸ¥è¯¢æ¥å£
 	struct _resourceslotpool* LauncherQuery(unsigned &u_status);
 	
 	struct _resourceslotpool* QueryByGuid(const char* guid);
 		
 	/***************************************************************
-	´¦Àí½Ó¿Ú
+	å¤„ç†æ¥å£
 	***************************************************************/
 	void SetToReady(struct _resourceslotpool*);
 	void SetToOccupied(struct _resourceslotpool*);
+	void SetToFailed(struct _resourceslotpool*);
 	void SetToAvailable(struct _resourceslotpool*, crack_block* item);
 	void SetToRecover(struct _resourceslotpool*, bool cracked, const char* passwd);
 	
-	//¿ÉÒÔÔö¼ÓÆäËû´¦Àíº¯Êı¡£
+	//å¯ä»¥å¢åŠ å…¶ä»–å¤„ç†å‡½æ•°ã€‚
 };
 
 #endif

@@ -1,4 +1,4 @@
-#ifndef _CRACK_H_
+ï»¿#ifndef _CRACK_H_
 #define _CRACK_H_
 
 #include <map>
@@ -48,20 +48,20 @@ public:
 	int StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short deviceId);
 	int StopCrack(const char* guid);
 	
-	//×¢²á»Øµ÷º¯Êı
+	//æ³¨å†Œå›è°ƒå‡½æ•°
 	void RegisterCallback(ProcessDone done, ProgressStatus status);
 	
-	//¶ÁÈ¡µ÷ÓÃ½ø³ÌµÄstdoutºÍstderrµÄÊä³öĞÅÏ¢
-	//·Ç×èÈû, -1±íÊ¾Ã»ÓĞÊı¾İ£¬ 0±íÊ¾½ø³ÌÒÑ¾­½áÊø£¬ÆäËû±íÊ¾Êµ¼Ê¶ÁÈëµÄÊı¾İÁ¿
+	//è¯»å–è°ƒç”¨è¿›ç¨‹çš„stdoutå’Œstderrçš„è¾“å‡ºä¿¡æ¯
+	//éé˜»å¡, -1è¡¨ç¤ºæ²¡æœ‰æ•°æ®ï¼Œ 0è¡¨ç¤ºè¿›ç¨‹å·²ç»ç»“æŸï¼Œå…¶ä»–è¡¨ç¤ºå®é™…è¯»å…¥çš„æ•°æ®é‡
 	int ReadFromLancher(const char* guid, char* buf, int n);
 	
-	//Íùµ÷ÓÃ½ø³ÌÀïÃæĞ´ĞÅÏ¢£ºÄ£Äâµ÷ÓÃ½ø³ÌµÄstdin
-	//·Ç×èÈû, 0±íÊ¾½ø³ÌÒÑ¾­½áÊø£¬ÆäËû±íÊ¾Êµ¼ÊĞ´ÈëµÄÊı¾İÁ¿
+	//å¾€è°ƒç”¨è¿›ç¨‹é‡Œé¢å†™ä¿¡æ¯ï¼šæ¨¡æ‹Ÿè°ƒç”¨è¿›ç¨‹çš„stdin
+	//éé˜»å¡, 0è¡¨ç¤ºè¿›ç¨‹å·²ç»ç»“æŸï¼Œå…¶ä»–è¡¨ç¤ºå®é™…å†™å…¥çš„æ•°æ®é‡
 	int WriteToLancher(const char* guid, const char* buf, int n);
 
-	//ÒÔÏÂµÄĞéº¯ÊıĞèÒªÔÚÏÖÃ¿¸ö½âÃÜÈí¼şÊµÏÖ
+	//ä»¥ä¸‹çš„è™šå‡½æ•°éœ€è¦åœ¨ç°æ¯ä¸ªè§£å¯†è½¯ä»¶å®ç°
 	
-	//Æô¶¯
+	//å¯åŠ¨
 	virtual int Launcher(const crack_block* item, bool gpu, unsigned short deviceId) = 0;
 };
 

@@ -1,4 +1,4 @@
-#include "HashKill.h"
+ï»¿#include "HashKill.h"
 #include "algorithm_types.h"
 #include "err.h"
 #include "CLog.h"
@@ -24,8 +24,8 @@ struct hash_parameter{
 };
 
 static const char* charsets[] = {
-	"num",			 //¶ÔÓ¦ÓÚcrack_charsetÖĞµÄcharset_num
-	"lalpha",		//ÒÔ´ËÀàËÆ		
+	"num",			 //å¯¹åº”äºcrack_charsetä¸­çš„charset_num
+	"lalpha",		//ä»¥æ­¤ç±»ä¼¼		
 	"ualpha",
 	"alpha",
 	"lalphanum",
@@ -121,13 +121,13 @@ int HashKill::Launcher(const crack_block* item, bool gpu, unsigned short deviceI
 	}
 	if(i == SUPPORT_HASH_NUM)
 	{
-		//Î´ÕÒµ½Ö¸¶¨½âÃÜÀàĞÍ
+		//æœªæ‰¾åˆ°æŒ‡å®šè§£å¯†ç±»å‹
 		return ERR_NO_SUPPORT_ALGO;
 	}
 
 	if(charset < charset_num || charset > charset_ascii)
 	{
-		//²»Ö§³Ö×Ô¶¨ÒåÀàĞÍ
+		//ä¸æ”¯æŒè‡ªå®šä¹‰ç±»å‹
 		return ERR_NO_SUPPORT_CHARSET;
 	}
 
@@ -198,7 +198,7 @@ void *HashKill::MonitorThread(void *p)
 		buffer[n] = 0;
 		s = buffer;
 				
-		idx = s.rfind("Progress:");//½ø¶È±êÖ¾
+		idx = s.rfind("Progress:");//è¿›åº¦æ ‡å¿—
 		if(idx != string::npos){
 			idx2 = s.find("\r", idx);
 			if(idx2 != string::npos){
@@ -220,7 +220,7 @@ void *HashKill::MonitorThread(void *p)
 		
 		//if(idx == string::npos || ncount > 0)
 		{
-			idx =  s.rfind("Preimage:\n");//ÆÆ½â±êÖ¾
+			idx =  s.rfind("Preimage:\n");//ç ´è§£æ ‡å¿—
 			if(idx != string::npos){
 				idx += strlen("Preimage:\n");
 				idx2 = s.find("---\n", idx);

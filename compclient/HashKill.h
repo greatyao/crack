@@ -1,4 +1,4 @@
-#ifndef __HASHKILL_H__
+﻿#ifndef __HASHKILL_H__
 #define __HASHKILL_H__
 
 #include "Crack.h"
