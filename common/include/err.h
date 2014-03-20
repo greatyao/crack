@@ -1,20 +1,20 @@
-#ifndef _ERR_H_
+ï»¿#ifndef _ERR_H_
 #define _ERR_H_
 
 
 #define ERR_SUCCEED				0
-#define ERR_INVALID_PARAM		-1		//²ÎÊı·Ç·¨
-#define ERR_NO_THISTASK			-2		//Ã»ÓĞ¸ÃÈÎÎñ
-#define ERR_NO_SUPPORT_ALGO		-3		//²»Ö§³Ö¸Ã½âÃÜÀàĞÍ	
-#define ERR_NO_SUPPORT_CHARSET	-4		//²»Ö§³Ö¸Ã×Ö·û¼¯
-#define ERR_FAILED_KILL			-5		//ÖÕÖ¹Ê§°Ü
-#define ERR_LAUCH_TASK			-6		//Æô¶¯Ê§°Ü
-#define ERR_COMPRESS			-7		//Ñ¹ËõÊı¾İÊ§°Ü
-#define ERR_UNCOMPRESS			-8		//½âÑ¹ËõÊı¾İÊ§°Ü
-#define ERR_INVALIDDATA			-9		//´Ósocket¶Ë½ÓÊÕµ½²»ÕıÈ·µÄ¸ñÊ½Êı¾İ
-#define ERR_CONNECTIONLOST		-10		//Óësocket¶Ï¿ªÁ¬½Ó
-#define ERR_INTERNALCLIENT		-11		//ClientÄÚ²¿´íÎó
-#define ERR_TIMEOUT				-12		//³¬Ê±
-#define ERR_FILENOEXIST			-13		//ÎÄ¼ş´ò¿ªÊ§°Ü
+#define ERR_INVALID_PARAM		-1		//å‚æ•°éæ³•
+#define ERR_NO_THISTASK			-2		//æ²¡æœ‰è¯¥ä»»åŠ¡
+#define ERR_NO_SUPPORT_ALGO		-3		//ä¸æ”¯æŒè¯¥è§£å¯†ç±»å‹	
+#define ERR_NO_SUPPORT_CHARSET	-4		//ä¸æ”¯æŒè¯¥å­—ç¬¦é›†
+#define ERR_FAILED_KILL			-5		//ç»ˆæ­¢å¤±è´¥
+#define ERR_LAUCH_TASK			-6		//å¯åŠ¨å¤±è´¥
+#define ERR_COMPRESS			-7		//å‹ç¼©æ•°æ®å¤±è´¥
+#define ERR_UNCOMPRESS			-8		//è§£å‹ç¼©æ•°æ®å¤±è´¥
+#define ERR_INVALIDDATA			-9		//ä»socketç«¯æ¥æ”¶åˆ°ä¸æ­£ç¡®çš„æ ¼å¼æ•°æ®
+#define ERR_CONNECTIONLOST		-10		//ä¸socketæ–­å¼€è¿æ¥
+#define ERR_INTERNALCLIENT		-11		//Clientå†…éƒ¨é”™è¯¯
+#define ERR_TIMEOUT				-12		//è¶…æ—¶
+#define ERR_FILENOEXIST			-13		//æ–‡ä»¶æ‰“å¼€å¤±è´¥
 
 #endif

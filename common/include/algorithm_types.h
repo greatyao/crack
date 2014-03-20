@@ -1,4 +1,4 @@
-#ifndef ALGORITHM_TYPES_H
+ï»¿#ifndef ALGORITHM_TYPES_H
 #define ALGORITHM_TYPES_H
 
 #define HASHFILE_MAX_PLAIN_LENGTH 128
@@ -14,7 +14,7 @@ enum crack_charset
 	charset_ualphanum,	//ualpha+num
 	charset_alphanum,	//alpha+num
 	charset_ascii,		//alpha+num+~!@#$%^&*()_+{}|":?><-=[]\';/.,
-	charset_custom,		//×Ô¼º¶¨Òå
+	charset_custom,		//è‡ªå·±å®šä¹‰
 };
 
 enum crack_type
@@ -81,19 +81,19 @@ enum crack_algorithm
 //workitem
 struct crack_block
 {
-	unsigned char algo;		//½âÃÜËã·¨
-	unsigned char charset;	//½âÃÜ×Ö·û¼¯
-	unsigned char type;		//½âÃÜÀàÐÍ
-	unsigned char special;	//ÊÇ·ñÊÇÎÄ¼þ½âÃÜ£¨pdf+office+rar+zip£©
-	char guid[40];			//·þÎñ¶ËµÄworkitemµÄGUID
-	char john[HASHFILE_MAX_PLAIN_LENGTH];			//¸ñÊ½£ºe10adc3949ba59abbe56e057f20f883e ºóÃæµÄÎªhashÖµ
-							//Èç¹ûÊÇÎÄ¼þ½âÃÜ£¬ÕâÀï´æ·ÅÎÄ¼þÃû
-	unsigned short start;	//¿ªÊ¼³¤¶È
-	unsigned short end;		//½áÊø³¤¶È
-	//ÒÔÏÂÁ½¸öÊÇË÷Òý
+	unsigned char algo;		//è§£å¯†ç®—æ³•
+	unsigned char charset;	//è§£å¯†å­—ç¬¦é›†
+	unsigned char type;		//è§£å¯†ç±»åž‹
+	unsigned char special;	//æ˜¯å¦æ˜¯æ–‡ä»¶è§£å¯†ï¼ˆpdf+office+rar+zipï¼‰
+	char guid[40];			//æœåŠ¡ç«¯çš„workitemçš„GUID
+	char john[HASHFILE_MAX_PLAIN_LENGTH];			//æ ¼å¼ï¼še10adc3949ba59abbe56e057f20f883e åŽé¢çš„ä¸ºhashå€¼
+							//å¦‚æžœæ˜¯æ–‡ä»¶è§£å¯†ï¼Œè¿™é‡Œå­˜æ”¾æ–‡ä»¶å
+	unsigned short start;	//å¼€å§‹é•¿åº¦
+	unsigned short end;		//ç»“æŸé•¿åº¦
+	//ä»¥ä¸‹ä¸¤ä¸ªæ˜¯ç´¢å¼•
 	unsigned short start2;	//55555-99999:start2=5,end2=9	000-55555:start2=0,end2=5
 	unsigned short end2;
-	char custom[0]; //ÓÃ»§×Ô¶¨ÒåµÄ×Ö·û¼¯
+	char custom[0]; //ç”¨æˆ·è‡ªå®šä¹‰çš„å­—ç¬¦é›†
 };
 
 //hash
@@ -104,24 +104,24 @@ struct crack_hash
 	char salt2[HASHFILE_MAX_PLAIN_LENGTH];
 };
 
-//½âÃÜÈÎÎñ
+//è§£å¯†ä»»åŠ¡
 struct crack_task
 {
-	unsigned char algo;		//½âÃÜËã·¨
-	unsigned char charset;	//½âÃÜ×Ö·û¼¯
-	unsigned char type;		//½âÃÜÀàÐÍ
-	unsigned char special;	//ÊÇ·ñÊÇÎÄ¼þ½âÃÜ£¨pdf+office+rar+zip£©
-	unsigned char filename[256];	//ÓÃ»§´«¹ýÀ´µÄÎÄ¼þÃû
-	char guid[40];			//ÓÃ»§¶ËµÄÈÎÎñµÄGUID
-	int count;				//ÐèÒª½âÃÜµÄHash¸öÊý£¨Èç¹ûÊÇÎÄ¼þ=1£©
-	struct crack_hash hashes[0];			//ÕâÀïÐèÒª¶¯Ì¬ÉêÇë
+	unsigned char algo;		//è§£å¯†ç®—æ³•
+	unsigned char charset;	//è§£å¯†å­—ç¬¦é›†
+	unsigned char type;		//è§£å¯†ç±»åž‹
+	unsigned char special;	//æ˜¯å¦æ˜¯æ–‡ä»¶è§£å¯†ï¼ˆpdf+office+rar+zipï¼‰
+	unsigned char filename[256];	//ç”¨æˆ·ä¼ è¿‡æ¥çš„æ–‡ä»¶å
+	char guid[40];			//ç”¨æˆ·ç«¯çš„ä»»åŠ¡çš„GUID
+	int count;				//éœ€è¦è§£å¯†çš„Hashä¸ªæ•°ï¼ˆå¦‚æžœæ˜¯æ–‡ä»¶=1ï¼‰
+	struct crack_hash hashes[0];			//è¿™é‡Œéœ€è¦åŠ¨æ€ç”³è¯·
 	
 };
 
-//ÕâÀïÃèÊöÒ»ÏÂcrack_task/crack_hash/crack_blockÈýÕßµÄ¹ØÏµ
-//ÓÃ»§ÉÏ´«Ò»¸ö½âÃÜÈÎÎñ£¨½âÃÜÎÄ¼þ¡¢Ëã·¨¡¢×Ö·û¼¯¡¢×Ö·û³¤¶È£©£¬
-//·þÎñ¶Ë½âÎöÎÄ¼þµÃµ½Èô¸É¸öcrack_hash£¨¿ÉÒÔ±£´æÔÚcrack_taskÀïÃæ£¬ÐèÒª¶¯Ì¬ÉêÇë£©£¬
-//È»ºóÇÐ¸îËã·¨½«Æä·Ö¸î³ÉÈô¸É¸öcrack_block
+//è¿™é‡Œæè¿°ä¸€ä¸‹crack_task/crack_hash/crack_blockä¸‰è€…çš„å…³ç³»
+//ç”¨æˆ·ä¸Šä¼ ä¸€ä¸ªè§£å¯†ä»»åŠ¡ï¼ˆè§£å¯†æ–‡ä»¶ã€ç®—æ³•ã€å­—ç¬¦é›†ã€å­—ç¬¦é•¿åº¦ï¼‰ï¼Œ
+//æœåŠ¡ç«¯è§£æžæ–‡ä»¶å¾—åˆ°è‹¥å¹²ä¸ªcrack_hashï¼ˆå¯ä»¥ä¿å­˜åœ¨crack_taské‡Œé¢ï¼Œéœ€è¦åŠ¨æ€ç”³è¯·ï¼‰ï¼Œ
+//ç„¶åŽåˆ‡å‰²ç®—æ³•å°†å…¶åˆ†å‰²æˆè‹¥å¹²ä¸ªcrack_block
 
 struct hash_list_s
 {
