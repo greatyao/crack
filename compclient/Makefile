@@ -19,15 +19,16 @@ OCLLIBS = -L ../libs/linux/$(ARCH)/ -lOpenCL
 endif
 
 
-SRCS+= Crack.cpp
-SRCS+= oclHashcat.cpp
-SRCS+= HashKill.cpp
+SRCS+= main.cpp
 SRCS+= launcher.cpp
 SRCS+= resourceslotpool.cpp
 SRCS+= coordinator.cpp
+SRCS+= oclHashcat.cpp
+SRCS+= Crack.cpp
+SRCS+= CrackManager.cpp
+SRCS+= HashKill.cpp
 SRCS+= Client.cpp
 SRCS+= Config.cpp
-SRCS+= main.cpp
  
 VPATH+= ../common/
 SRCS+= CLog.cpp
