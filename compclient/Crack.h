@@ -1,4 +1,12 @@
-﻿#ifndef _CRACK_H_
+﻿/* Crack.h
+ *
+ * Abstarct class for crack algorithms
+ * Copyright (C) 2014 TRIMPS
+ *
+ * Craeted By YAO Wei at  03/17/2014
+ */
+ 
+#ifndef _CRACK_H_
 #define _CRACK_H_
 
 #include <map>
@@ -39,10 +47,13 @@ protected:
 	int Kill(const char* guid);
 	int CleanUp(const char* guid);
 	int UpdateStatus(const char* guid, int progress, float speed, unsigned int elapseTime, unsigned int remainTime);
+	int SetPath(const char* path);
 	
+	char path[256];
 	std::map<std::string, struct lauch_param> running;
 	ProcessDone doneFunc;
 	ProgressStatus statusFunc;
+	friend class CrackManager;
 
 public:
 	int StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short deviceId);

@@ -1,4 +1,12 @@
-﻿#include "Crack.h"
+﻿/* Crack.cpp
+ *
+ * Abstarct class for crack algorithms
+ * Copyright (C) 2014 TRIMPS
+ *
+ * Craeted By YAO Wei at  03/17/2014
+ */
+ 
+#include "Crack.h"
 #include "algorithm_types.h"
 #include "err.h"
 #include "CLog.h"
@@ -30,6 +38,12 @@ Crack::~Crack(void)
 		pthread_cancel(it->second.tid);
 	}
 }
+
+int Crack::SetPath(const char* _path)
+{
+	strncpy(path, _path, sizeof(path));
+}
+	
 
 void Crack::RegisterCallback(ProcessDone done, ProgressStatus status)
 {
