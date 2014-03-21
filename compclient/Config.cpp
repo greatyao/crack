@@ -1,4 +1,12 @@
-﻿#include <stdio.h>
+﻿/* Config.cpp
+ *
+ * Loading Configuration
+ * Copyright (C) 2014 TRIMPS
+ *
+ * Created By YAO Wei at  03/21/2014
+ */
+
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -143,7 +151,6 @@ int Config::ReadConfig(const string & filename)
 			if (AnalyseLine(line, key, value)) 
 			{
 				values[key] = value;
-				fprintf(stderr, "%s: %s\n", key.c_str(), value.c_str());
 			}		
 	    }
 	}

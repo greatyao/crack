@@ -1,3 +1,11 @@
+/* Config.h
+ *
+ * Loading Configuration
+ * Copyright (C) 2014 TRIMPS
+ *
+ * Created By YAO Wei at  03/21/2014
+ */
+ 
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
