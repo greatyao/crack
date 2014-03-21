@@ -34,9 +34,10 @@ VPATH+= ../common/
 SRCS+= CLog.cpp
 
 VPATH+= ../plugins/
-SRCS+= plugin.cpp
-SRCS+= loadfiles.cpp
-SRCS+= md5.cpp
+SRCS+= $(shell find ../plugins/ -name "*.cpp")
+#SRCS+= plugin.cpp
+#SRCS+= loadfiles.cpp
+#SRCS+= md5.cpp
 
  
 CPPFLAGS+= -D_XOPEN_SOURCE -D_GNU_SOURCE -DTEST
