@@ -24,8 +24,8 @@ struct hash_parameter{
 };
 
 static const char* charsets[] = {
-	"num",			 //¶ÔÓ¦ÓÚcrack_charsetÖÐµÄcharset_num
-	"lalpha",		//ÒÔ´ËÀàËÆ		
+	"num",			 //¿¿¿crack_charset¿¿charset_num
+	"lalpha",		//¿¿¿¿
 	"ualpha",
 	"alpha",
 	"lalphanum",
@@ -48,7 +48,7 @@ static struct hash_parameter all_support_hashes[] =
 	{algo_joomla,		"-p joomla -b%d:%d:%s %s %s"},
 	{algo_vbulletin,    "-p vbulletin -b%d:%d:%s %s %s"},
 	{algo_desunix,      "-p desunix -b%d:%d:%s %s %s"},
-	{algo_sha1,         "-p sha1 -b%d:%d:%s %s %s"},
+	{algo_sha1,         "-m 100 -a 3 --increment-min=%d --increment-max=%d %s %s"},//finished
 	{algo_sha1sha1,     "-p sha1sha1 -b%d:%d:%s %s %s"},
 	{algo_sha256,       "-p sha256 -b%d:%d:%s %s %s"},
 	{algo_sha256unix,   "-p sha256unix -b%d:%d:%s %s %s"},
@@ -122,22 +122,24 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short devic
 	}
 	if(i == SUPPORT_HASH_NUM)
 	{
-		//Î´ÕÒµ½Ö¸¶¨½âÃÜÀàÐÍ
+		//¿¿¿¿¿¿¿¿¿
 		return ERR_NO_SUPPORT_ALGO;
 	}
 
 	if(charset < charset_num || charset > charset_ascii)
 	{
-		//²»Ö§³Ö×Ô¶¨ÒåÀàÐÍ
+		//¿¿¿¿¿¿¿¿
 		return ERR_NO_SUPPORT_CHARSET;
 	}
 
 	char cmd[4096];
 	char others[128];
-	//if(!gpu)
-	//	sprintf(others, "-c");
-	//else
-		sprintf(others, "-d %d", deviceId+1);
+	if(!gpu){
+		sprintf(others, "-c");
+		return ERR_INVALID_PARAM;
+	}
+	else
+		sprintf(others, "-d %d", deviceId+2);
 
 // sprintf(cmd, fmt, start, end, charsets[charset], others, item->john);
 	sprintf(cmd, fmt, start, end, others, item->john);
@@ -179,34 +181,28 @@ void *oclHashcat::MonitorThread(void *p)
 	char guid[40];
 	memcpy(guid, param->guid, sizeof(guid));
 	free(param);
-	time_t t0 = time(NULL);
-	
+	time_t t0 = time(NULL), t1, t2 = t0;
+        bool cracked = false;	
 	char buffer[2048] = {0};
 	int n;
-	int cumm = 0;
-	string s;
+	string s,s_result;
 	int idx, idx2,idx3;
 	int progress, ncount;
 	char avgspeed[128];	
-	char text[32];
+	char text[128]={0};
 
 	while(1)
 	{
 		n = ocl_hashcat->ReadFromLancher(guid, buffer, sizeof(buffer)-1);
 		if(n == 0) {
-			printf("[done]\n");
-			CLog::Log(LOG_LEVEL_ERROR,"done!!!!!!\n");
+			CLog::Log(LOG_LEVEL_ERROR,"%s: Detected child exit\n",__FUNCTION__);
 			//exit(0);
 			break;
 		}else if(n < 0){
-			//CLog::Log(LOG_LEVEL_ERROR,"done2!!!!!!\n");
-			if(cumm == 5) goto write;
-			
-		usleep(1000);//sleep(1);
-			continue;
+			goto write;
 		} 
 		buffer[n] = 0;
-		CLog::Log(LOG_LEVEL_NOMAL,"read[%d] %s\n", n, buffer);
+		//CLog::Log(LOG_LEVEL_NOMAL,"read[%d] %s\n", n, buffer);
 		s = buffer;
 				
 //	CLog::Log(LOG_LEVEL_ERROR,"%s",ocl_hashcat->crack);
@@ -231,24 +227,42 @@ void *oclHashcat::MonitorThread(void *p)
 			//	idx3 = s.rfind("\n",idx);
 				if(idx2 != string::npos){
 					printf("find idx2\n");
-				string s2=s.substr(idx,idx2-idx);
-				idx3 = s2.find(":");
+					string s2=s.substr(idx,idx2-idx);
+					idx3 = s2.find(":");
 //				printf("%d\n",idx3);
-				string s_result=s2.substr(idx3+1,idx2-idx3);
-				CLog::Log(LOG_LEVEL_ERROR,"%s\n",s_result.c_str());
-				goto confirm;
-	
+					s_result=s2.substr(idx3+1,idx2-idx3);
+					CLog::Log(LOG_LEVEL_ERROR,"%s\n",s_result.c_str());
+					goto confirm;
 				}                   
-
+			}
+			idx = s.rfind("Status.........: Exhausted");
+			if(idx != string::npos){
+				CLog::Log(LOG_LEVEL_ERROR,"Exhausted Cracking\n");
+				cracked = false;
 			}	
 		}
 confirm:
-	idx = s.rfind("Status.........: Cracked");
+	idx = s.rfind("Status.........: Cracked");//¿¿¿¿
         if(idx != string::npos){
-     		 CLog::Log(LOG_LEVEL_ERROR,"Confirming Cracked successfully\n");
+     		CLog::Log(LOG_LEVEL_ERROR,"Confirming Cracked successfully\n");
+		cracked = true;
 	}
+	
 write:	
-		cumm = 0;
+		 if(t1 - t2 >= 2)
+                {
+                        t2 = t1;
+                      //n = ocl_hashcat->WriteToLancher(guid, "\n", 1);
+                       /* if(n == ERR_NO_THISTASK || n == 0)
+                        {
+                                CLog::Log(LOG_LEVEL_NOMAL,"%s: Detected child exit2\n", __FUNCTION__);
+                                break;
+                        }*/
+                }
 	}
+	if(ocl_hashcat->doneFunc)
+		ocl_hashcat->doneFunc(guid,cracked,s_result.c_str());
+	printf("uploaded result!____________________________________\n");
+
 	return NULL;
 }
