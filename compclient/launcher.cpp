@@ -68,14 +68,16 @@ void *clauncher::Thread(void*par)//扫描线程
 	clauncher *p = (clauncher*)par;
 	struct _resourceslotpool *prsp;
 	unsigned uStatus = 0;
+	ResourcePool& pool = ResourcePool::Get();
 
-	while(p->m_bStop!=true)
+	while(1)
 	{
+		if(p->m_bStop) break;
+		
 		//do
-		ResourcePool::Get().Lock();
-		prsp = ResourcePool::Get().LauncherQuery(uStatus);
-		if(!uStatus)
-			goto next;
+		pool.Lock();
+		prsp = pool.LauncherQuery(uStatus);
+		if(!uStatus)	goto next;
 		
 		//处理
 		switch(uStatus)
@@ -85,7 +87,7 @@ void *clauncher::Thread(void*par)//扫描线程
 					//提交给解密插件执行，执行完毕设置执行结果
 					crack_block* block = prsp->m_item;
 					bool lauched = CrackManager::Get().StartCrack(block, block->guid, prsp->m_worker_type == DEVICE_GPU, prsp->m_device) == 0;
-					CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator: launch task %s\n", lauched?"succeed":"failed");
+					CLog::Log(LOG_LEVEL_NOMAL,"claucher: launch task %s\n", lauched?"succeed":"failed");
 					
 					crack_result result;
 					strcpy(result.guid, prsp->m_guid);
@@ -93,9 +95,9 @@ void *clauncher::Thread(void*par)//扫描线程
 					Client::Get().ReportResultToServer(&result);
 			
 					if(!lauched){
-						ResourcePool::Get().SetToFailed(prsp);
+						pool.SetToFailed(prsp);
 					} else{
-						ResourcePool::Get().SetToOccupied(prsp);
+						pool.SetToOccupied(prsp);
 					}
 				}
 				break;
@@ -103,7 +105,7 @@ void *clauncher::Thread(void*par)//扫描线程
 				{	
 					//重新初始化资源池，并释放资源池
 					CLog::Log(LOG_LEVEL_NOMAL,"clauncher: find failed task\n");
-					ResourcePool::Get().SetToReady(prsp);
+					pool.SetToReady(prsp);
 				}
 				break;
 	
@@ -116,12 +118,12 @@ void *clauncher::Thread(void*par)//扫描线程
 			default:break;
 		}
 next:
-		ResourcePool::Get().UnLock();
 		//随便等待一下，这里仅供测试，实际不需要
-		Sleep(3000);
+		pool.UnLock();
+		sleep(3);
 	}
 	
-	fprintf(stderr, "leaving %s\n", __FUNCTION__);
+	CLog::Log(LOG_LEVEL_NOMAL, "claucher: Exit thread\n");
 	
 	return 0;
 }
@@ -143,13 +145,13 @@ void clauncher::Start(void)//开始扫描线程
 	int returnValue = pthread_create( &m_pThread, &attr, Thread, (void *)this);
 	if( returnValue != 0 )
 	{
-		CLog::Log(LOG_LEVEL_ERROR,"clauncher: failed to create thread[%d]\n", errno);
+		CLog::Log(LOG_LEVEL_ERROR,"clauncher: Failed to create thread[%d]\n", errno);
 		m_bStop = true;
 		m_bThreadRunning = false;
 	}
 	else
 	{
-		CLog::Log(LOG_LEVEL_NOMAL,"clauncher: create thread\n");
+		CLog::Log(LOG_LEVEL_NOMAL,"clauncher: Create thread\n");
 		m_bStop = false;
 		m_bThreadRunning = true;
 	}
@@ -160,15 +162,15 @@ void clauncher::Stop(void)//停止扫描线程
 	{
 		return;
 	}
-
+	
 	m_bStop = true;
 	int returnValue = pthread_join(m_pThread, NULL);
 	if( returnValue != 0 )
 	{
-		CLog::Log(LOG_LEVEL_ERROR,"clauncher: failed to exit thread: %d\n", errno);
+		CLog::Log(LOG_LEVEL_ERROR,"clauncher: Failed to exit thread: %d\n", errno);
 	}
 	else{
-		CLog::Log(LOG_LEVEL_NOMAL,"clauncher: exit thread\n");
+		CLog::Log(LOG_LEVEL_NOMAL,"clauncher: Succeed to exit thread\n");
 	}
 	m_bThreadRunning = false;
 }
