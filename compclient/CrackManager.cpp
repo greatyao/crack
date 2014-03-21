@@ -9,7 +9,7 @@
 #include "CrackManager.h"
 #include "Crack.h"
 #include "oclHashcat.h"
-#include "Hashkill.h"
+#include "HashKill.h"
 #include "CLog.h"
 #include "Config.h"
 #include "algorithm_types.h"
