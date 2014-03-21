@@ -1,4 +1,12 @@
-﻿#ifndef __CLIENT_H__
+﻿/* Client.h
+ *
+ * Client for connection with server
+ * Copyright (C) 2014 TRIMPS
+ *
+ * Created By YAO Wei at  03/19/2014
+ */
+ 
+#ifndef __CLIENT_H__
 #define __CLIENT_H__
 
 #include <pthread.h>
@@ -11,6 +19,9 @@ class Client
 {
 public:
 	static Client& Get();
+	
+	//销毁资源
+	void Destory();
 	
 	int Connect(const char* ip, unsigned short port);
 	
@@ -40,6 +51,7 @@ private:
 	char ip[16];
 	unsigned short port;
 	int connected;//0表示断开，1表示正在连，2表示连接上了
+	bool stop;
 	pthread_t tid;
 	pthread_mutex_t mutex;
 };

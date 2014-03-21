@@ -83,7 +83,8 @@ int main(int argc, char *argv[])
 	//结束，清理
 	delete pcc;
 	delete pcl;
-
+	Client::Get().Destory();
+	
 	//关闭日志系统
 	CLog::ReleaseLogSystem();
 	return ret;

@@ -1,4 +1,12 @@
-﻿#include <unistd.h>
+﻿/* Client.cpp
+ *
+ * Client for connection with server
+ * Copyright (C) 2014 TRIMPS
+ *
+ * Created By YAO Wei at  03/19/2014
+ */
+ 
+#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h> 
@@ -41,15 +49,27 @@ Client::Client()
 {
 	sck = 0;
 	connected = false;
+	stop = false;
 	tid = 0;
 	pthread_mutex_init(&mutex, NULL);
 }
 
 Client::~Client()
 {
-	printf("*******************\n");
-	pthread_cancel(tid);
+	Destory();
 }
+
+void Client::Destory()
+{
+	if(tid)
+	{
+		stop = true;
+		pthread_join(tid, NULL);
+		tid = 0;
+		CLog::Log(LOG_LEVEL_NOMAL, "Client: Succeed to exit monitor thread\n");
+	}
+}
+
 
 void* Client::MonitorThread(void* p)
 {
@@ -63,6 +83,8 @@ void* Client::MonitorThread(void* p)
 	{
 		while(client->connected != 2)
 		{
+			if(client->stop) return NULL;
+			
 			CLog::Log(LOG_LEVEL_NOMAL, "Client: reconnect to server\n");
 			ret = client->Connect(client->ip, client->port);
 				
@@ -72,6 +94,8 @@ void* Client::MonitorThread(void* p)
 			
 		while(1)
 		{
+			if(client->stop) return NULL;
+
 			sleep(10);
 			
 			Lock lk(&client->mutex);
