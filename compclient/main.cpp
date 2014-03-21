@@ -6,6 +6,7 @@
 #include "coordinator.h"
 #include "launcher.h"
 #include "CLog.h"
+#include "CrackManager.h"
 #include "Client.h"
 #include "Config.h"
 #include "algorithm_types.h"
@@ -64,6 +65,9 @@ int main(int argc, char *argv[])
 
 	//资源池初始化
 	ResourcePool::Get().Init();
+	
+	//解密算法初始化
+	CrackManager::Get().Init();
 	
 	//初始化coordinator
 	ccoordinator *pcc = new ccoordinator();

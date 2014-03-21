@@ -3,9 +3,7 @@
 #include "CLog.h"
 #include "algorithm_types.h"
 #include "Client.h"
-#include "HashKill.h"
-
-Crack* hashkill = new HashKill();
+#include "CrackManager.h"
 
 #include <string.h>
 
@@ -19,7 +17,7 @@ clauncher::clauncher()
 {
 	m_bStop = true;
 	m_bThreadRunning = false;
-	hashkill->RegisterCallback(ReportDone, ReportStatus);
+	CrackManager::Get().RegisterCallback(ReportDone, ReportStatus);
 }
 
 clauncher::~clauncher()
@@ -86,7 +84,7 @@ void *clauncher::Thread(void*par)//扫描线程
 				{
 					//提交给解密插件执行，执行完毕设置执行结果
 					crack_block* block = prsp->m_item;
-					bool lauched = hashkill->StartCrack(block, block->guid, prsp->m_worker_type == DEVICE_GPU, prsp->m_device) == 0;
+					bool lauched = CrackManager::Get().StartCrack(block, block->guid, prsp->m_worker_type == DEVICE_GPU, prsp->m_device) == 0;
 					CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator: launch task %s\n", lauched?"succeed":"failed");
 					
 					crack_result result;
