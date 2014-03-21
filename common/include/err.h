@@ -17,5 +17,6 @@
 #define ERR_TIMEOUT				-12		//超时
 #define ERR_FILENOEXIST			-13		//文件打开失败
 #define ERR_CHILDEXIT			-14		//子进程已经结束
+#define ERR_NOENTRY				-15		//配置文件中没有该字段的相关信息
 
 #endif
