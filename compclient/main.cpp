@@ -7,7 +7,7 @@
 #include "launcher.h"
 #include "CLog.h"
 #include "Client.h"
-#include "loadfiles.h"
+#include "Config.h"
 #include "algorithm_types.h"
 
 #if defined(__CYGWIN__) || defined(__linux__)
@@ -43,27 +43,28 @@ static int main_loop()
 
 int main(int argc, char *argv[])
 {
-	//初始化日志系统（一个程序，只需要在最初初始化一次）
-	if(argc == 1)
-		CLog::InitLogSystem(LOG_TO_FILE, true, "sys.log");
-	else
-		CLog::InitLogSystem(LOG_TO_SCREEN, true, NULL);
-#if 0		
-	struct crack_hash hashes[32];
-	load_single_hash("63cb5261f4610ba648fcd5e1b72c3173", algo_md5, hashes);
-	printf("%s\n", hashes[0].hash);
+	//读取配置文件
+	Config::Get().ReadConfig("compclient.conf");
 	
-	int n = load_hashes_file("md5.hashes", algo_md5, hashes, sizeof(hashes));
-	for(int i = 0; i < n; i++)
-		printf("%d: %s\n", i, hashes[i].hash);
-#endif	
-		
-	Client::Get().Connect("192.168.18.117", 5150);
+	//初始化日志系统
+	string value;
+	if(Config::Get().GetValue("log_type", value) == 0 && value == "0")
+		CLog::InitLogSystem(LOG_TO_SCREEN, true, NULL);
+	else
+	{
+		Config::Get().GetValue("log_file", value);
+		CLog::InitLogSystem(LOG_TO_FILE, true, value.c_str());
+	}
 
-	//申请资源池类
+	//连接服务端
+	string addr, port;
+	Config::Get().GetValue("server_addr", addr);
+	Config::Get().GetValue("server_port", port);
+	Client::Get().Connect(addr.c_str(), atoi(port.c_str()));
+
+	//资源池初始化
 	ResourcePool::Get().Init();
 	
-	//cclient *pcomp = new cclient(); 
 	//初始化coordinator
 	ccoordinator *pcc = new ccoordinator();
 	//初始化launcher

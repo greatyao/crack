@@ -1,4 +1,4 @@
-MKDIR_P = /usr/bin/mkdir -p
+MKDIR_P = mkdir -p
 
 OS_NAME = $(shell uname -o)
 LC_OS_NAME = $(shell echo $(OS_NAME) | tr '[A-Z]' '[a-z]')
@@ -26,6 +26,7 @@ SRCS+= launcher.cpp
 SRCS+= resourceslotpool.cpp
 SRCS+= coordinator.cpp
 SRCS+= Client.cpp
+SRCS+= Config.cpp
 SRCS+= main.cpp
  
 VPATH+= ../common/
@@ -37,7 +38,7 @@ SRCS+= loadfiles.cpp
 SRCS+= md5.cpp
 
  
-CPPFLAGS+= -D_XOPEN_SOURCE -DTEST
+CPPFLAGS+= -D_XOPEN_SOURCE -D_GNU_SOURCE -DTEST
 CPPFLAGS+= -fPIC
 CPPFLAGS+= -I.
 CPPFLAGS+= -I../common/include
