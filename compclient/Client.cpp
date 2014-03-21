@@ -47,6 +47,8 @@ Client::Client()
 
 Client::~Client()
 {
+	printf("*******************\n");
+	pthread_cancel(tid);
 }
 
 void* Client::MonitorThread(void* p)
@@ -195,12 +197,13 @@ int Client::Read(void* data, int size)
 	if(read(sck, buf, totalN) < 0)
 		return ERR_CONNECTIONLOST;
 		
-	int ret = uncompress((Bytef*)data, (uLongf*)&size, buf, totalN);
+	unsigned long uncompressLen = size;
+	int ret = uncompress((Bytef*)data, (uLongf*)&uncompressLen, buf, totalN);
 	delete []buf;
-	if(ret != 0 || size != origN)
+	if(ret != 0 || uncompressLen != origN)
 		return ERR_UNCOMPRESS;
 		
-	return size;
+	return uncompressLen;
 }	
 
 int Client::Write(const void* data, int size)
@@ -271,7 +274,7 @@ int Client::GetWorkItemFromServer(crack_block* item)
 	int n = Read(buffer, sizeof(buffer));
 	
 	CLog::Log(LOG_LEVEL_NOMAL, "GetWorkItemFromServer: %d\n", n);
-#if 0	
+#if 1	
 	if(buffer[0] == CMD_GET_A_WORKITEM && n == sizeof(*item)+1)
 	{
 		memcpy(item, buffer+1, sizeof(*item));
