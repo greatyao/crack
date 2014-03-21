@@ -1,4 +1,12 @@
-﻿#ifndef __HASHKILL_H__
+﻿/* HashKill.h
+ *
+ * Hashkill tool for cracking
+ * Copyright (C) 2014 TRIMPS
+ *
+ * Craeted By YAO Wei at  03/17/2014
+ */
+ 
+#ifndef __HASHKILL_H__
 #define __HASHKILL_H__
 
 #include "Crack.h"

@@ -1,4 +1,12 @@
-﻿#include "HashKill.h"
+﻿/* HashKill.cpp
+ *
+ * Hashkill tool for cracking
+ * Copyright (C) 2014 TRIMPS
+ *
+ * Craeted By YAO Wei at  03/17/2014
+ */
+
+#include "HashKill.h"
 #include "algorithm_types.h"
 #include "err.h"
 #include "CLog.h"
@@ -11,12 +19,6 @@
 #include <unistd.h>
 
 using std::string;
-
-#ifdef __CYGWIN__
-static const char* path = "hashkill.exe";
-#else
-static const char* path = "/usr/local/bin/hashkill";
-#endif
 
 struct hash_parameter{
 	crack_algorithm algo;
