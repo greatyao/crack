@@ -2,7 +2,7 @@
 #if !defined(AFX_MACROS_H_INCLUDED)
 #define AFX_MACROS_H_INCLUDED
 
-struct control_data
+struct control_header
 {
 	unsigned char magic[5];			//G&CPU
 	unsigned char cmd;				//ÃüÁî×Ö
