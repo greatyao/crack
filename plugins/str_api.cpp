@@ -70,14 +70,15 @@ int isupperhex(char *hashline)
 
 std::vector<char*> split(char *hashline, char *str)
 {
-	char *c = strtok(hashline,str);
+	char *p;
+	char *c = strtok_r(hashline,str, &p);
 	std::vector<char*> v;
 
 	int i=0;
 	while(c!=NULL)
 	{
 		v.push_back(c);
-		c = strtok(NULL,str);
+		c = strtok_r(NULL,str, &p);
 	}
 	return v;
 }
