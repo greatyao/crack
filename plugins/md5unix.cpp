@@ -32,8 +32,19 @@ int md5unix_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 		return 1;
 }
 
+int md5unix_recovery(const struct crack_hash* hash, char* line, int size)
+{
+	if(!hash || !line || size <= 0)
+		return ERR_INVALID_PARAM;
+
+	snprintf(line, size, "%s", hash->hash);
+	return 0;
+}
+
 int md5unix_check_valid(struct crack_hash* hash)
 {
+	if (!hash) 
+		return ERR_INVALID_PARAM;
 	if((strlen(hash->hash) == 34) && isStartsWith(hash->hash,"$1"))
 		return 1;
 	else
