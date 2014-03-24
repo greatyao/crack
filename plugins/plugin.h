@@ -19,12 +19,16 @@ typedef int (*hash_plugin_is_special)();
 //检测hash串是否合法
 typedef int (*hash_plugin_check_valid)(struct crack_hash* hash);
 
+//将HASH串还原成原来的格式
+typedef int (*hash_plugin_recovery)(const struct crack_hash* hash, char* line, int size);
+
 struct hash_support_plugins
 {
 	int algo;
 	hash_plugin_parse_hash parse;
 	hash_plugin_is_special special;
 	hash_plugin_check_valid check;
+	hash_plugin_recovery recovery;
 };
 
 extern struct hash_support_plugins all_plugins[];
@@ -37,6 +41,7 @@ struct hash_support_plugins* locate_by_algorithm(int algo);
 int md4_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
 int md4_is_special();
 int md4_check_valid(struct crack_hash* hash);
+int md4_recovery(const struct crack_hash* hash, char* line, int size);
 
 //md5(其他的依次类推，请在这里做几个函数申明,然后相应的实现，并填充到all_plugins)
 int md5_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
@@ -57,6 +62,7 @@ int md5unix_check_valid(struct crack_hash* hash);
 int oscommerce_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
 int oscommerce_is_special();
 int oscommerce_check_valid(struct crack_hash* hash);
+int oscommerce_recovery(const struct crack_hash* hash, char* line, int size);
 
 //
 int ipb2_parse_hash(char *hashline, char *filename, struct crack_hash* hash);

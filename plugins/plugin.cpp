@@ -8,20 +8,20 @@
 
 struct hash_support_plugins all_plugins[] = 
 {
-	{algo_md4, &md4_parse_hash, &md4_is_special, &md4_check_valid},
-	{algo_md5, &md5_parse_hash, &md5_is_special, &md5_check_valid},
-	{algo_md5md5, &md5md5_parse_hash, &md5md5_is_special, &md5md5_check_valid},
-	{algo_md5unix, &md5unix_parse_hash, &md5unix_is_special, &md5unix_check_valid},
-	{algo_oscommerce, &oscommerce_parse_hash, &oscommerce_is_special, &oscommerce_check_valid},
-	{algo_ipb2, &ipb2_parse_hash, &ipb2_is_special, &ipb2_check_valid},
-	{algo_joomla, &joomla_parse_hash, &joomla_is_special, &joomla_check_valid},
-	{algo_vbulletin, &vbulletin_parse_hash, &vbulletin_is_special, &vbulletin_check_valid},
-	{algo_desunix, &desunix_parse_hash, &desunix_is_special, &desunix_check_valid},
-	{algo_sha1, &sha1_parse_hash, &sha1_is_special, &sha1_check_valid},
-	{algo_sha1sha1, &sha1sha1_parse_hash, &sha1sha1_is_special, &sha1sha1_check_valid},
-	{algo_sha256, &sha256_parse_hash, &sha256_is_special, &sha256_check_valid},
-	{algo_sha512, &sha512_parse_hash, &sha512_is_special, &sha512_check_valid},
-	{algo_mysql5, &mysql5_parse_hash, &mysql5_is_special, &mysql5_check_valid},
+	{algo_md4, &md4_parse_hash, &md4_is_special, &md4_check_valid, &md4_recovery},
+	//{algo_md5, &md5_parse_hash, &md5_is_special, &md5_check_valid},
+	//{algo_md5md5, &md5md5_parse_hash, &md5md5_is_special, &md5md5_check_valid},
+	//{algo_md5unix, &md5unix_parse_hash, &md5unix_is_special, &md5unix_check_valid},
+	{algo_oscommerce, &oscommerce_parse_hash, &oscommerce_is_special, &oscommerce_check_valid, &oscommerce_recovery},
+	//{algo_ipb2, &ipb2_parse_hash, &ipb2_is_special, &ipb2_check_valid},
+	//{algo_joomla, &joomla_parse_hash, &joomla_is_special, &joomla_check_valid},
+	//{algo_vbulletin, &vbulletin_parse_hash, &vbulletin_is_special, &vbulletin_check_valid},
+	//{algo_desunix, &desunix_parse_hash, &desunix_is_special, &desunix_check_valid},
+	//{algo_sha1, &sha1_parse_hash, &sha1_is_special, &sha1_check_valid},
+	//{algo_sha1sha1, &sha1sha1_parse_hash, &sha1sha1_is_special, &sha1sha1_check_valid},
+	//{algo_sha256, &sha256_parse_hash, &sha256_is_special, &sha256_check_valid},
+	//{algo_sha512, &sha512_parse_hash, &sha512_is_special, &sha512_check_valid},
+	//{algo_mysql5, &mysql5_parse_hash, &mysql5_is_special, &mysql5_check_valid},
 
 	//请在这里相应的添加各种插件
 	{0, NULL, NULL, NULL}
