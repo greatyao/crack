@@ -2,7 +2,7 @@
 
 const unsigned long split_combinations = 0xFFFFFFFF;
 const unsigned long split_multiple     = 500;
-const unsigned long max_password_length= 32; 
+const unsigned long max_password_length= 20; 
 
 #define Big_Int BigInt::Rossi
 
@@ -55,6 +55,17 @@ BigInt::Rossi csplit::compute_power(BigInt::Rossi x,unsigned y)
 	for(unsigned i=0; i<y; i++)
 	{
 		total = total*x;
+	}
+	return total;
+}
+
+BigInt::Rossi csplit::compute_power(unsigned x,unsigned y)
+{
+	BigInt::Rossi total(1);
+	BigInt::Rossi b_x(x);
+	for(unsigned i=0; i<y; i++)
+	{
+		total = total*b_x;
 	}
 	return total;
 }
@@ -119,6 +130,20 @@ string csplit::integer_to_string(BigInt::Rossi integer)
 	}
 
 	return s;
+}
+BigInt::Rossi csplit::get_step_length(unsigned len_max)
+{
+	if(m_characters==0)
+	{
+		throw("error");
+	}
+
+	Big_Int r(0);
+	for(int i=0; i<len_max; i++)
+	{
+		r=r+compute_power(m_characters,i);
+	}
+	return r;
 }
 
 string csplit::make_character_table(enum crack_charset k)
@@ -187,21 +212,43 @@ bool csplit::init(struct crack_task *pct)
 	return init_bf(m_crack_task.len_min,m_crack_task.len_max,(char*)s_char_set.c_str());
 }
 
-//切割
+//简单切割算法
 struct crack_block *csplit::split_default(unsigned &nsplits)
 {	
 	Big_Int big_split_combinations(split_combinations);
 	Big_Int big_split_multiple(split_multiple);
-	Big_Int big_nsplits(0);
+	Big_Int big_nsplits(1);
 
-	big_split_combinations = big_split_combinations * big_split_multiple;
-	big_nsplits = m_total_combinations/big_split_combinations;
+	big_split_combinations = big_split_combinations * big_split_multiple;	//切割每份大小
 
-	nsplits = big_nsplits.toUlong();
+	//get_step_length
+	//if(big_split_combinations>)//不切
 
+	//最大能切割的份数
+	unsigned max_splits = m_characters;
+	Big_Int bit_max_splits(max_splits);
+	//最大切割份数中平均每份的数量
+	Big_Int one_split = m_total_combinations/bit_max_splits;
+
+	//确定每份实际大小
+	unsigned step = 0;
+	for(unsigned i=1; i<=max_splits; i++)
+	{
+		Big_Int temp(i);
+		if( (one_split*temp)>big_split_combinations )
+		{
+			one_split = one_split *temp;
+			step = i;
+			break;
+		}
+	}
+
+	//确定最终切割份数
+	nsplits	= max_splits/step;
+	if( (nsplits*step)!=max_splits ) nsplits++;
 
 	struct crack_block *p_crack_block = (crack_block *)new char [sizeof(struct crack_block)*nsplits];
-	
+
 	for(unsigned i=0; i<nsplits; i++)
 	{
 		p_crack_block[i].algo = m_crack_task.algo;//算法
@@ -210,16 +257,36 @@ struct crack_block *csplit::split_default(unsigned &nsplits)
 		p_crack_block[i].special = m_crack_task.special;
 		memcpy( p_crack_block[i].guid, m_crack_task.guid, sizeof(p_crack_block[i].guid) );
 		//memcpy(p_crack_block[i].john,m_crack_task.hashes,sizeof(crack_block.john));
+		if(i==0)//第一个
+		{
+			p_crack_block[i].start = m_crack_task.len_min;
+			p_crack_block[i].start2 = 0;//索引
+		}
+		else
+		{
+			p_crack_block[i].start = m_crack_task.len_max;
+			p_crack_block[i].start2 = (i)*(m_characters/nsplits);
+		}
+		p_crack_block[i].end = m_crack_task.len_max;
 
-		//unsigned short start;	//开始长度
-		//unsigned short end;		//结束长度
-		//以下两个是索引
-		//unsigned short start2;	//55555-99999:start2=5,end2=9	000-55555:start2=0,end2=5
-		//unsigned short end2;
-
+		//索引2
+		if( (i+1)==nsplits)//最后一个
+		{
+			p_crack_block[i].end2 = m_characters;
+		}
+		else
+		{
+			p_crack_block[i].end2 = (i+1)*(m_characters/nsplits);
+		}
 	}
 
-
-
 	return p_crack_block;
+}
+
+void csplit::release_splits(char *p)
+{
+	if(p)
+	{
+		delete p;
+	}
 }
