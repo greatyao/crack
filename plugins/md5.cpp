@@ -15,6 +15,11 @@ int md5_check_valid(struct crack_hash* hash)
 	return md4_check_valid(hash);
 }
 
+int md5_recovery(const struct crack_hash* hash, char* line, int size)
+{
+	return md4_recovery(hash,line,size);
+}
+
 int md5_is_special()
 {
     return 0;
