@@ -209,12 +209,19 @@ bool csplit::init(struct crack_task *pct)
 
 	memcpy(&m_crack_task,pct,sizeof(m_crack_task));
 	string s_char_set = make_character_table((crack_charset)m_crack_task.charset);
-	return init_bf(m_crack_task.len_min,m_crack_task.len_max,(char*)s_char_set.c_str());
+	return init_bf(m_crack_task.startLength,m_crack_task.endLength,(char*)s_char_set.c_str());
 }
 
 //简单切割算法
 struct crack_block *csplit::split_default(unsigned &nsplits)
 {	
+
+	double pp = 0;
+	for(int i = m_len_min; i <= m_len_max; i++)
+		pp += pow(m_characters, (double)i);
+	printf("%g\n", pp);
+
+
 	Big_Int big_split_combinations(split_combinations);
 	Big_Int big_split_multiple(split_multiple);
 	Big_Int big_nsplits(1);
@@ -247,7 +254,8 @@ struct crack_block *csplit::split_default(unsigned &nsplits)
 	nsplits	= max_splits/step;
 	if( (nsplits*step)!=max_splits ) nsplits++;
 
-	struct crack_block *p_crack_block = (crack_block *)new char [sizeof(struct crack_block)*nsplits];
+	struct crack_block *p_crack_block = (crack_block *)malloc(sizeof(struct crack_block)*nsplits);
+	//struct crack_block *p_crack_block = new struct crack_block[nsplits];
 
 	for(unsigned i=0; i<nsplits; i++)
 	{
@@ -259,15 +267,15 @@ struct crack_block *csplit::split_default(unsigned &nsplits)
 		//memcpy(p_crack_block[i].john,m_crack_task.hashes,sizeof(crack_block.john));
 		if(i==0)//第一个
 		{
-			p_crack_block[i].start = m_crack_task.len_min;
+			p_crack_block[i].start = m_crack_task.startLength;
 			p_crack_block[i].start2 = 0;//索引
 		}
 		else
 		{
-			p_crack_block[i].start = m_crack_task.len_max;
+			p_crack_block[i].start = m_crack_task.endLength;
 			p_crack_block[i].start2 = (i)*(m_characters/nsplits);
 		}
-		p_crack_block[i].end = m_crack_task.len_max;
+		p_crack_block[i].end = m_crack_task.endLength;
 
 		//索引2
 		if( (i+1)==nsplits)//最后一个
@@ -287,6 +295,6 @@ void csplit::release_splits(char *p)
 {
 	if(p)
 	{
-		delete p;
+		free(p);
 	}
 }

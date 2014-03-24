@@ -9,8 +9,8 @@ int main(int c,char *v[])
 	struct crack_task ct={0};
 
 	ct.charset = charset_ascii;
-	ct.len_min = 7;
-	ct.len_max = 7;
+	ct.startLength = 3;
+	ct.endLength = 7;
 
 
 	//²âÊÔ´úÂë
