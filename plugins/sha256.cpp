@@ -26,8 +26,19 @@ int sha256_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 		return 1;
 }
 
+int sha256_recovery(const struct crack_hash* hash, char* line, int size)
+{
+	if(!hash || !line || size <= 0)
+		return ERR_INVALID_PARAM;
+
+	snprintf(line, size, "%s", hash->hash);
+	return 0;
+}
+
 int sha256_check_valid(struct crack_hash* hash)
 {
+	if(!hash)
+		return ERR_INVALID_PARAM;
 	if((strlen(hash->hash) == 64) && ishex(hash->hash))
 		return 1;
 	else
