@@ -2,6 +2,7 @@
 #define ALGORITHM_TYPES_H
 
 #define HASHFILE_MAX_PLAIN_LENGTH 128
+#define HASHFILE_MAX_SALT_LENGTH 32
 #define HASHFILE_MAX_LINE_LENGTH 256	
 
 enum crack_charset
@@ -78,6 +79,14 @@ enum crack_algorithm
 	algo_wpa,             //WPA-PSK plugin
 };
 
+//hash
+struct crack_hash
+{
+	char hash[HASHFILE_MAX_PLAIN_LENGTH+4];
+	char salt[HASHFILE_MAX_SALT_LENGTH];
+	char salt2[HASHFILE_MAX_SALT_LENGTH];
+};
+
 //workitem
 struct crack_block
 {
@@ -86,22 +95,13 @@ struct crack_block
 	unsigned char type;		//解密类型
 	unsigned char special;	//是否是文件解密（pdf+office+rar+zip）
 	char guid[40];			//服务端的workitem的GUID
-	char john[HASHFILE_MAX_PLAIN_LENGTH];			//格式：e10adc3949ba59abbe56e057f20f883e 后面的为hash值
-							//如果是文件解密，这里存放文件名
+	char john[sizeof(struct crack_hash)];		//原始Hash格式：hash值+盐
 	unsigned short start;	//开始长度
 	unsigned short end;		//结束长度
 	//以下两个是索引
 	unsigned short start2;	//55555-99999:start2=5,end2=9	000-55555:start2=0,end2=5
 	unsigned short end2;
 	char custom[0]; //用户自定义的字符集
-};
-
-//hash
-struct crack_hash
-{
-	char hash[HASHFILE_MAX_PLAIN_LENGTH+4];
-	char salt[HASHFILE_MAX_PLAIN_LENGTH];
-	char salt2[HASHFILE_MAX_PLAIN_LENGTH];
 };
 
 //解密任务
