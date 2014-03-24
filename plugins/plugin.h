@@ -47,16 +47,19 @@ int md4_recovery(const struct crack_hash* hash, char* line, int size);
 int md5_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
 int md5_is_special();
 int md5_check_valid(struct crack_hash* hash);
+int md5_recovery(const struct crack_hash* hash, char* line, int size);
 
 //
 int md5md5_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
 int md5md5_is_special();
 int md5md5_check_valid(struct crack_hash* hash);
+int md5md5_recovery(const struct crack_hash* hash, char* line, int size);
 
 //
 int md5unix_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
 int md5unix_is_special();
 int md5unix_check_valid(struct crack_hash* hash);
+int md5unix_recovery(const struct crack_hash* hash, char* line, int size);
 
 //
 int oscommerce_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
@@ -68,46 +71,55 @@ int oscommerce_recovery(const struct crack_hash* hash, char* line, int size);
 int ipb2_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
 int ipb2_is_special();
 int ipb2_check_valid(struct crack_hash* hash);
+int ipb2_recovery(const struct crack_hash* hash, char* line, int size);
 
 //
 int joomla_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
 int joomla_is_special();
 int joomla_check_valid(struct crack_hash* hash);
+int joomla_recovery(const struct crack_hash* hash, char* line, int size);
 
 //
 int vbulletin_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
 int vbulletin_is_special();
 int vbulletin_check_valid(struct crack_hash* hash);
+int vbulletin_recovery(const struct crack_hash* hash, char* line, int size);
 
 //
 int desunix_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
 int desunix_is_special();
 int desunix_check_valid(struct crack_hash* hash);
+int desunix_recovery(const struct crack_hash* hash, char* line, int size);
 
 //
 int sha1_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
 int sha1_is_special();
 int sha1_check_valid(struct crack_hash* hash);
+int sha1_recovery(const struct crack_hash* hash, char* line, int size);
 
 //
 int sha1sha1_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
 int sha1sha1_is_special();
 int sha1sha1_check_valid(struct crack_hash* hash);
+int sha1sha1_recovery(const struct crack_hash* hash, char* line, int size);
 
 //
 int sha256_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
 int sha256_is_special();
 int sha256_check_valid(struct crack_hash* hash);
+int sha256_recovery(const struct crack_hash* hash, char* line, int size);
 
 //
 int sha512_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
 int sha512_is_special();
 int sha512_check_valid(struct crack_hash* hash);
+int sha512_recovery(const struct crack_hash* hash, char* line, int size);
 
 //
 int mysql5_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
 int mysql5_is_special();
 int mysql5_check_valid(struct crack_hash* hash);
+int mysql5_recovery(const struct crack_hash* hash, char* line, int size);
 
 //一些常用函数
 //char* strupr(char* ioString);//*******************************mike
