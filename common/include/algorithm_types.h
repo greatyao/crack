@@ -18,6 +18,19 @@ enum crack_charset
 	charset_custom,		//自己定义
 };
 
+static const char* crack_charsets[] = 
+{
+	"0123456789",
+	"abcdefghijklmnopqrstuvwxyz",
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+	"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+	"abcdefghijklmnopqrstuvwxyz0123456789",
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+	"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+	"abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ !@#$%^&*()-_=+[]{}|\\\'\";:`~<>,./?",
+	""
+};
+
 enum crack_type
 {
 	bruteforce,
