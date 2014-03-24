@@ -43,8 +43,10 @@ private:
 	~Client();
 	
 	int Read(void* data, int size);
+	int Read(unsigned char *cmd, unsigned short* status, void* data, int size);
 	
 	int Write(const void* data, int size);
+	int Write(unsigned char cmd, const void* data, int size);
 
 private:
 	int sck;

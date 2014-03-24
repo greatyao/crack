@@ -193,6 +193,46 @@ static int read_timeout(int fd, unsigned int wait_seconds)
 	return ret;
 }
 
+int Client::Read(unsigned char *cmd, unsigned short* status, void* data, int size)
+{
+	if(connected != 2)
+		return ERR_CONNECTIONLOST;
+	
+	if(read_timeout(sck, 5) < 0)
+		return ERR_TIMEOUT;
+		
+	control_header hdr;
+	if(read(sck, &hdr, sizeof(hdr)) < 0) 
+		return ERR_CONNECTIONLOST;
+	
+	if(memcmp(hdr.magic, pack_flag, 5) != 0)
+		return ERR_INVALIDDATA;
+		
+	*cmd = hdr.cmd;
+	*status = hdr.response;
+	int totalN = hdr.compressLen;
+	int origN = hdr.dataLen;
+	
+	if(totalN < 0 || origN < 0 || size < origN)
+		return ERR_INVALIDDATA;
+	if(origN == 0)
+		return 0;
+		
+	unsigned char* buf = new unsigned char[totalN];
+	if(read(sck, buf, totalN) < 0)
+	{
+		delete []buf;
+		return ERR_CONNECTIONLOST;
+	}	
+	
+	unsigned long uncompressLen = size;
+	int ret = uncompress((Bytef*)data, (uLongf*)&uncompressLen, buf, totalN);
+	delete []buf;
+	if(ret != 0 || uncompressLen != origN)
+		return ERR_UNCOMPRESS;
+	
+	return uncompressLen;
+}
 
 int Client::Read(void* data, int size)
 {	
@@ -230,12 +270,46 @@ int Client::Read(void* data, int size)
 	return uncompressLen;
 }	
 
+int Client::Write(unsigned char cmd, const void* data, int size)
+{
+	if(connected != 2)
+		return ERR_CONNECTIONLOST;
+	
+	struct control_header hdr = INITIALIZE_EMPTY_HEADER(cmd);
+	if(!data || size == 0)
+	{
+		if(write(sck, &hdr, sizeof(hdr)) < 0)
+			return ERR_CONNECTIONLOST;
+		return 0;
+	}
+	
+	unsigned long destLen = compressBound(size);	
+	unsigned char* dest = new unsigned char[destLen];
+	int ret = compress(dest, &destLen, (const Bytef*)data, size);
+	if(ret != 0)
+	{
+		delete []dest;
+		return ERR_COMPRESS;
+	}
+	hdr.dataLen = size;
+	hdr.compressLen = destLen;
+	
+	if(write(sck, &hdr, sizeof(hdr)) < 0 || write(sck, dest, destLen) < 0)
+	{
+		delete []dest;
+		return ERR_CONNECTIONLOST;
+	}
+	
+	delete []dest;
+	return destLen;
+}
+
 int Client::Write(const void* data, int size)
 {
 	if(connected != 2)
 		return ERR_CONNECTIONLOST;
 		
-	unsigned long destLen = 1.001*size + 12;
+	unsigned long destLen = compressBound(size);	
 	unsigned char* dest = new unsigned char[HDR_SIZE+destLen];
 	int ret = compress(dest+HDR_SIZE, &destLen, (const Bytef*)data, size);
 	if(ret != 0)

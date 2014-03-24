@@ -12,7 +12,7 @@ struct control_header
 };
 
 #define INITIALIZE_HEADER(cmd, resp, len, len2)  {{'G', '&', 'C', 'P', 'U'}, cmd, resp, len, len2}
-#define INITIALIZE_EMPTY_HEADER(cmd)  {{'G', '&', 'C', 'P', 'U'}, 0, 0, 0, 0}
+#define INITIALIZE_EMPTY_HEADER(cmd)  {{'G', '&', 'C', 'P', 'U'}, cmd, 0, 0, 0}
 
 // BYTE最大也就256
 enum
