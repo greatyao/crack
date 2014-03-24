@@ -22,6 +22,11 @@ struct hash_support_plugins all_plugins[] =
 	{algo_sha256, &sha256_parse_hash, &sha256_is_special, &sha256_check_valid,&sha256_recovery},
 	{algo_sha512, &sha512_parse_hash, &sha512_is_special, &sha512_check_valid,&sha512_recovery},
 	{algo_mysql5, &mysql5_parse_hash, &mysql5_is_special, &mysql5_check_valid,&mysql5_recovery},
+	{algo_ntlm, &ntlm_parse_hash, &ntlm_is_special, &ntlm_check_valid,&ntlm_recovery},
+	{algo_lm, &lm_parse_hash, &lm_is_special, &lm_check_valid,&lm_recovery},
+	{algo_wordpress, &wordpress_parse_hash, &wordpress_is_special, &wordpress_check_valid,&wordpress_recovery},
+	{algo_apr1, &apr1_parse_hash, &apr1_is_special, &apr1_check_valid,&apr1_recovery},
+	{algo_mssql_2000, &mssql_2000_parse_hash, &mssql_2000_is_special, &mssql_2000_check_valid,&mssql_2000_recovery},
 
 	//请在这里相应的添加各种插件
 	{0, NULL, NULL, NULL}
@@ -54,7 +59,11 @@ char* strlow(char* ioString)
     int i;
     int theLength = (int)strlen(ioString);
 
-    for(i=0; i<theLength; ++i) {ioString[i] = tolower(ioString[i]);}
+    for(i=0; i<theLength; ++i) 
+	{
+		if(ioString[i]>65 && ioString[i]<90)
+			ioString[i] = tolower(ioString[i]);
+	}
     return ioString;
 }
 

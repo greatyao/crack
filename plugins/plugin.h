@@ -121,6 +121,36 @@ int mysql5_is_special();
 int mysql5_check_valid(struct crack_hash* hash);
 int mysql5_recovery(const struct crack_hash* hash, char* line, int size);
 
+//
+int ntlm_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
+int ntlm_is_special();
+int ntlm_check_valid(struct crack_hash* hash);
+int ntlm_recovery(const struct crack_hash* hash, char* line, int size);
+
+//
+int lm_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
+int lm_is_special();
+int lm_check_valid(struct crack_hash* hash);
+int lm_recovery(const struct crack_hash* hash, char* line, int size);
+
+//
+int wordpress_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
+int wordpress_is_special();
+int wordpress_check_valid(struct crack_hash* hash);
+int wordpress_recovery(const struct crack_hash* hash, char* line, int size);
+
+//
+int apr1_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
+int apr1_is_special();
+int apr1_check_valid(struct crack_hash* hash);
+int apr1_recovery(const struct crack_hash* hash, char* line, int size);
+
+//
+int mssql_2000_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
+int mssql_2000_is_special();
+int mssql_2000_check_valid(struct crack_hash* hash);
+int mssql_2000_recovery(const struct crack_hash* hash, char* line, int size);
+
 //一些常用函数
 //char* strupr(char* ioString);//*******************************mike
 char* strlow(char* ioString);
