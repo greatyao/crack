@@ -99,7 +99,7 @@ struct crack_block
 //hash
 struct crack_hash
 {
-	char hash[HASHFILE_MAX_PLAIN_LENGTH];
+	char hash[HASHFILE_MAX_PLAIN_LENGTH+4];
 	char salt[HASHFILE_MAX_PLAIN_LENGTH];
 	char salt2[HASHFILE_MAX_PLAIN_LENGTH];
 };
@@ -111,6 +111,8 @@ struct crack_task
 	unsigned char charset;	//解密字符集
 	unsigned char type;		//解密类型
 	unsigned char special;	//是否是文件解密（pdf+office+rar+zip）
+	unsigned char startLength;//起始长度
+	unsigned char endLength;	//终结长度
 	unsigned char filename[256];	//用户传过来的文件名
 	char guid[40];			//用户端的任务的GUID
 	int count;				//需要解密的Hash个数（如果是文件=1）
@@ -141,7 +143,7 @@ struct crack_status
 struct crack_result
 {
 	char guid[40];			//workitem/crack_block的GUID
-	unsigned int status;	//workitem的状态
+	unsigned int status;	//workitem的结果状态
 	char password[32];		//如果解密成功，存放密码
 };
 
