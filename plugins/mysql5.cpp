@@ -39,8 +39,21 @@ int mysql5_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 		return 1;
 }
 
+int mysql5_recovery(const struct crack_hash* hash, char* line, int size)
+{
+	if(!hash || !line || size <= 0)
+		return ERR_INVALID_PARAM;
+	if(strlen(hash->hash) == 16)
+		snprintf(line, size, "%s", hash->hash);
+	else
+		snprintf(line, size, "*%s", hash->hash);
+	return 0;
+}
+
 int mysql5_check_valid(struct crack_hash* hash)
 {
+	if(!hash)
+		return ERR_INVALID_PARAM;
 	if(((strlen(hash->hash) == 40) && ishex(hash->hash) && isupperhex(hash->hash)) || ((strlen(hash->hash) == 16) && ishex(hash->hash)))
 		return 1;
 	else
