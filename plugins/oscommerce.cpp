@@ -37,12 +37,12 @@ int oscommerce_parse_hash(char *hashline, char *filename, struct crack_hash* has
 
 int oscommerce_recovery(const struct crack_hash* hash, char* line, int size)
 {
-	if(!hash || !hash || size <= 0)
+	if(!hash || !line || size <= 0)
 		return ERR_INVALID_PARAM;
 
-	if(strcmp(hash->salt, "") == 0)
+	/*if(strcmp(hash->salt, "") == 0)
 		snprintf(line, size, "%s:", hash->hash);
-	else
+	else*/
 		snprintf(line, size, "%s:%s", hash->hash, hash->salt);
 	
 	return 0;
@@ -50,6 +50,8 @@ int oscommerce_recovery(const struct crack_hash* hash, char* line, int size)
 
 int oscommerce_check_valid(struct crack_hash* hash)
 {
+	if(!hash)
+		return ERR_INVALID_PARAM;
 	if((strlen(hash->hash) == 32) && ishex(hash->hash))
 		return 1;
 	else
