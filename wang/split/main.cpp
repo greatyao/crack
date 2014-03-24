@@ -16,10 +16,9 @@ int main(int c,char *v[])
 	//²âÊÔ´úÂë
 	csplit sp;
 	unsigned n;
-	sp.init(&ct);
-	struct crack_block * pcb = sp.split_default(n);
+	struct crack_block * pcb = sp.split_default(&ct,n);
 
-	for(int i=0; i<n; i++)
+	for(unsigned i=0; i<n; i++)
 	{
 		printf("%d-%d:%d-%d\n",pcb[i].start,pcb[i].end,pcb[i].start2,pcb[i].end2);
 	}
