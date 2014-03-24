@@ -1,3 +1,6 @@
+#ifndef _STR_API_H_
+#define _STR_API_H_
+
 #include <vector>
 
 int ishex(char *hashline);
@@ -7,3 +10,5 @@ int isEndsWith(char *hashline, char *str);
 int isContains(char *hashline, char *str);
 int isupperhex(char *hashline);
 std::vector<char*> split(char *hashline, char *str);
+
+#endif
