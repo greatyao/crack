@@ -7,40 +7,17 @@
 
 int vbulletin_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 {
-	if (!hashline || !hash) 
-		return ERR_INVALID_PARAM;
-
-	if (strlen(hashline)<2) 
-		return ERR_INVALID_PARAM;
-
-	char line[HASHFILE_MAX_LINE_LENGTH];
-	snprintf(line, HASHFILE_MAX_LINE_LENGTH-1, "%s", hashline);
-	if((strlen(hashline)>=33))
-	{
-		std::vector<char*> v = split(line,":");
-		if((strlen(v[0]) == 32) && ishex(v[0]))
-		{
-			strcpy(hash->hash, v[0]);
-			if((v.size() == 2) && ishex(v[1]))
-				strcpy(hash->salt, v[1]);
-			else
-				strcpy(hash->salt, "");
-			strcpy(hash->salt2, "");
-			return 0;
-		}
-		else
-			return 1;
-	}
-	else
-		return 1;
+	return oscommerce_parse_hash(hashline,filename,hash);
 }
 
 int vbulletin_check_valid(struct crack_hash* hash)
 {
-	if((strlen(hash->hash) == 32) && ishex(hash->hash))
-		return 1;
-	else
-		return 0;
+	return oscommerce_check_valid(hash);
+}
+
+int vbulletin_recovery(const struct crack_hash* hash, char* line, int size)
+{
+	return oscommerce_recovery(hash,line,size);
 }
 
 int vbulletin_is_special()
