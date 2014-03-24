@@ -2,6 +2,18 @@
 #if !defined(AFX_MACROS_H_INCLUDED)
 #define AFX_MACROS_H_INCLUDED
 
+struct control_data
+{
+	unsigned char magic[5];			//G&CPU
+	unsigned char cmd;				//命令字
+	short response;					//回应状态
+	unsigned int dataLen;			//原始数据长度
+	unsigned int compressLen;		//压缩数据后长度
+};
+
+#define INITIALIZE_HEADER(cmd, resp, len, len2)  {{'G', '&', 'C', 'P', 'U'}, cmd, resp, len, len2}
+#define INITIALIZE_EMPTY_HEADER(cmd)  {{'G', '&', 'C', 'P', 'U'}, 0, 0, 0, 0}
+
 // BYTE最大也就256
 enum
 {
