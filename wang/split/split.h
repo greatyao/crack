@@ -25,6 +25,8 @@ class csplit
 
 	struct crack_task m_crack_task;
 
+	string new_guid(void);
+
 private:
 	BigInt::Rossi compute_combinations(unsigned characters,unsigned len_max,unsigned len_min=1);
 	BigInt::Rossi compute_power(BigInt::Rossi x,unsigned y);
@@ -45,6 +47,8 @@ public:
 	//nsplits保存切割以后的份数
 	//返回指针数组,需要手工释放
 	struct crack_block *split_default(struct crack_task *pct,unsigned &nsplits);
+	struct crack_block *split_easy(struct crack_task *pct,unsigned &nsplits);
+	struct crack_block *split_normal(struct crack_task *pct,unsigned &nsplits);
 	void release_splits(char *p);//释放
 
 };
