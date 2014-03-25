@@ -32,10 +32,11 @@ int isAlphaDotSlash(char *hashline)
 
 int isbase64(char *hashline)
 {
-	std::tr1::cmatch res;
+	/*std::tr1::cmatch res;
     std::tr1::regex rx("^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$");
     std::tr1::regex_search(hashline, res, rx);
-	return res.size();
+	return res.empty()?0:res.size();*/
+	return 1;
 }
 
 int isStartsWith(char *hashline, char *str)
