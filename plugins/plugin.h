@@ -151,6 +151,48 @@ int mssql_2000_is_special();
 int mssql_2000_check_valid(struct crack_hash* hash);
 int mssql_2000_recovery(const struct crack_hash* hash, char* line, int size);
 
+//
+int mssql_2005_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
+int mssql_2005_is_special();
+int mssql_2005_check_valid(struct crack_hash* hash);
+int mssql_2005_recovery(const struct crack_hash* hash, char* line, int size);
+
+//
+int mssql_2012_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
+int mssql_2012_is_special();
+int mssql_2012_check_valid(struct crack_hash* hash);
+int mssql_2012_recovery(const struct crack_hash* hash, char* line, int size);
+
+//
+int mediawiki_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
+int mediawiki_is_special();
+int mediawiki_check_valid(struct crack_hash* hash);
+int mediawiki_recovery(const struct crack_hash* hash, char* line, int size);
+
+//
+int sha256unix_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
+int sha256unix_is_special();
+int sha256unix_check_valid(struct crack_hash* hash);
+int sha256unix_recovery(const struct crack_hash* hash, char* line, int size);
+
+//
+int sha512unix_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
+int sha512unix_is_special();
+int sha512unix_check_valid(struct crack_hash* hash);
+int sha512unix_recovery(const struct crack_hash* hash, char* line, int size);
+
+//
+int nsldap_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
+int nsldap_is_special();
+int nsldap_check_valid(struct crack_hash* hash);
+int nsldap_recovery(const struct crack_hash* hash, char* line, int size);
+
+//
+int nsldaps_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
+int nsldaps_is_special();
+int nsldaps_check_valid(struct crack_hash* hash);
+int nsldaps_recovery(const struct crack_hash* hash, char* line, int size);
+
 //一些常用函数
 //char* strupr(char* ioString);//*******************************mike
 char* strlow(char* ioString);

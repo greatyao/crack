@@ -27,6 +27,13 @@ struct hash_support_plugins all_plugins[] =
 	{algo_wordpress, &wordpress_parse_hash, &wordpress_is_special, &wordpress_check_valid,&wordpress_recovery},
 	{algo_apr1, &apr1_parse_hash, &apr1_is_special, &apr1_check_valid,&apr1_recovery},
 	{algo_mssql_2000, &mssql_2000_parse_hash, &mssql_2000_is_special, &mssql_2000_check_valid,&mssql_2000_recovery},
+	{algo_mssql_2005, &mssql_2005_parse_hash, &mssql_2005_is_special, &mssql_2005_check_valid,&mssql_2005_recovery},
+	{algo_mssql_2012, &mssql_2012_parse_hash, &mssql_2012_is_special, &mssql_2012_check_valid,&mssql_2012_recovery},
+	{algo_mediawiki, &mediawiki_parse_hash, &mediawiki_is_special, &mediawiki_check_valid,&mediawiki_recovery},
+	{algo_sha256unix, &sha256unix_parse_hash, &sha256unix_is_special, &sha256unix_check_valid,&sha256unix_recovery},
+	{algo_sha512unix, &sha512unix_parse_hash, &sha512unix_is_special, &sha512unix_check_valid,&sha512unix_recovery},
+	{algo_nsldap, &nsldap_parse_hash, &nsldap_is_special, &nsldap_check_valid,&nsldap_recovery},
+	{algo_nsldaps, &nsldaps_parse_hash, &nsldaps_is_special, &nsldaps_check_valid,&nsldaps_recovery},
 
 	//请在这里相应的添加各种插件
 	{0, NULL, NULL, NULL}
