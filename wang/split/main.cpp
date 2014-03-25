@@ -6,17 +6,19 @@
 
 int main(int c,char *v[])
 {
-	struct crack_task ct={0};
+	struct crack_task* ct= (struct crack_task*)malloc(sizeof(*ct)+2*sizeof(crack_hash));
 
-	ct.charset = charset_ascii;
-	ct.startLength = 3;
-	ct.endLength = 7;
+	ct->charset = charset_ascii;
+	ct->startLength = 3;
+	ct->endLength = 7;
+	ct->count = 2;
+	strcpy(ct->hashes[0].hash, "ABCD");
 
 
 	//²âÊÔ´úÂë
 	csplit sp;
 	unsigned n;
-	struct crack_block * pcb = sp.split_default(&ct,n);
+	struct crack_block * pcb = sp.split_default(ct,n);
 
 	for(unsigned i=0; i<n; i++)
 	{

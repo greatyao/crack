@@ -4,7 +4,7 @@ const unsigned long split_combinations = 0xFFFFFFFF;
 const unsigned long split_multiple     = 500;
 const unsigned long max_password_length= 20; 
 
-
+/*
 const char *g_charset_table[charset_custom+1]={
 	"0123456789",
 	"abcdefghijklmnopqrstuvwxyz",
@@ -16,6 +16,7 @@ const char *g_charset_table[charset_custom+1]={
 	"675abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~!@#$%^&*()_+{}|\":?><-=[]\\';/.",
 	""
 };
+*/
 
 #define Big_Int BigInt::Rossi
 
@@ -165,7 +166,7 @@ string csplit::make_character_table(enum crack_charset k)
 
 	if(k<charset_custom)
 	{
-		s = g_charset_table[k];
+		s = crack_charsets[k];
 	}
 	else{
 	}	
@@ -203,20 +204,16 @@ bool csplit::init_bf(unsigned len_min,unsigned len_max,char *character_set)
 	return true;
 }
 
-bool csplit::init(struct crack_task *pct)
-{
-	if(pct==0) return false;
-
-	memcpy(&m_crack_task,pct,sizeof(m_crack_task));
-	string s_char_set = make_character_table((crack_charset)m_crack_task.charset);
-	return init_bf(m_crack_task.startLength,m_crack_task.endLength,(char*)s_char_set.c_str());
-}
-
 //简单切割算法
 struct crack_block *csplit::split_default(struct crack_task *pct,unsigned &nsplits)
 {	
 	if(pct==0) return 0;
-	init(pct);
+
+	struct crack_task * p_local_ct = pct;
+	string s_local_char_set;
+
+	s_local_char_set = make_character_table((crack_charset)p_local_ct->charset);
+	init_bf(p_local_ct->startLength,p_local_ct->endLength,(char*)s_local_char_set.c_str());
 
 	#ifdef _DEBUG
 	double pp = 0;
@@ -275,28 +272,29 @@ struct crack_block *csplit::split_default(struct crack_task *pct,unsigned &nspli
 		//if( (nsplits*step)!=max_splits ) nsplits++;
 	}
 
-	struct crack_block *p_crack_block = (crack_block *)malloc(sizeof(struct crack_block)*nsplits);
-	//struct crack_block *p_crack_block = new struct crack_block[nsplits];
+	struct crack_block *p_crack_block = (crack_block *)malloc(sizeof(struct crack_block)*nsplits*p_local_ct->count);
 
 	for(unsigned i=0; i<nsplits; i++)
 	{
-		p_crack_block[i].algo = m_crack_task.algo;//算法
-		p_crack_block[i].charset = m_crack_task.charset;//字符集
-		p_crack_block[i].type = m_crack_task.type;
-		p_crack_block[i].special = m_crack_task.special;
-		memcpy( p_crack_block[i].guid, m_crack_task.guid, sizeof(p_crack_block[i].guid) );
-		//memcpy(p_crack_block[i].john,m_crack_task.hashes,sizeof(crack_block.john));
+		p_crack_block[i].algo    = p_local_ct->algo;//算法
+		p_crack_block[i].charset = p_local_ct->charset;//字符集
+		p_crack_block[i].type   = p_local_ct->type;
+		p_crack_block[i].special= p_local_ct->special;
+
+		memcpy( p_crack_block[i].guid, p_local_ct->guid, sizeof(p_crack_block[i].guid) );
+		memcpy( p_crack_block[i].john, p_local_ct->hashes[0].hash, sizeof(struct crack_hash) );
+		
 		if(i==0)//第一个
 		{
-			p_crack_block[i].start = m_crack_task.startLength;
+			p_crack_block[i].start = p_local_ct->startLength;
 			p_crack_block[i].start2 = 0;//索引
 		}
 		else
 		{
-			p_crack_block[i].start = m_crack_task.endLength;
+			p_crack_block[i].start = p_local_ct->endLength;
 			p_crack_block[i].start2 = (i)*(m_characters/nsplits);
 		}
-		p_crack_block[i].end = m_crack_task.endLength;
+		p_crack_block[i].end = p_local_ct->endLength;
 
 		//索引2
 		if( (i+1)==nsplits)//最后一个
@@ -309,6 +307,19 @@ struct crack_block *csplit::split_default(struct crack_task *pct,unsigned &nspli
 		}
 	}
 
+	if(p_local_ct->count>1)//多个
+	{
+		for(int i=1; i<p_local_ct->count; i++)
+		{
+			memcpy( &p_crack_block[nsplits*i],p_crack_block, sizeof(struct crack_block)*nsplits);
+			for(int j=0; j<nsplits; j++)
+			{
+				memcpy( p_crack_block[nsplits*i+j].john, p_local_ct->hashes[i].hash, sizeof(struct crack_hash) );
+			}
+		}		
+	}
+
+	nsplits = nsplits*p_local_ct->count;
 	return p_crack_block;
 }
 

@@ -38,7 +38,6 @@ private:
 	string make_character_table(enum crack_charset);//生成字符集数组
 	bool init_bf(unsigned len_min,unsigned len_max,char *character_set);//初始化
 	
-	bool init(struct crack_task *);//初始化
 public:
 	csplit();
 	~csplit();
