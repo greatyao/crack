@@ -2,6 +2,7 @@
 #include <string.h>
 #include <iostream>
 #include <ctype.h>
+#include <regex>
 #include "str_api.h"
 #include "algorithm_types.h"
 
@@ -27,6 +28,14 @@ int isAlphaDotSlash(char *hashline)
 			return 0;
 
 	return 1;
+}
+
+int isbase64(char *hashline)
+{
+	std::tr1::cmatch res;
+    std::tr1::regex rx("^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$");
+    std::tr1::regex_search(hashline, res, rx);
+	return res.size();
 }
 
 int isStartsWith(char *hashline, char *str)
@@ -62,8 +71,17 @@ int isupperhex(char *hashline)
 	snprintf(line, HASHFILE_MAX_LINE_LENGTH-1, "%s", hashline);
 
 	for (int i=0;i<strlen(line);i++) 
-		if (isalpha(line[i]) && !isupper(line[i])) 
+		if (!isxdigit(line[i])) 
+		{
 			return 0;
+		}
+		else
+		{
+			if(isalpha(line[i]) && !isupper(line[i]))
+			{
+				return 0;
+			}
+		}
 
 	return 1;
 }

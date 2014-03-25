@@ -5,6 +5,7 @@
 
 int ishex(char *hashline);
 int isAlphaDotSlash(char *hashline);
+int isbase64(char *hashline);
 int isStartsWith(char *hashline, char *str);
 int isEndsWith(char *hashline, char *str);
 int isContains(char *hashline, char *str);
