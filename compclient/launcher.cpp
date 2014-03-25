@@ -87,7 +87,7 @@ void *clauncher::Thread(void*par)//扫描线程
 					//提交给解密插件执行，执行完毕设置执行结果
 					crack_block* block = prsp->m_item;
 					bool lauched = CrackManager::Get().StartCrack(block, block->guid, prsp->m_worker_type == DEVICE_GPU, prsp->m_device) == 0;
-					CLog::Log(LOG_LEVEL_NOMAL,"claucher: launch task %s\n", lauched?"succeed":"failed");
+					CLog::Log(LOG_LEVEL_NOMAL,"claucher: launch task %s %s\n", block->guid, lauched?"succeed":"failed");
 					
 					crack_result result;
 					strcpy(result.guid, prsp->m_guid);
@@ -104,7 +104,7 @@ void *clauncher::Thread(void*par)//扫描线程
 			case RS_STATUS_FAILED:
 				{	
 					//重新初始化资源池，并释放资源池
-					CLog::Log(LOG_LEVEL_NOMAL,"clauncher: find failed task\n");
+					CLog::Log(LOG_LEVEL_NOMAL,"clauncher: find failed task %s\n", prsp->m_guid);
 					pool.SetToReady(prsp);
 				}
 				break;

@@ -53,7 +53,7 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 			//这里需要从网络获取workitem数据，只有有数据才会进行下一步
 			ret = Client::Get().GetWorkItemFromServer(&item);
 			if(ret != sizeof(item))	goto next;
-			CLog::Log(LOG_LEVEL_NOMAL, "ccoordinator: fetch workitem %s\n", item.john);
+			CLog::Log(LOG_LEVEL_NOMAL, "ccoordinator: fetch workitem %s\n", item.guid);
 		
 			//从服务器申请任务，并且将资源状态设置为RS_STATUS_AVAILABLE
 			CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator: allocate compute unit\n");
@@ -62,7 +62,7 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 		else if(status == RS_STATUS_RECOVERED || status == RS_STATUS_UNRECOVERED)
 		{	
 			//提交结果到服务器，并释放资源池
-			CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator: submit result\n");
+			CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator: submit result %s\n", prsp->m_guid);
 			crack_result result;
 			strcpy(result.guid, prsp->m_guid);
 			if(prsp->m_is_recovered){

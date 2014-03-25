@@ -61,7 +61,7 @@ int Crack::StartCrack(const crack_block* item, const char* guid, bool gpu, unsig
 		struct crack_hash hash;
 		if(plugin->special() == 0)
 		{
-			if(plugin->parse((char*)item->john, NULL, &hash) < 0)
+			if(plugin->parse((char*)item->john, NULL, &hash) != 0)
 			{
 				return ERR_INVALID_PARAM;
 			}
@@ -161,11 +161,11 @@ int Crack::Exec(const char* guid, const char* path, const char* params, void* (*
 		int flag = fcntl(fd2[0], F_GETFL, 0);
 		fcntl(fd2[0], F_SETFL, flag|O_NONBLOCK);
 		
-		usleep(1000*300);
+		usleep(1000*100);
 		int status = -1;
 		int rv = waitpid(pid, &status, WNOHANG);
 		if(rv > 0){
-			CLog::Log(LOG_LEVEL_ERROR, "exec: failed to start child process\n");
+			CLog::Log(LOG_LEVEL_ERROR, "exec: failed to start child process %s\n", guid);
 			close(fd1[1]);
 			close(fd2[0]);   
 			return ERR_LAUCH_TASK;    		
