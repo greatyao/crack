@@ -110,7 +110,7 @@ void* Client::MonitorThread(void* p)
 			//后续考虑心跳包里面是否有结束某个workitem的解密工作
 			short status;
 			int m = client->Read(&cmd, &status, buf, sizeof(buf));
-			//CLog::Log(LOG_LEVEL_NOMAL, "Client: Read hearbreak %d %d\n", m, cmd);
+			CLog::Log(LOG_LEVEL_NOMAL, "Client: Read hearbreak %d %d\n", m, cmd);
 		}
 	}
 	
@@ -261,7 +261,6 @@ int Client::Write(unsigned char cmd, const void* data, int size)
 	}
 	hdr.dataLen = size;
 	hdr.compressLen = destLen;
-	CLog::Log(LOG_LEVEL_NOMAL, "Write: %d\n", destLen);
 	
 	if(write(sck, &hdr, sizeof(hdr)) < 0 || write(sck, dest, destLen) < 0)
 	{
@@ -305,12 +304,10 @@ int Client::GetWorkItemFromServer(crack_block* item)
 	
 	int n = Read(&cmd, &status, buffer, sizeof(buffer));
 	
-	CLog::Log(LOG_LEVEL_NOMAL, "GetWorkItemFromServer: %d %d\n", cmd, n);
 #if 1	
 	if(cmd == CMD_GET_A_WORKITEM && status == 0)
 	{
 		memcpy(item, buffer, sizeof(*item));
-		CLog::Log(LOG_LEVEL_NOMAL, "%d %d %s\n", item->start, item->end, item->john);
 		return n;
 	}
 	return n;
