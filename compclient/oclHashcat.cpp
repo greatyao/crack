@@ -12,11 +12,6 @@
 
 using std::string;
 
-#ifdef __CYGWIN__
-const static char* path = "hashkill.exe";
-#else
-const static char* path = "/home/gputest/oclHashcat-1.01/oclHashcat64.bin";
-#endif
 
 struct hash_parameter{
 	crack_algorithm algo;
@@ -24,70 +19,69 @@ struct hash_parameter{
 };
 
 static const char* charsets[] = {
-	"num",			 //¿¿¿crack_charset¿¿charset_num
-	"lalpha",		//¿¿¿¿
-	"ualpha",
-	"alpha",
-	"lalphanum",
-	"ualphanum",
-	"alphanum",
-	"ascii",
-	"",
+	"--custom-charset1=?d",//	"num",		
+	"--custom-charset1=?l",//	"lalpha",
+	"--custom-charset1=?u",//"ualpha",
+	"--custom-charset1=?l?u",//"alpha",
+	"--custom-charset1=?l?d",//"lalphanum",
+	"--custom-charset1=?u?d",//"ualphanum",
+	"--custom-charset1=?u?l?d",//"alphanum",
+	"--custom-charset1=?a",//"ascii",
+	"",//"",
 };
 
 static struct hash_parameter all_support_hashes[] = 
 {
-	{algo_md4,			"-p md4 -b%d:%d:%s %s %s"},
-//	{algo_md5,			"-p md5 -b%d:%d:%s %s %s"},
-	{algo_md5,			"-m 0 -a 3 --increment-min=%d --increment-max=%d %s %s"},
-	{algo_md5md5,		"-p md5md5 -b%d:%d:%s %s %s"},
-	{algo_md5unix,		"-p md5unix -b%d:%d:%s %s %s"},
-	{algo_mediawiki,	"-p mediawiki -b%d:%d:%s %s %s"},
-	{algo_oscommerce,	"-p oscommerce -b%d:%d:%s %s %s"},
-	{algo_ipb2,			"-p ipb2 -b%d:%d:%s %s %s"},
-	{algo_joomla,		"-p joomla -b%d:%d:%s %s %s"},
-	{algo_vbulletin,    "-p vbulletin -b%d:%d:%s %s %s"},
-	{algo_desunix,      "-p desunix -b%d:%d:%s %s %s"},
-	{algo_sha1,         "-m 100 -a 3 --increment-min=%d --increment-max=%d %s %s"},//finished
-	{algo_sha1sha1,     "-p sha1sha1 -b%d:%d:%s %s %s"},
-	{algo_sha256,       "-p sha256 -b%d:%d:%s %s %s"},
-	{algo_sha256unix,   "-p sha256unix -b%d:%d:%s %s %s"},
-	{algo_sha512,       "-p sha512 -b%d:%d:%s %s %s"},
-	{algo_sha512unix,   "-p sha512unix -b%d:%d:%s %s %s"},
-	{algo_msoffice_old, "-p msoffice-old -b%d:%d:%s %s %s"},
-	{algo_msoffice,     "-p msoffice -b%d:%d:%s %s %s"},
-	{algo_django256,    "-p django256 -b%d:%d:%s %s %s"},
-	{algo_zip,          "-p zip -b%d:%d:%s %s %s"},
-	{algo_rar,          "-p rar -b%d:%d:%s %s %s"},
-	{algo_apr1,         "-p apr1 -b%d:%d:%s %s %s"},
-	{algo_bfunix,       "-p bfunix -b%d:%d:%s %s %s"},
-	{algo_dmg,          "-p dmg -b%d:%d:%s %s %s"},
-	{algo_drupal7,      "-p drupa17 -b%d:%d:%s %s %s"},
-	{algo_lm,           "-p lm -b%d:%d:%s %s %s"},
-	{algo_luks,         "-p luks -b%d:%d:%s %s %s"},
-	{algo_mscash,       "-p mscash -b%d:%d:%s %s %s"},
-	{algo_mscash2,      "-p mscash2 -b%d:%d:%s %s %s"},
-	{algo_mssql_2000,   "-p mssql-2000 -b%d:%d:%s %s %s"},
-	{algo_mssql_2005,   "-p mssql-2005 -b%d:%d:%s %s %s"},
-	{algo_mssql_2012,   "-p mssql-2012 -b%d:%d:%s %s %s"},
-	{algo_mysql5,       "-p mssql5 -b%d:%d:%s %s %s"},
-	{algo_nsldap,       "-p nsldap -b%d:%d:%s %s %s"},
-	{algo_nsldaps,      "-p nsldaps -b%d:%d:%s %s %s"},
-	{algo_ntlm,         "-p ntlm -b%d:%d:%s %s %s"},
-	{algo_o5logon,      "-p o5logon -b%d:%d:%s %s %s"},
-	{algo_oracle_old,   "-p oracle-old -b%d:%d:%s %s %s"},
-	{algo_oracle11g,    "-p oracle11g -b%d:%d:%s %s %s"},
-	{algo_osx_old,      "-p osx-old -b%d:%d:%s %s %s"},
-	{algo_osxlion,      "-p osxlion -b%d:%d:%s %s %s"},
-	{algo_phpbb3,       "-p phpbb3 -b%d:%d:%s %s %s"},
-	{algo_pixmd5,       "-p pixmd5 -b%d:%d:%s %s %s"},
-	{algo_privkey,      "-p privkey -b%d:%d:%s %s %s"},
-	{algo_ripemd160,    "-p ripemd160 -b%d:%d:%s %s %s"},
-	{algo_sapg,         "-p sapg -b%d:%d:%s %s %s"},
-	{algo_sl3,          "-p sl3 -b%d:%d:%s %s %s"},
-	{algo_smf,          "-p smf -b%d:%d:%s %s %s"},
-	{algo_wordpress,    "-p wordpress -b%d:%d:%s %s %s"},
-	{algo_wpa,          "-p wpa -b%d:%d:%s %s %s"},
+	{algo_md4,			"-m 900 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+	{algo_md5,			"-m 0 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+//	{algo_md5md5,		"-p md5md5 -b%d:%d:%s %s %s"},
+	{algo_md5unix,		"-m 500 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+//	{algo_mediawiki,	"-p mediawiki -b%d:%d:%s %s %s"},
+	{algo_oscommerce,	"-m 21 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+//	{algo_ipb2,			"-p ipb2 -b%d:%d:%s %s %s"},
+	{algo_joomla,		"-m 11 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+//	{algo_vbulletin,    "-p vbulletin -b%d:%d:%s %s %s"},
+	{algo_desunix,      "-m 1500 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+	{algo_sha1,         "-m 100 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},//finished
+//	{algo_sha1sha1,     "-p sha1sha1 -b%d:%d:%s %s %s"},
+	{algo_sha256,       "-m 1400 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+//	{algo_sha256unix,   "-p sha256unix -b%d:%d:%s %s %s"},
+	{algo_sha512,       "-m 1700 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+//	{algo_sha512unix,   "-p sha512unix -b%d:%d:%s %s %s"},
+//	{algo_msoffice_old, "-p msoffice-old -b%d:%d:%s %s %s"},
+//	{algo_msoffice,     "-p msoffice -b%d:%d:%s %s %s"},
+//	{algo_django256,    "-p django256 -b%d:%d:%s %s %s"},
+//	{algo_zip,          "-p zip -b%d:%d:%s %s %s"},
+//	{algo_rar,          "-p rar -b%d:%d:%s %s %s"},
+//	{algo_apr1,         "-p apr1 -b%d:%d:%s %s %s"},
+//	{algo_bfunix,       "-p bfunix -b%d:%d:%s %s %s"},
+//	{algo_dmg,          "-p dmg -b%d:%d:%s %s %s"},
+//	{algo_drupal7,      "-p drupa17 -b%d:%d:%s %s %s"},
+	{algo_lm,           "-m 3000 -a 3 --increment-min=%d --incremnet-max=%d %s %s %s"},
+//	{algo_luks,         "-p luks -b%d:%d:%s %s %s"},
+	{algo_mscash,       "-m 1100 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+	{algo_mscash2,      "-m 2100 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+	{algo_mssql_2000,   "-m 131 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+	{algo_mssql_2005,   "-m 132 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+	{algo_mssql_2012,   "-m 1731 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+//	{algo_mysql5,       "-p mssql5 -b%d:%d:%s %s %s"},
+	{algo_nsldap,       "-m 101 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+	{algo_nsldaps,      "-m 111 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+	{algo_ntlm,         "-m 1000 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+//	{algo_o5logon,      "-p o5logon -b%d:%d:%s %s %s"},
+//	{algo_oracle_old,   "-p oracle-old -b%d:%d:%s %s %s"},
+	{algo_oracle11g,    "-m 112 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+//	{algo_osx_old,      "-p osx-old -b%d:%d:%s %s %s"},
+	{algo_osxlion,      "-m 1722 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+	{algo_phpbb3,       "-m 400 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+//	{algo_pixmd5,       "-p pixmd5 -b%d:%d:%s %s %s"},
+//	{algo_privkey,      "-p privkey -b%d:%d:%s %s %s"},
+	{algo_ripemd160,    "-m 6000 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+//	{algo_sapg,         "-p sapg -b%d:%d:%s %s %s"},
+//	{algo_sl3,          "-p sl3 -b%d:%d:%s %s %s"},
+//	{algo_smf,          "-p smf -b%d:%d:%s %s %s"},
+//	{algo_wordpress,    "-p wordpress -b%d:%d:%s %s %s"},
+//	{algo_wpa,          "-p wpa -b%d:%d:%s %s %s"},
 };
 
 #define SUPPORT_HASH_NUM sizeof(all_support_hashes)/sizeof(all_support_hashes[0])
@@ -108,45 +102,62 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short devic
 	unsigned char charset = item->charset;
 	unsigned short start = item->start;
 	unsigned short end = item->end;
+	unsigned char type = item->type;
 	const char* hash = item->john;
 	const char* fmt;
 	int i;
-
-	for(i = 0; i < SUPPORT_HASH_NUM; i++)
-	{
-		if(algo == all_support_hashes[i].algo)
-		{
-			fmt = all_support_hashes[i].params;
-			break;
-		}
-	}
-	if(i == SUPPORT_HASH_NUM)
-	{
-		//¿¿¿¿¿¿¿¿¿
-		return ERR_NO_SUPPORT_ALGO;
-	}
-
-	if(charset < charset_num || charset > charset_ascii)
-	{
-		//¿¿¿¿¿¿¿¿
-		return ERR_NO_SUPPORT_CHARSET;
-	}
-
 	char cmd[4096];
-	char others[128];
-	if(!gpu){
-		sprintf(others, "-c");
-		return ERR_INVALID_PARAM;
-	}
-	else
-		sprintf(others, "-d %d", deviceId+2);
+        char others[128];
 
-// sprintf(cmd, fmt, start, end, charsets[charset], others, item->john);
-	sprintf(cmd, fmt, start, end, others, item->john);
- 	//this->MapTargetHash[item->guid] = "acd";
-	this->MapTargetHash[item->guid]=item->john;
-	int pid = this->Exec(item->guid, path, cmd, MonitorThread);
-	
+	if(algo==algo_sha1||algo==algo_md5||algo==algo_oscommerce||algo==algo_desunix)
+//	if(algo==algo_desunix)//algo==algo_oscommerce||
+	{
+		printf("!!!!!!!!!!! supported algo %d \n",algo);
+	}
+	else{
+		printf("********************** not supported algo %d  \n",algo);
+                return ERR_NO_SUPPORT_ALGO;
+	}
+	switch(type){
+		case bruteforce:
+		for(i = 0; i < SUPPORT_HASH_NUM; i++)
+        	{	
+                	if(algo == all_support_hashes[i].algo)
+                	{
+				fmt = all_support_hashes[i].params;
+	                        break;
+        		}
+	        }	
+        	if(i == SUPPORT_HASH_NUM)
+        	{
+               		 //¿¿¿¿¿¿¿¿¿
+	                return ERR_NO_SUPPORT_ALGO;
+        	}
+		if(charset < charset_num || charset > charset_ascii)
+        	{
+                	//¿¿¿¿¿¿¿¿
+	                return ERR_NO_SUPPORT_CHARSET;
+        	}
+	 	if(!gpu ){
+        	        sprintf(others, "-c");
+                	return ERR_INVALID_PARAM;
+        	}
+        	else
+                	sprintf(others, "-d %d", deviceId+1);
+		sprintf(cmd, fmt, start, end, charsets[charset], others, item->john);
+		this->MapTargetHash[item->guid]=item->john;
+			break;
+		case dict:
+			break;
+		case rule:
+			break;
+		default:
+			printf("#######   crack type: %d  ###########\n",type);
+			break;
+	}
+
+	int pid = this->Exec(item->guid, path, cmd, MonitorThread, true, true, false);
+
 	if(pid > 0){
 		CLog::Log(LOG_LEVEL_NOMAL, "oclHashcat: [pid=%d] laucher %s\n", pid, cmd);
 	}else{
@@ -185,16 +196,19 @@ void *oclHashcat::MonitorThread(void *p)
         bool cracked = false;	
 	char buffer[2048] = {0};
 	int n;
-	string s,s_result;
+	string s,s_result,s_hash_with_comma;
 	int idx, idx2,idx3;
 	int progress, ncount;
 	char avgspeed[128];	
 	char text[128]={0};
+	map<string,string>::iterator iter;
+	iter = ocl_hashcat->MapTargetHash.find(guid);
 
 	while(1)
 	{
 		n = ocl_hashcat->ReadFromLancher(guid, buffer, sizeof(buffer)-1);
-		if(n == 0) {
+		t1 = time(NULL);
+		if(n == ERR_CHILDEXIT) {
 			CLog::Log(LOG_LEVEL_ERROR,"%s: Detected child exit\n",__FUNCTION__);
 			//exit(0);
 			break;
@@ -202,20 +216,16 @@ void *oclHashcat::MonitorThread(void *p)
 			goto write;
 		} 
 		buffer[n] = 0;
-		//CLog::Log(LOG_LEVEL_NOMAL,"read[%d] %s\n", n, buffer);
+		//if(n!=0)
+		//	CLog::Log(LOG_LEVEL_NOMAL,"read[%d] %s\n", n, buffer);
 		s = buffer;
 				
 //	CLog::Log(LOG_LEVEL_ERROR,"%s",ocl_hashcat->crack);
-		//ocl_hashcat->MapTargetHash<string,string>::iterator iter;
-		//map<string,string>::iterator iter;
-		// ocl_hashcat->MapTargetHash.begin();
-		for(map<string,string>::iterator iter = ocl_hashcat->MapTargetHash.begin();iter!=ocl_hashcat->MapTargetHash.end();iter++)
-		{
-			//TODO:Check size equals 1
-			//printf("%s \n",iter->first.c_str(),iter->second.c_str());
-			string s_hash_with_comma = iter->second;
+		//	printf("guid %s \n",guid);
+			s_hash_with_comma = iter->second;
 			s_hash_with_comma.append(":");
-			//printf("%s\n",s_hash_with_comma.c_str());
+		//	printf("%s\n",s_hash_with_comma.c_str());
+			//printf("size of string_with_comma: %d ",s_hash_with_comma.length());
 			idx = s.rfind(s_hash_with_comma);
 			if(idx != string::npos){
 				//printf("%d\n",idx);
@@ -223,13 +233,13 @@ void *oclHashcat::MonitorThread(void *p)
 			//	for(int jj = idx; jj<=idx+40; jj++)
 			//		printf("%d:%c\n",jj,  s[jj]);
 				idx2 = s.find("\n",idx);
-				//printf("%d\n",idx2);
+			//	printf("idx2 = %d\n",idx2);
 			//	idx3 = s.rfind("\n",idx);
 				if(idx2 != string::npos){
-					printf("find idx2\n");
+				//	printf("find idx2\n");
 					string s2=s.substr(idx,idx2-idx);
-					idx3 = s2.find(":");
-//				printf("%d\n",idx3);
+					idx3 = s2.find(":",s_hash_with_comma.length()-1);// fixed here
+				//printf("idx3 = %d\n",idx3);
 					s_result=s2.substr(idx3+1,idx2-idx3);
 					CLog::Log(LOG_LEVEL_ERROR,"%s\n",s_result.c_str());
 					goto confirm;
@@ -240,11 +250,10 @@ void *oclHashcat::MonitorThread(void *p)
 				CLog::Log(LOG_LEVEL_ERROR,"Exhausted Cracking\n");
 				cracked = false;
 			}	
-		}
 confirm:
 	idx = s.rfind("Status.........: Cracked");//¿¿¿¿
         if(idx != string::npos){
-     		CLog::Log(LOG_LEVEL_ERROR,"Confirming Cracked successfully\n");
+     		CLog::Log(LOG_LEVEL_ERROR,"%s: Confirming Cracked successfully\n", guid);
 		cracked = true;
 	}
 	
@@ -253,16 +262,15 @@ write:
                 {
                         t2 = t1;
                       //n = ocl_hashcat->WriteToLancher(guid, "\n", 1);
-                       /* if(n == ERR_NO_THISTASK || n == 0)
+                        if(n == ERR_NO_THISTASK || n == 0)
                         {
                                 CLog::Log(LOG_LEVEL_NOMAL,"%s: Detected child exit2\n", __FUNCTION__);
                                 break;
-                        }*/
+                        }
                 }
 	}
 	if(ocl_hashcat->doneFunc)
 		ocl_hashcat->doneFunc(guid,cracked,s_result.c_str());
-	printf("uploaded result!____________________________________\n");
-
+//	printf("uploaded result!____________________________________\n");
 	return NULL;
 }
