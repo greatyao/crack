@@ -7,20 +7,58 @@
 
 int mediawiki_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 {
-	return md4_parse_hash(hashline,filename,hash);
+	if (!hashline || !hash) 
+		return ERR_INVALID_PARAM;
+
+	if (strlen(hashline)<2) 
+		return ERR_INVALID_PARAM;
+
+	char line[HASHFILE_MAX_LINE_LENGTH];
+	snprintf(line, HASHFILE_MAX_LINE_LENGTH-1, "%s", hashline);
+	if(strlen(hashline)>=33)
+	{
+		std::vector<char*> v = split(line,"-");
+		if((strlen(v[0]) == 32) && ishex(v[0]))
+		{
+			strcpy(hash->hash, v[0]);
+			if(v.size() == 2)
+				strcpy(hash->salt, v[1]);
+			else
+				strcpy(hash->salt, "");
+			strcpy(hash->salt2, "");
+			return 0;
+		}
+		else
+			return 1;
+	}
+	else
+		return 1;
 }
 
 int mediawiki_check_valid(struct crack_hash* hash)
 {
-	return md4_check_valid(hash);
+	if(!hash)
+		return ERR_INVALID_PARAM;
+	if((strlen(hash->hash) == 32) && ishex(hash->hash))
+		return 1;
+	else
+		return 0;
 }
 
 int mediawiki_recovery(const struct crack_hash* hash, char* line, int size)
 {
-	return md4_recovery(hash,line,size);
+	if(!hash || !line || size <= 0)
+		return ERR_INVALID_PARAM;
+
+	/*if(strcmp(hash->salt, "") == 0)
+	snprintf(line, size, "%s:", hash->hash);
+	else*/
+	snprintf(line, size, "%s-%s", hash->hash, hash->salt);
+
+	return 0;
 }
 
 int mediawiki_is_special()
 {
-    return 0;
+	return 0;
 }
