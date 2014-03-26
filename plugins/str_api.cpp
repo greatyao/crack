@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include "trex/trex.h"
 #include "str_api.h"
+#include "plugin.h"
 #include "algorithm_types.h"
 
 int ishex(char *hashline)
