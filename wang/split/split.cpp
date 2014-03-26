@@ -10,62 +10,62 @@ const unsigned long max_password_length= 20;
 #define Big_Int BigInt::Rossi
 
 
-//数值表示每秒能跑的密码量
+//数值表示每秒能跑的兆密码量
 //最小为1
 //如果是0，则不切割
 unsigned long speed_algorithm[]=
 {
 	300,//切割基准, 300表示切割以后的每份数据大致需要300秒计算完成
-	200000000,//algo_md4=0x01,        //MD4 plugin
-	0,//algo_md5,             //MD5 plugin
-	0,//algo_md5md5,          //md5(md5(pass)) plugin
-	0,//algo_md5unix,         //MD5(Unix) plugin (shadow files)
-	0,//algo_mediawiki,       //md5(salt.'-'.md5(password)) plugin (Wikimedia)
-	0,//algo_oscommerce,      //md5(salt,password) plugin (osCommerce)
-	0,//algo_ipb2,            //md5(md5(salt).md5(pass)) plugin (IPB > 2.x)
-	0,//algo_joomla,          //md5(password,salt) plugin (joomla)
-	0,//algo_vbulletin,       //md5(md5(pass).salt) plugin
-	0,//algo_desunix,         //DES(Unix) plugin (.htpasswd)
-	0,//algo_sha1,            //SHA1 plugin
-	0,//algo_sha1sha1,        //sha1(sha1(pass)) plugin
-	0,//algo_sha256,          //SHA-256 plugin
+	25320,//algo_md4=0x01,        //MD4 plugin
+	14487,//algo_md5,             //MD5 plugin
+	5571,//algo_md5md5,          //md5(md5(pass)) plugin
+	5590,//algo_md5unix,         //MD5(Unix) plugin (shadow files)
+	5218,//algo_mediawiki,       //md5(salt.'-'.md5(password)) plugin (Wikimedia)
+	12610,//algo_oscommerce,      //md5(salt,password) plugin (osCommerce)
+	4161,//algo_ipb2,            //md5(md5(salt).md5(pass)) plugin (IPB > 2.x)
+	11320,//algo_joomla,          //md5(password,salt) plugin (joomla)
+	5000,//algo_vbulletin,       //md5(md5(pass).salt) plugin
+	174,//algo_desunix,         //DES(Unix) plugin (.htpasswd)
+	6729,//algo_sha1,            //SHA1 plugin
+	4012,//algo_sha1sha1,        //sha1(sha1(pass)) plugin
+	1882,//algo_sha256,          //SHA-256 plugin
 	0,//algo_sha256unix,      //SHA256(Unix) plugin (shadow files)
-	0,//algo_sha512,          //SHA-512 plugin
-	0,//algo_sha512unix,      //SHA512(Unix) plugin (shadow files)
+	181,//algo_sha512,          //SHA-512 plugin
+	1810,//algo_sha512unix,      //SHA512(Unix) plugin (shadow files)
 	0,//algo_msoffice_old,    //MS Office XP/2003 plugin
 	0,//algo_msoffice,        //MS Office 2007/2010/2013 plugin
 	0,//algo_django256,       //Django SHA-256 plugin
-	0,//algo_zip,             //ZIP passwords plugin
-	0,//algo_rar,             //RAR3 passwords plugin
-	0,//algo_apr1,            //Apache apr1 plugin
+	6,//algo_zip,             //ZIP passwords plugin
+	4,//algo_rar,             //RAR3 passwords plugin
+	5452,//algo_apr1,            //Apache apr1 plugin
 	0,//algo_bfunix,          //bfunix plugin (shadow files)
 	0,//algo_dmg,             //FileVault (v1)  passwords plugin
 	0,//algo_drupal7,         //Drupal >=7 hashes plugin
-	0,//algo_lm,              //LM plugin
+	2384,//algo_lm,              //LM plugin
 	0,//algo_luks,            //LUKS encrypted block device plugin
-	0,//algo_mscash,          //Domain cached credentials plugin
-	0,//algo_mscash2,         //Domain cached credentials v2 plugin
-	0,//algo_mssql_2000,      //Microsoft SQL Server 2000 plugin
-	0,//algo_mssql_2005,      //Microsoft SQL Server 2005 plugin
+	11244,//algo_mscash,          //Domain cached credentials plugin
+	302,//algo_mscash2,         //Domain cached credentials v2 plugin
+	5596,//algo_mssql_2000,      //Microsoft SQL Server 2000 plugin
+	5583,//algo_mssql_2005,      //Microsoft SQL Server 2005 plugin
 	0,//algo_mssql_2012,      //Microsoft SQL Server 2012 plugin
-	0,//algo_mysql5,          //MySQL > 4.1 plugin
-	0,//algo_nsldap,          //LDAP SHA plugin
+	2585,//algo_mysql5,          //MySQL > 4.1 plugin
+	6598,//algo_nsldap,          //LDAP SHA plugin
 	0,//algo_nsldaps,         //LDAP SSHA (salted SHA) plugin
-	0,//algo_ntlm,            //NTLM plugin
+	23517,//algo_ntlm,            //NTLM plugin
 	0,//algo_o5logon,         //Oracle TNS O5logon
 	0,//algo_oracle_old,      //Oracle 7 up to 10r2 plugin
-	0,//algo_oracle11g,       //Oracle 11g plugin
-	0,//algo_osx_old,         //MacOSX <= 10.6 system passwords plugin
-	0,//algo_osxlion,         //MacOSX Lion system passwords plugin
+	6479,//algo_oracle11g,       //Oracle 11g plugin
+	5739,//algo_osx_old,         //MacOSX <= 10.6 system passwords plugin
+	172,//algo_osxlion,         //MacOSX Lion system passwords plugin
 	0,//algo_phpbb3,          //phpBB3 hashes plugin
-	0,//algo_pixmd5,          //Cisco PIX password hashes plugin
+	14620,//algo_pixmd5,          //Cisco PIX password hashes plugin
 	0,//algo_privkey,         //SSH/SSL private key passphrase plugin
 	0,//algo_ripemd160,       //RIPEMD-160 plugin
 	0,//algo_sapg,            //SAP CODVN G passwords plugin
-	0,//algo_sl3,             //Nokia SL3 plugin
-	0,//algo_smf,             //SMF plugin
-	0,//algo_wordpress,       //Wordpress hashes plugin
-	0,//algo_wpa,             //WPA-PSK plugin
+	8002,//algo_sl3,             //Nokia SL3 plugin
+	5777,//algo_smf,             //SMF plugin
+	4061,//algo_wordpress,       //Wordpress hashes plugin
+	353,//algo_wpa,             //WPA-PSK plugin
 };
 
 
@@ -482,7 +482,7 @@ struct crack_block *csplit::split_normal(struct crack_task *pct,unsigned &nsplit
 
 
 	Big_Int big_split_combinations(speed_algorithm[loc_p_ct->algo]);
-	Big_Int big_split_multiple(speed_algorithm[0]);
+	Big_Int big_split_multiple(1000000*speed_algorithm[0]);
 	Big_Int big_nsplits(1);
 
 	//计算估算的每份切割的密码量
