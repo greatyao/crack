@@ -7,21 +7,67 @@ const unsigned long split_combinations = 0xFFFFFFFF;
 const unsigned long split_multiple     = 500;
 const unsigned long max_password_length= 20; 
 
-/*
-const char *g_charset_table[charset_custom+1]={
-	"0123456789",
-	"abcdefghijklmnopqrstuvwxyz",
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-	"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
-	"abcdefghijklmnopqrstuvwxyz0123456789",
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
-	"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
-	"675abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~!@#$%^&*()_+{}|\":?><-=[]\\';/.",
-	""
-};
-*/
-
 #define Big_Int BigInt::Rossi
+
+
+//数值表示每秒能跑的密码量
+//最小为1
+//如果是0，则不切割
+unsigned long speed_algorithm[]=
+{
+	300,//切割基准, 300表示切割以后的每份数据大致需要300秒计算完成
+	200000000,//algo_md4=0x01,        //MD4 plugin
+	0,//algo_md5,             //MD5 plugin
+	0,//algo_md5md5,          //md5(md5(pass)) plugin
+	0,//algo_md5unix,         //MD5(Unix) plugin (shadow files)
+	0,//algo_mediawiki,       //md5(salt.'-'.md5(password)) plugin (Wikimedia)
+	0,//algo_oscommerce,      //md5(salt,password) plugin (osCommerce)
+	0,//algo_ipb2,            //md5(md5(salt).md5(pass)) plugin (IPB > 2.x)
+	0,//algo_joomla,          //md5(password,salt) plugin (joomla)
+	0,//algo_vbulletin,       //md5(md5(pass).salt) plugin
+	0,//algo_desunix,         //DES(Unix) plugin (.htpasswd)
+	0,//algo_sha1,            //SHA1 plugin
+	0,//algo_sha1sha1,        //sha1(sha1(pass)) plugin
+	0,//algo_sha256,          //SHA-256 plugin
+	0,//algo_sha256unix,      //SHA256(Unix) plugin (shadow files)
+	0,//algo_sha512,          //SHA-512 plugin
+	0,//algo_sha512unix,      //SHA512(Unix) plugin (shadow files)
+	0,//algo_msoffice_old,    //MS Office XP/2003 plugin
+	0,//algo_msoffice,        //MS Office 2007/2010/2013 plugin
+	0,//algo_django256,       //Django SHA-256 plugin
+	0,//algo_zip,             //ZIP passwords plugin
+	0,//algo_rar,             //RAR3 passwords plugin
+	0,//algo_apr1,            //Apache apr1 plugin
+	0,//algo_bfunix,          //bfunix plugin (shadow files)
+	0,//algo_dmg,             //FileVault (v1)  passwords plugin
+	0,//algo_drupal7,         //Drupal >=7 hashes plugin
+	0,//algo_lm,              //LM plugin
+	0,//algo_luks,            //LUKS encrypted block device plugin
+	0,//algo_mscash,          //Domain cached credentials plugin
+	0,//algo_mscash2,         //Domain cached credentials v2 plugin
+	0,//algo_mssql_2000,      //Microsoft SQL Server 2000 plugin
+	0,//algo_mssql_2005,      //Microsoft SQL Server 2005 plugin
+	0,//algo_mssql_2012,      //Microsoft SQL Server 2012 plugin
+	0,//algo_mysql5,          //MySQL > 4.1 plugin
+	0,//algo_nsldap,          //LDAP SHA plugin
+	0,//algo_nsldaps,         //LDAP SSHA (salted SHA) plugin
+	0,//algo_ntlm,            //NTLM plugin
+	0,//algo_o5logon,         //Oracle TNS O5logon
+	0,//algo_oracle_old,      //Oracle 7 up to 10r2 plugin
+	0,//algo_oracle11g,       //Oracle 11g plugin
+	0,//algo_osx_old,         //MacOSX <= 10.6 system passwords plugin
+	0,//algo_osxlion,         //MacOSX Lion system passwords plugin
+	0,//algo_phpbb3,          //phpBB3 hashes plugin
+	0,//algo_pixmd5,          //Cisco PIX password hashes plugin
+	0,//algo_privkey,         //SSH/SSL private key passphrase plugin
+	0,//algo_ripemd160,       //RIPEMD-160 plugin
+	0,//algo_sapg,            //SAP CODVN G passwords plugin
+	0,//algo_sl3,             //Nokia SL3 plugin
+	0,//algo_smf,             //SMF plugin
+	0,//algo_wordpress,       //Wordpress hashes plugin
+	0,//algo_wpa,             //WPA-PSK plugin
+};
+
 
 void debug(Big_Int d)
 {
@@ -189,38 +235,7 @@ string csplit::make_character_table(enum crack_charset k)
 	}	
 	return s;
 }
-/*
-bool csplit::init_bf(unsigned len_min,unsigned len_max,char *character_set)
-{
-	if( (len_min<1)||(len_min>len_max)||(character_set==0)||(character_set[0]==0)||(len_max>max_password_length) )
-	{
-		return false;
-	}
 
-	m_len_min = len_min;
-	m_len_max = len_max;
-
-	m_characters = 0;
-	while(1)
-	{
-		if( character_set[m_characters]==0) {
-			m_character_set[m_characters]=0;
-			break;
-		}
-		m_character_set[m_characters]=character_set[m_characters];
-		m_characters++;
-	}
-
-	m_total_combinations = compute_combinations(m_characters,m_len_max,m_len_min);
-
-	#ifdef _DEBUG	
-	string s = m_total_combinations.toStrDec();
-	printf("当前组合密码数:\n%s\n",s.c_str());
-	#endif
-
-	return true;
-}
-*/
 //默认根据预定义密码数量切割算法
 struct crack_block *csplit::split_default(struct crack_task *pct,unsigned &nsplits)
 {	
@@ -400,23 +415,27 @@ struct crack_block *csplit::split_easy(struct crack_task *pct,unsigned &nsplits)
 		if(i==0)//第一个
 		{
 			p_crack_block[i].start = loc_p_ct->startLength;
-			p_crack_block[i].start2 = 0;//索引
+			//p_crack_block[i].start2 = 0;//索引
+			p_crack_block[i].start2 = -1;
 		}
 		else
 		{
 			p_crack_block[i].start = k_pos+i;
-			p_crack_block[i].start2 = 0;
+			//p_crack_block[i].start2 = 0;
+			p_crack_block[i].start2 = -1;
 		}
 		p_crack_block[i].end = k_pos+i;
 
 		//索引2
 		if( (i+1)==nsplits)//最后一个
 		{
-			p_crack_block[i].end2 = loc_s_charset.length()-1;
+			//p_crack_block[i].end2 = loc_s_charset.length()-1;
+			p_crack_block[i].end2 = -1;//
 		}
 		else
 		{
-			p_crack_block[i].end2 = loc_s_charset.length()-1;
+			//p_crack_block[i].end2 = loc_s_charset.length()-1;
+			p_crack_block[i].end2 = -1;//
 		}
 	}
 
@@ -440,8 +459,140 @@ struct crack_block *csplit::split_easy(struct crack_task *pct,unsigned &nsplits)
 
 //根据hash速度切割
 struct crack_block *csplit::split_normal(struct crack_task *pct,unsigned &nsplits)
-{
-	return 0;
+{	
+	if( (pct==0)||(pct->count<1) ) 
+	{
+		return 0;
+	}
+
+	struct crack_task * loc_p_ct = pct;
+	string loc_s_charset;
+	Big_Int loc_total_combinations;
+
+	loc_s_charset = make_character_table((crack_charset)loc_p_ct->charset);
+	loc_total_combinations = compute_combinations(loc_s_charset.length(),loc_p_ct->endLength,loc_p_ct->startLength);
+
+
+	#ifdef _DEBUG
+	double pp = 0;
+	for(unsigned i = loc_p_ct->startLength; i <=loc_p_ct->endLength; i++)
+		pp += pow(loc_s_charset.length(), (double)i);
+	printf("%g\n", pp);
+	#endif
+
+
+	Big_Int big_split_combinations(speed_algorithm[loc_p_ct->algo]);
+	Big_Int big_split_multiple(speed_algorithm[0]);
+	Big_Int big_nsplits(1);
+
+	//计算估算的每份切割的密码量
+	big_split_combinations = big_split_combinations * big_split_multiple;	//切割每份大小
+
+	#ifdef _DEBUG
+	printf("total:%s\n",loc_total_combinations.toStrDec());
+	#endif
+	//get_step_length
+	//if(big_split_combinations>)//不切
+
+	//简单字符集模式下最大能切割的份数
+	unsigned max_splits = loc_s_charset.length();
+	Big_Int bit_max_splits(max_splits);
+
+	//简单模式切割，每份切割的密码数量
+	Big_Int one_split = loc_total_combinations/bit_max_splits;
+
+	//确定每份实际大小
+	unsigned step = 0;
+	for(unsigned i=1; i<=max_splits; i++)
+	{
+		Big_Int temp(i);
+		if( (one_split*temp)>big_split_combinations )
+		{
+			one_split = one_split *temp;//合适的每份切割的密码数据量
+			step = i;					//
+			break;
+		}
+	}
+
+	//确定最终切割份数
+	if(step==0)
+	{
+		nsplits = 1;
+	}
+	else
+	{
+		Big_Int temp = loc_total_combinations/one_split;
+
+		if( temp > bit_max_splits)
+		{
+			nsplits	= max_splits;
+		}
+		else
+		{
+			nsplits = temp.toUlong();
+		}
+		
+		//nsplits	= max_splits/step;
+		//if( (nsplits*step)!=max_splits ) nsplits++;
+	}
+
+	if(m_zero==big_split_combinations)
+		nsplits = 1;
+
+	struct crack_block *p_crack_block = (crack_block *)malloc(sizeof(struct crack_block)*nsplits*loc_p_ct->count);
+
+	for(unsigned i=0; i<nsplits; i++)
+	{
+		p_crack_block[i].algo    = loc_p_ct->algo;//算法
+		p_crack_block[i].charset = loc_p_ct->charset;//字符集
+		p_crack_block[i].type   = loc_p_ct->type;
+		p_crack_block[i].special= loc_p_ct->special;
+
+		string s_guid =new_guid();
+
+		memcpy( p_crack_block[i].guid, s_guid.c_str(), s_guid.length()+1 );
+		memcpy( p_crack_block[i].john, loc_p_ct->hashes[0].hash, sizeof(struct crack_hash) );
+		
+		if(i==0)//第一个
+		{
+			p_crack_block[i].start = loc_p_ct->startLength;
+			p_crack_block[i].start2 = 0;//索引
+		}
+		else
+		{
+			p_crack_block[i].start = loc_p_ct->endLength;
+			p_crack_block[i].start2 = (i)*(loc_s_charset.length()/nsplits);
+		}
+		p_crack_block[i].end = loc_p_ct->endLength;
+
+		//索引2
+		if( (i+1)==nsplits)//最后一个
+		{
+			p_crack_block[i].end2 = loc_s_charset.length()-1;
+		}
+		else
+		{
+			p_crack_block[i].end2 = (i+1)*(loc_s_charset.length()/nsplits);
+		}
+	}
+
+	if(loc_p_ct->count>1)//多个
+	{
+		for(int i=1; i<loc_p_ct->count; i++)
+		{
+			memcpy( &p_crack_block[nsplits*i],p_crack_block, sizeof(struct crack_block)*nsplits);
+			for(unsigned j=0; j<nsplits; j++)
+			{
+				memcpy( p_crack_block[nsplits*i+j].john, loc_p_ct->hashes[i].hash, sizeof(struct crack_hash) );
+
+				string s_guid =new_guid();
+				memcpy( p_crack_block[nsplits*i+j].guid,  s_guid.c_str(), s_guid.length()+1);
+			}
+		}		
+	}
+
+	nsplits = nsplits*loc_p_ct->count;
+	return p_crack_block;
 }
 
 void csplit::release_splits(char *p)
