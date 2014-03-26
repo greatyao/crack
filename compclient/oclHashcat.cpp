@@ -12,6 +12,10 @@
 
 using std::string;
 
+struct maphashtarget{
+	unsigned char algo;
+	char hash[260];
+};
 
 struct hash_parameter{
 	crack_algorithm algo;
@@ -69,8 +73,8 @@ static struct hash_parameter all_support_hashes[] =
 	{algo_nsldaps,      "-m 111 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
 	{algo_ntlm,         "-m 1000 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
 //	{algo_o5logon,      "-p o5logon -b%d:%d:%s %s %s"},
-//	{algo_oracle_old,   "-p oracle-old -b%d:%d:%s %s %s"},
-	{algo_oracle11g,    "-m 112 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+//	{algo_oracle_old,   "-m 3100 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},//something wrong with oclhashcat
+//	{algo_oracle11g,    "-m 112 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},//wrong with hash-length inputed
 //	{algo_osx_old,      "-p osx-old -b%d:%d:%s %s %s"},
 	{algo_osxlion,      "-m 1722 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
 	{algo_phpbb3,       "-m 400 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
@@ -80,7 +84,7 @@ static struct hash_parameter all_support_hashes[] =
 //	{algo_sapg,         "-p sapg -b%d:%d:%s %s %s"},
 //	{algo_sl3,          "-p sl3 -b%d:%d:%s %s %s"},
 //	{algo_smf,          "-p smf -b%d:%d:%s %s %s"},
-//	{algo_wordpress,    "-p wordpress -b%d:%d:%s %s %s"},
+//	{algo_wordpress,    "-m 500 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
 //	{algo_wpa,          "-p wpa -b%d:%d:%s %s %s"},
 };
 
@@ -109,13 +113,13 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short devic
 	char cmd[4096];
         char others[128];
 
-	if(algo==algo_sha1||algo==algo_md5||algo==algo_oscommerce||algo==algo_desunix)
-//	if(algo==algo_desunix)//algo==algo_oscommerce||
+	//if(algo==algo_sha1||algo==algo_md5||algo==algo_oscommerce||algo==algo_desunix)
+	if(algo==algo_ripemd160)//algo==algo_oscommerce||
 	{
 		printf("!!!!!!!!!!! supported algo %d \n",algo);
 	}
 	else{
-		printf("********************** not supported algo %d  \n",algo);
+		//printf("********************** not supported algo %d  \n",algo);
                 return ERR_NO_SUPPORT_ALGO;
 	}
 	switch(type){
@@ -145,7 +149,24 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short devic
         	else
                 	sprintf(others, "-d %d", deviceId+1);
 		sprintf(cmd, fmt, start, end, charsets[charset], others, item->john);
-		this->MapTargetHash[item->guid]=item->john;
+		//this->MapTargetHash[item->guid]=item->john;
+		struct maphashtarget a;
+		a.algo = algo;
+		//a.hash = item->john;
+	//	strcpy(a.hash,item->john);
+		memcpy(a.hash,item->john,sizeof(item->john));
+		if(algo==algo_mssql_2005||algo==algo_mssql_2012)
+                {
+			int i=0;
+			char c;
+			while(a.hash[i])
+			{
+				c=a.hash[i];
+				a.hash[i]=tolower(c);
+				i++;
+			}
+		}
+		this->MapTargetHash.insert(pair<string,maphashtarget>(item->guid,a));
 			break;
 		case dict:
 			break;
@@ -197,12 +218,16 @@ void *oclHashcat::MonitorThread(void *p)
 	char buffer[2048] = {0};
 	int n;
 	string s,s_result,s_hash_with_comma;
+	unsigned char algo;
 	int idx, idx2,idx3;
 	int progress, ncount;
 	char avgspeed[128];	
 	char text[128]={0};
-	map<string,string>::iterator iter;
+	map<string,struct maphashtarget>::iterator iter;
 	iter = ocl_hashcat->MapTargetHash.find(guid);
+	s_hash_with_comma = iter->second.hash;
+        s_hash_with_comma.append(":");
+	algo = iter->second.algo;
 
 	while(1)
 	{
@@ -216,33 +241,39 @@ void *oclHashcat::MonitorThread(void *p)
 			goto write;
 		} 
 		buffer[n] = 0;
-		//if(n!=0)
-		//	CLog::Log(LOG_LEVEL_NOMAL,"read[%d] %s\n", n, buffer);
+		if(n!=0)
+			CLog::Log(LOG_LEVEL_NOMAL,"read[%d] %s\n", n, buffer);
 		s = buffer;
 				
 //	CLog::Log(LOG_LEVEL_ERROR,"%s",ocl_hashcat->crack);
 		//	printf("guid %s \n",guid);
-			s_hash_with_comma = iter->second;
-			s_hash_with_comma.append(":");
-		//	printf("%s\n",s_hash_with_comma.c_str());
-			//printf("size of string_with_comma: %d ",s_hash_with_comma.length());
-			idx = s.rfind(s_hash_with_comma);
+		//printf("%s\n",s_hash_with_comma.c_str());
+		//printf("size of string_with_comma: %d ",s_hash_with_comma.length());
+			
+			if(algo==algo_mssql_2000)
+				idx = s.rfind(s_hash_with_comma.substr(0,14));//mssql_2000:
+			else
+				idx = s.rfind(s_hash_with_comma);
 			if(idx != string::npos){
 				//printf("%d\n",idx);
 			//	CLog::Log(LOG_LEVEL_ERROR,"find hash\n");
-			//	for(int jj = idx; jj<=idx+40; jj++)
-			//		printf("%d:%c\n",jj,  s[jj]);
+		//		for(int jj = idx; jj<=idx+100; jj++)
+		//			printf("%d:%c\n",jj,  s[jj]);
 				idx2 = s.find("\n",idx);
-			//	printf("idx2 = %d\n",idx2);
+				printf("idx2 = %d\n",idx2);
 			//	idx3 = s.rfind("\n",idx);
 				if(idx2 != string::npos){
-				//	printf("find idx2\n");
+					printf("find idx2\n");
 					string s2=s.substr(idx,idx2-idx);
+					printf("%s\n",s2.c_str());
 					idx3 = s2.find(":",s_hash_with_comma.length()-1);// fixed here
-				//printf("idx3 = %d\n",idx3);
-					s_result=s2.substr(idx3+1,idx2-idx3);
-					CLog::Log(LOG_LEVEL_ERROR,"%s\n",s_result.c_str());
-					goto confirm;
+				printf("idx3 = %d\n",idx3);
+					if(idx3>0)
+					{
+						s_result=s2.substr(idx3+1,idx2-idx3);
+						CLog::Log(LOG_LEVEL_ERROR,"%s\n",s_result.c_str());
+						goto confirm;
+					}
 				}                   
 			}
 			idx = s.rfind("Status.........: Exhausted");
@@ -255,6 +286,9 @@ confirm:
         if(idx != string::npos){
      		CLog::Log(LOG_LEVEL_ERROR,"%s: Confirming Cracked successfully\n", guid);
 		cracked = true;
+		iter = ocl_hashcat->MapTargetHash.find(guid);
+		ocl_hashcat->MapTargetHash.erase(iter);//TODO:ADD LOCK
+		break;
 	}
 	
 write:	
@@ -272,5 +306,7 @@ write:
 	if(ocl_hashcat->doneFunc)
 		ocl_hashcat->doneFunc(guid,cracked,s_result.c_str());
 //	printf("uploaded result!____________________________________\n");
+//	iter = ocl_hashcat->MapTargetHash.find(guid);	
+//	ocl_hashcat->MapTargetHash.erase(iter);//TODO:ADD LOCK 
 	return NULL;
 }

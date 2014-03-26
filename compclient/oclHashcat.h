@@ -12,7 +12,7 @@ class oclHashcat : public Crack
 public:
 	oclHashcat(void);
 	~oclHashcat(void);
-	map<string,string> MapTargetHash;
+	map<string,struct maphashtarget> MapTargetHash;
 	static void *MonitorThread(void *p);
 
 	virtual int Launcher(const crack_block* item, bool gpu, unsigned short deviceId);
