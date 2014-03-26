@@ -568,6 +568,18 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\plugins\trex\trex.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\trex\trex.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\trex\TRexpp.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\plugins\vbulletin.cpp"
 				>
 			</File>
