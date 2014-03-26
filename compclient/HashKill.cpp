@@ -140,7 +140,21 @@ int HashKill::Launcher(const crack_block* item, bool gpu, unsigned short deviceI
 	else
 		sprintf(others, "-t %d", platformId);
 
-	sprintf(cmd, fmt, start, end, charsets[charset], others, item->john);
+	string john = item->john;
+	if(item->algo == algo_mscash)
+	{
+		int id = john.find(":");
+		if(id != string::npos)
+			john = john.substr(id+1, john.length()-id-1) + ":" + john.substr(0, id);
+	}
+	else if(item->algo == algo_mediawiki)
+	{
+		int id = john.find(":");
+		if(id != string::npos)
+			john = string("B:") + john.substr(id+1, john.length()-id-1) + ":" + john.substr(0, id);
+	}
+	
+	sprintf(cmd, fmt, start, end, charsets[charset], others, john.c_str());
 	
 	int pid = this->Exec(item->guid, path, cmd, MonitorThread, true, true, false);
 	
