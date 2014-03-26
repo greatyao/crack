@@ -142,7 +142,7 @@ int HashKill::Launcher(const crack_block* item, bool gpu, unsigned short deviceI
 
 	sprintf(cmd, fmt, start, end, charsets[charset], others, item->john);
 	
-	int pid = this->Exec(item->guid, path, cmd, MonitorThread, true, true, false);
+	int pid = this->Exec(item->guid, path, cmd, MonitorThread, true, true, true);
 	
 	if(pid > 0){
 		CLog::Log(LOG_LEVEL_NOTICE, "hashkill: Laucher OK [guid=%s, pid=%d]\n", item->guid, pid);
