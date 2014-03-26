@@ -15,7 +15,7 @@ int mysql5_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 
 	char line[HASHFILE_MAX_LINE_LENGTH];
 	snprintf(line, HASHFILE_MAX_LINE_LENGTH-1, "%s", hashline);
-	if(((strlen(hashline)==41) && isStartsWith(hashline,"*") && isupperhex(hashline+1)) || ((strlen(hashline)==16)&&ishex(hashline)))
+	if(((strlen(hashline)==41) && isStartsWith(hashline,"*") && ishex(hashline+1)) || ((strlen(hashline)==16)&&ishex(hashline)))
 	{
 		strcpy(hash->hash, hashline);
 		strcpy(hash->salt, "");
@@ -38,7 +38,7 @@ int mysql5_check_valid(struct crack_hash* hash)
 {
 	if(!hash)
 		return ERR_INVALID_PARAM;
-	if(((strlen(hash->hash) == 41) && isupperhex(hash->hash+1)) || ((strlen(hash->hash) == 16) && ishex(hash->hash)))
+	if(((strlen(hash->hash) == 41) && ishex(hash->hash+1)) || ((strlen(hash->hash) == 16) && ishex(hash->hash)))
 		return 1;
 	else
 		return 0;
