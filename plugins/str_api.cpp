@@ -2,7 +2,7 @@
 #include <string.h>
 #include <iostream>
 #include <ctype.h>
-#include <regex>
+#include "plugin.h"
 #include "str_api.h"
 #include "algorithm_types.h"
 
