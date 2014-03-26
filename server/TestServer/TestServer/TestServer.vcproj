@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="E:\develop\dissys\all\common\include"
+				AdditionalIncludeDirectories="..\..\..\common\include;.\;"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -128,11 +128,12 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="..\..\..\common\include;.\;"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG"
-				MinimalRebuild="false"
+				MinimalRebuild="true"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 			/>
@@ -150,7 +151,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="zlib.lib"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\lib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -442,8 +445,136 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="NewFilter1"
+			Name="loadfiles"
 			>
+			<File
+				RelativePath="..\..\..\plugins\apr1.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\desunix.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\ipb2.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\joomla.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\lm.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\loadfiles.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\loadfiles.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\md4.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\md5.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\md5md5.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\md5unix.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\mediawiki.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\mssql_2000.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\mssql_2005.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\mssql_2012.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\mysql5.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\nsldap.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\nsldaps.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\ntlm.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\oscommerce.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\plugin.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\plugin.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\sha1.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\sha1sha1.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\sha256.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\sha256unix.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\sha512.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\sha512unix.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\str_api.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\str_api.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\vbulletin.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\wordpress.cpp"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\ClassDiagram1.cd"
