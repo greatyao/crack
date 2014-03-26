@@ -200,11 +200,9 @@ void hex2str(char *str, char *hex, int len);
 void _to64(char *s, unsigned long v, int n);
 
 #if defined(WIN32) || defined(WIN64)
-#if _MSC_VER <= 1500
 #define snprintf _snprintf
 #define strtok_r strtok_s
 #define bzero(a, s) memset(a, 0, s)
-#endif
 #endif
 
 #ifdef __cplusplus
