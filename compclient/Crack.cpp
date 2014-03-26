@@ -63,6 +63,7 @@ int Crack::StartCrack(const crack_block* item, const char* guid, bool gpu, unsig
 		{
 			if(plugin->parse((char*)item->john, NULL, &hash) != 0)
 			{
+				CLog::Log(LOG_LEVEL_WARNING, "check: Invalid hash format %s\n", item->john);
 				return ERR_INVALID_PARAM;
 			}
 		}
