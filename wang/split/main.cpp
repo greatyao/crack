@@ -10,7 +10,7 @@ int main(int c,char *v[])
 
 	ct->charset = charset_ascii;
 	ct->startLength = 3;
-	ct->endLength = 7;
+	ct->endLength = 17;
 	ct->count = 2;
 	strcpy(ct->hashes[0].hash, "ABCD");
 
@@ -18,7 +18,7 @@ int main(int c,char *v[])
 	//²âÊÔ´úÂë
 	csplit sp;
 	unsigned n;
-	struct crack_block * pcb = sp.split_default(ct,n);
+	struct crack_block * pcb = sp.split_easy(ct,n);
 
 	for(unsigned i=0; i<n; i++)
 	{

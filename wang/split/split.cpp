@@ -33,7 +33,6 @@ void debug(Big_Int d)
 
 csplit::csplit()
 {
-	m_characters = 0;
 	Big_Int zero(0);
 	m_zero = zero;
 	Big_Int one(1);
@@ -101,15 +100,15 @@ Big_Int csplit::compute_power(unsigned x,unsigned y)
 	return total;
 }
 //1 base
-Big_Int csplit::string_to_integer(const string &password)
+Big_Int csplit::string_to_integer(const string & s_charset,const string &password)
 {
 	const char *p_pwd = password.c_str();
 	size_t len_pwd = password.length();
 
 	Big_Int v(0);
-	Big_Int base(m_characters);
+	Big_Int base(s_charset.length());
 
-	string s_character_set = m_character_set;
+	string s_character_set = s_charset;
 	for(size_t i=0; i<len_pwd; i++)
 	{
 		size_t pos = s_character_set.find(p_pwd[i]);
@@ -120,15 +119,16 @@ Big_Int csplit::string_to_integer(const string &password)
 			v = v + (bit)*compute_power(base,len_pwd-i-1);		
 	}
 
-	return v+compute_combinations(m_characters,len_pwd-1);
+	return v+compute_combinations(s_charset.length(),len_pwd-1);
 }
 
-string csplit::integer_to_string(Big_Int integer)
+string csplit::integer_to_string(const string & s_charset,Big_Int integer)
 {
 	Big_Int table_base[max_password_length];//4 20 84 340 1364...... 
  
-	Big_Int base(m_characters);
+	Big_Int base(s_charset.length());
 	string s;						
+	const char *m_character_set = s_charset.c_str();
 
 	//初始化
 	table_base[0] = base;
@@ -149,7 +149,7 @@ string csplit::integer_to_string(Big_Int integer)
 		}
 	}
 
-	if(bits>1) integer = integer - compute_combinations(m_characters,bits-1);
+	if(bits>1) integer = integer - compute_combinations(s_charset.length(),bits-1);
 
 	for(int i=bits; i>0; i--)
 	{
@@ -162,9 +162,9 @@ string csplit::integer_to_string(Big_Int integer)
 
 	return s;
 }
-Big_Int csplit::get_step_length(unsigned len_max)
+Big_Int csplit::get_step_length(const string & s_charset,unsigned len_max)
 {
-	if(m_characters==0)
+	if(s_charset.length()==0)
 	{
 		return m_zero;
 	}
@@ -172,7 +172,7 @@ Big_Int csplit::get_step_length(unsigned len_max)
 	Big_Int r(0);
 	for(unsigned i=0; i<len_max; i++)
 	{
-		r=r+compute_power(m_characters,i);
+		r=r+compute_power(s_charset.length(),i);
 	}
 	return r;
 }
@@ -189,7 +189,7 @@ string csplit::make_character_table(enum crack_charset k)
 	}	
 	return s;
 }
-
+/*
 bool csplit::init_bf(unsigned len_min,unsigned len_max,char *character_set)
 {
 	if( (len_min<1)||(len_min>len_max)||(character_set==0)||(character_set[0]==0)||(len_max>max_password_length) )
@@ -220,24 +220,27 @@ bool csplit::init_bf(unsigned len_min,unsigned len_max,char *character_set)
 
 	return true;
 }
-
+*/
 //默认根据预定义密码数量切割算法
 struct crack_block *csplit::split_default(struct crack_task *pct,unsigned &nsplits)
 {	
-	//传入数据无效，则直接返回
-	if( (pct==0)||(pct->count<1) ) return 0;
+	if( (pct==0)||(pct->count<1) ) 
+	{
+		return 0;
+	}
 
-	//p_local_ct指向传入的数据
-	struct crack_task * p_local_ct = pct;
-	string s_local_char_set;
+	struct crack_task * loc_p_ct = pct;
+	string loc_s_charset;
+	Big_Int loc_total_combinations;
 
-	s_local_char_set = make_character_table((crack_charset)p_local_ct->charset);
-	init_bf(p_local_ct->startLength,p_local_ct->endLength,(char*)s_local_char_set.c_str());
+	loc_s_charset = make_character_table((crack_charset)loc_p_ct->charset);
+	loc_total_combinations = compute_combinations(loc_s_charset.length(),loc_p_ct->endLength,loc_p_ct->startLength);
+
 
 	#ifdef _DEBUG
 	double pp = 0;
-	for(unsigned i = m_len_min; i <= m_len_max; i++)
-		pp += pow(m_characters, (double)i);
+	for(unsigned i = loc_p_ct->startLength; i <=loc_p_ct->endLength; i++)
+		pp += pow(loc_s_charset.length(), (double)i);
 	printf("%g\n", pp);
 	#endif
 
@@ -249,15 +252,18 @@ struct crack_block *csplit::split_default(struct crack_task *pct,unsigned &nspli
 	//计算估算的每份切割的密码量
 	big_split_combinations = big_split_combinations * big_split_multiple;	//切割每份大小
 
+	#ifdef _DEBUG
+	printf("total:%s\n",loc_total_combinations.toStrDec());
+	#endif
 	//get_step_length
 	//if(big_split_combinations>)//不切
 
 	//简单字符集模式下最大能切割的份数
-	unsigned max_splits = m_characters;
+	unsigned max_splits = loc_s_charset.length();
 	Big_Int bit_max_splits(max_splits);
 
 	//简单模式切割，每份切割的密码数量
-	Big_Int one_split = m_total_combinations/bit_max_splits;
+	Big_Int one_split = loc_total_combinations/bit_max_splits;
 
 	//确定每份实际大小
 	unsigned step = 0;
@@ -279,7 +285,7 @@ struct crack_block *csplit::split_default(struct crack_task *pct,unsigned &nspli
 	}
 	else
 	{
-		Big_Int temp = m_total_combinations/one_split;
+		Big_Int temp = loc_total_combinations/one_split;
 
 		if( temp > bit_max_splits)
 		{
@@ -294,51 +300,51 @@ struct crack_block *csplit::split_default(struct crack_task *pct,unsigned &nspli
 		//if( (nsplits*step)!=max_splits ) nsplits++;
 	}
 
-	struct crack_block *p_crack_block = (crack_block *)malloc(sizeof(struct crack_block)*nsplits*p_local_ct->count);
+	struct crack_block *p_crack_block = (crack_block *)malloc(sizeof(struct crack_block)*nsplits*loc_p_ct->count);
 
 	for(unsigned i=0; i<nsplits; i++)
 	{
-		p_crack_block[i].algo    = p_local_ct->algo;//算法
-		p_crack_block[i].charset = p_local_ct->charset;//字符集
-		p_crack_block[i].type   = p_local_ct->type;
-		p_crack_block[i].special= p_local_ct->special;
+		p_crack_block[i].algo    = loc_p_ct->algo;//算法
+		p_crack_block[i].charset = loc_p_ct->charset;//字符集
+		p_crack_block[i].type   = loc_p_ct->type;
+		p_crack_block[i].special= loc_p_ct->special;
 
 		string s_guid =new_guid();
 
 		memcpy( p_crack_block[i].guid, s_guid.c_str(), s_guid.length()+1 );
-		memcpy( p_crack_block[i].john, p_local_ct->hashes[0].hash, sizeof(struct crack_hash) );
+		memcpy( p_crack_block[i].john, loc_p_ct->hashes[0].hash, sizeof(struct crack_hash) );
 		
 		if(i==0)//第一个
 		{
-			p_crack_block[i].start = p_local_ct->startLength;
+			p_crack_block[i].start = loc_p_ct->startLength;
 			p_crack_block[i].start2 = 0;//索引
 		}
 		else
 		{
-			p_crack_block[i].start = p_local_ct->endLength;
-			p_crack_block[i].start2 = (i)*(m_characters/nsplits);
+			p_crack_block[i].start = loc_p_ct->endLength;
+			p_crack_block[i].start2 = (i)*(loc_s_charset.length()/nsplits);
 		}
-		p_crack_block[i].end = p_local_ct->endLength;
+		p_crack_block[i].end = loc_p_ct->endLength;
 
 		//索引2
 		if( (i+1)==nsplits)//最后一个
 		{
-			p_crack_block[i].end2 = m_characters-1;
+			p_crack_block[i].end2 = loc_s_charset.length()-1;
 		}
 		else
 		{
-			p_crack_block[i].end2 = (i+1)*(m_characters/nsplits);
+			p_crack_block[i].end2 = (i+1)*(loc_s_charset.length()/nsplits);
 		}
 	}
 
-	if(p_local_ct->count>1)//多个
+	if(loc_p_ct->count>1)//多个
 	{
-		for(int i=1; i<p_local_ct->count; i++)
+		for(int i=1; i<loc_p_ct->count; i++)
 		{
 			memcpy( &p_crack_block[nsplits*i],p_crack_block, sizeof(struct crack_block)*nsplits);
 			for(unsigned j=0; j<nsplits; j++)
 			{
-				memcpy( p_crack_block[nsplits*i+j].john, p_local_ct->hashes[i].hash, sizeof(struct crack_hash) );
+				memcpy( p_crack_block[nsplits*i+j].john, loc_p_ct->hashes[i].hash, sizeof(struct crack_hash) );
 
 				string s_guid =new_guid();
 				memcpy( p_crack_block[nsplits*i+j].guid,  s_guid.c_str(), s_guid.length()+1);
@@ -346,62 +352,54 @@ struct crack_block *csplit::split_default(struct crack_task *pct,unsigned &nspli
 		}		
 	}
 
-	nsplits = nsplits*p_local_ct->count;
+	nsplits = nsplits*loc_p_ct->count;
 	return p_crack_block;
 }
 
 //简单切割
 struct crack_block *csplit::split_easy(struct crack_task *pct,unsigned &nsplits)
 {
-	//传入数据无效，则直接返回
 	if( (pct==0)||(pct->count<1) ) return 0;
 
-	//p_local_ct指向传入的数据
-	struct crack_task * p_local_ct = pct;
-	string s_local_char_set;
+	struct crack_task * loc_p_ct = pct;
+	string loc_s_charset;
+	Big_Int loc_total_combinations;
 
-	s_local_char_set = make_character_table((crack_charset)p_local_ct->charset);
-	init_bf(p_local_ct->startLength,p_local_ct->endLength,(char*)s_local_char_set.c_str());
-
-	#ifdef _DEBUG
-	double pp = 0;
-	for(unsigned i = m_len_min; i <= m_len_max; i++)
-		pp += pow(m_characters, (double)i);
-	printf("%g\n", pp);
-	#endif
+	loc_s_charset = make_character_table((crack_charset)loc_p_ct->charset);
+	loc_total_combinations = compute_combinations(loc_s_charset.length(),loc_p_ct->endLength,loc_p_ct->startLength);
 
 	//根据密码长度范围简单估算
 	const int k_pos = 10;
-	if( (p_local_ct->startLength == p_local_ct->endLength)||( p_local_ct->endLength<=k_pos ))
+	if( (loc_p_ct->startLength == loc_p_ct->endLength)||( loc_p_ct->endLength<=k_pos ))
 		nsplits = 1;
-	else if(p_local_ct->startLength<=10)
+	else if(loc_p_ct->startLength<=10)
 	{
-		nsplits =  1+p_local_ct->endLength-10;
+		nsplits =  1+loc_p_ct->endLength-10;
 	}
 	else
 	{
-		nsplits = p_local_ct->endLength-10;			
+		nsplits = loc_p_ct->endLength-10;			
 	}
 
 	//分配数据空间
-	struct crack_block *p_crack_block = (crack_block *)malloc(sizeof(struct crack_block)*nsplits*p_local_ct->count);
+	struct crack_block *p_crack_block = (crack_block *)malloc(sizeof(struct crack_block)*nsplits*loc_p_ct->count);
 
 	for(unsigned i=0; i<nsplits; i++)
 	{
-		p_crack_block[i].algo    = p_local_ct->algo;//算法
-		p_crack_block[i].charset = p_local_ct->charset;//字符集
-		p_crack_block[i].type   = p_local_ct->type;
-		p_crack_block[i].special= p_local_ct->special;
+		p_crack_block[i].algo    = loc_p_ct->algo;//算法
+		p_crack_block[i].charset = loc_p_ct->charset;//字符集
+		p_crack_block[i].type   = loc_p_ct->type;
+		p_crack_block[i].special= loc_p_ct->special;
 
 		string s_guid =new_guid();
 
 		memcpy( p_crack_block[i].guid, s_guid.c_str(), s_guid.length()+1 );
-		memcpy( p_crack_block[i].john, p_local_ct->hashes[0].hash, sizeof(struct crack_hash) );
+		memcpy( p_crack_block[i].john, loc_p_ct->hashes[0].hash, sizeof(struct crack_hash) );
 		
 		//按照密码长度切分
 		if(i==0)//第一个
 		{
-			p_crack_block[i].start = p_local_ct->startLength;
+			p_crack_block[i].start = loc_p_ct->startLength;
 			p_crack_block[i].start2 = 0;//索引
 		}
 		else
@@ -414,29 +412,29 @@ struct crack_block *csplit::split_easy(struct crack_task *pct,unsigned &nsplits)
 		//索引2
 		if( (i+1)==nsplits)//最后一个
 		{
-			p_crack_block[i].end2 = m_characters-1;
+			p_crack_block[i].end2 = loc_s_charset.length()-1;
 		}
 		else
 		{
-			p_crack_block[i].end2 = m_characters-1;
+			p_crack_block[i].end2 = loc_s_charset.length()-1;
 		}
 	}
 
-	if(p_local_ct->count>1)//多个
+	if(loc_p_ct->count>1)//多个
 	{
-		for(int i=1; i<p_local_ct->count; i++)
+		for(int i=1; i<loc_p_ct->count; i++)
 		{
 			memcpy( &p_crack_block[nsplits*i],p_crack_block, sizeof(struct crack_block)*nsplits);
-			for(int j=0; j<nsplits; j++)
+			for(unsigned j=0; j<nsplits; j++)
 			{
-				memcpy( p_crack_block[nsplits*i+j].john, p_local_ct->hashes[i].hash, sizeof(struct crack_hash) );
+				memcpy( p_crack_block[nsplits*i+j].john, loc_p_ct->hashes[i].hash, sizeof(struct crack_hash) );
 				string s_guid =new_guid();
 				memcpy( p_crack_block[nsplits*i+j].guid,  s_guid.c_str(), s_guid.length()+1);
 			}
 		}		
 	}
 
-	nsplits = nsplits*p_local_ct->count;
+	nsplits = nsplits*loc_p_ct->count;
 	return p_crack_block;
 }
 

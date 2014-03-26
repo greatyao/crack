@@ -12,31 +12,20 @@ using namespace std;
 //切割算法
 class csplit
 {
-	unsigned m_len_min;//最小长度
-	unsigned m_len_max;//最大长度
-
-	char m_character_set[0x100];//字符集
-	unsigned m_characters;		//字符数
-
-	BigInt::Rossi m_total_combinations;	//密码空间总量
-
 	BigInt::Rossi m_zero;	//0
 	BigInt::Rossi m_one;	//1
-
-	struct crack_task m_crack_task;
-
-	string new_guid(void);
 
 private:
 	BigInt::Rossi compute_combinations(unsigned characters,unsigned len_max,unsigned len_min=1);
 	BigInt::Rossi compute_power(BigInt::Rossi x,unsigned y);
 	BigInt::Rossi compute_power(unsigned x,unsigned y);
 
-	BigInt::Rossi string_to_integer(const string &password);
-	string integer_to_string(BigInt::Rossi );
+	BigInt::Rossi string_to_integer(const string & s_charset,const string &password);
+	string integer_to_string(const string & s_charset,BigInt::Rossi );
 
-	BigInt::Rossi get_step_length(unsigned );
+	BigInt::Rossi get_step_length(const string & s_charset,unsigned );
 	
+	string new_guid(void);
 	string make_character_table(enum crack_charset);//生成字符集数组
 	bool init_bf(unsigned len_min,unsigned len_max,char *character_set);//初始化
 	
