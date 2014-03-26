@@ -145,9 +145,9 @@ int HashKill::Launcher(const crack_block* item, bool gpu, unsigned short deviceI
 	int pid = this->Exec(item->guid, path, cmd, MonitorThread, true, true, false);
 	
 	if(pid > 0){
-		CLog::Log(LOG_LEVEL_NOMAL, "hashkill: [pid=%d] laucher %s\n", pid, cmd);
+		CLog::Log(LOG_LEVEL_NOTICE, "hashkill: Laucher OK [guid=%s, pid=%d]\n", item->guid, pid);
 	}else{
-		CLog::Log(LOG_LEVEL_ERROR, "hashkill: failed to laucher %s[%d]\n", cmd, pid);
+		CLog::Log(LOG_LEVEL_ERROR, "hashkill: Laucher failed [guid=%s]\n", item->guid);
 	}
 
 	return pid;	

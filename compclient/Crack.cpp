@@ -136,6 +136,8 @@ int Crack::Exec(const char* guid, const char* path, const char* params, void* (*
 		perror("fork");
 		return ERR_LAUCH_TASK;
 	} else if(pid == 0){
+		CLog::Log(LOG_LEVEL_NOMAL, "exec: Try to launch task [guid=%s, pid=%d] %s\n", guid, getpid(), params);
+		
 		close(fd1[1]);
 		close(fd2[0]);
 		close(0);
@@ -165,7 +167,7 @@ int Crack::Exec(const char* guid, const char* path, const char* params, void* (*
 		int status = -1;
 		int rv = waitpid(pid, &status, WNOHANG);
 		if(rv > 0){
-			CLog::Log(LOG_LEVEL_ERROR, "exec: failed to start child process %s\n", guid);
+			CLog::Log(LOG_LEVEL_ERROR, "exec: Failed to start child process %s [%d]\n", guid, pid);
 			close(fd1[1]);
 			close(fd2[0]);   
 			return ERR_LAUCH_TASK;    		
