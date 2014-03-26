@@ -2,7 +2,7 @@
 #include <string.h>
 #include <iostream>
 #include <ctype.h>
-#include "plugin.h"
+#include "trex/trex.h"
 #include "str_api.h"
 #include "algorithm_types.h"
 
@@ -29,14 +29,41 @@ int isAlphaDotSlash(char *hashline)
 
 	return 1;
 }
+//^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$
+
+//#include <regex>
+//int isbase64(char *hashline)
+//{
+//	std::tr1::cmatch res;
+//    std::tr1::regex rx("^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$");
+//    std::tr1::regex_search(hashline, res, rx);
+//	return res.size();
+//}
 
 int isbase64(char *hashline)
 {
-	/*std::tr1::cmatch res;
-    std::tr1::regex rx("^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$");
-    std::tr1::regex_search(hashline, res, rx);
-	return res.empty()?0:res.size();*/
-	return 1;
+	const TRexChar *error = NULL;
+	TRex *x = trex_compile(_TREXC("^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$"),&error);
+	TRexChar *line = _TREXC(hashline);
+	if(x) 
+	{
+		if(trex_match(x,line))
+		{
+			trex_free(x);
+			return 1;
+		}
+		else 
+		{
+			trex_printf(_TREXC("no match!\n"));
+			trex_free(x);
+			return 0;
+		}	
+	}
+	else 
+	{
+		trex_printf(_TREXC("compilation error [%s]!\n"),error?error:_TREXC("undefined"));
+		return 0;
+	}	
 }
 
 int isStartsWith(char *hashline, char *str)

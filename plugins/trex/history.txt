@@ -1,0 +1,21 @@
+===version 1.3.1 --fixed by Mike Zhang
+-fixed a type conversion problem when it used in C++, changed unsigned short to wchar_t for TRexChar preprocessor when unicode
+-changed _TREXC preprocessor to method TREX_API TRexChar* _TREXC(char* c) definition, then it can be access a char* at runtime
+-fixed a incorrect spelling mistake "_UNICODE" in trex.cpp preprocessor
+-disabled debuging-outputs for method TRex *trex_compile(const TRexChar *pattern,const TRexChar **error)
+
+===version 1.3
+-fixed a bug for GCC users(thx Brendan)
+
+===version 1.2
+-added word boundary match \b and \B
+-added vertical tab escape \v
+-\w now also matches '_' (underscore)
+-fixed greediness for * and +
+
+===version 1.1 , April 1, 2004
+-fixed some minor bug
+-added predefined character classes(\w,\W,\s,\S etc...)
+
+===version 1.0 , February 23, 2004
+-first public realase
