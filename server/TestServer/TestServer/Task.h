@@ -7,6 +7,7 @@
 #include <iostream>
 #include "guidgenerator.h"
 #include "WorkItem.h"
+#include "macros.h"
 
 
 /*******************************************************************
@@ -42,6 +43,21 @@ class CTask
 {
 
 public:
+
+	//new define
+/*	unsigned char m_algo;		//解密算法
+	unsigned char m_charset;	//解密字符集
+	unsigned char m_type;		//解密类型
+	unsigned char m_special;	//是否文件解密
+	unsigned char m_startLength;	//start length
+	unsigned char m_endLength;
+	unsigned char m_filename[256];
+	
+	char m_guid[40];
+
+*/
+
+	//old define
 	std::string m_string_ct_guid;//coretask guid
 
 	unsigned m_split_number;	//切割任务数

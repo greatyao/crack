@@ -5,7 +5,10 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <map>
 
+
+#define MAX_BUF_LEN 1024
 #define CREATE_SUP_CTL_ERROR	-1
 #define CREATE_CTL_ERROR	-2
 #define CREATE_CMP_ERROR	-3
@@ -162,6 +165,10 @@ enum CMD_CONTENT_RES_TYPE{
     RES_WORKITEM_DOWNLOAD,
 
 };
+
+typedef int (*recv_data)(void *, unsigned char *, unsigned int);
+
+typedef std::map<BYTE,recv_data> FUNC_MAP;
 
 
 INT doRecvData(LPVOID pclient, LPBYTE pdata, UINT len,BYTE cmd);

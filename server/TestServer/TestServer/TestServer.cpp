@@ -82,7 +82,7 @@ BOOL CTestServerApp::InitInstance()
 
 	CSockServer *g_Server = new CSockServer;
 
-	int ret = g_Server->Initialize(5150,10);
+	int ret = g_Server->Initialize(6010,10);
 	if (ret < 0 ){
 	
 		CLog::Log(LOG_LEVEL_WARNING,"initalize error %d\n",ret);

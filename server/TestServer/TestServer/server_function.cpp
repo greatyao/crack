@@ -72,13 +72,18 @@ VOID ProcessClientData(LPVOID lpParameter){
 	
 	INT nRet = 0;
 	UINT len = 0;
+	UINT hdrLen = 0;
 
 	BYTE recvBuf[MAX_BUF_LEN];
+	hdrLen = sizeof(control_header);
 
+	
 	while(true){
 
 		memset(recvBuf,0,MAX_BUF_LEN);
-		nRet = recv(cliSocket,(char *)recvBuf,MAX_BUF_LEN,0);
+
+		nRet = recv(cliSocket,(char *)recvBuf,hdrLen,0);
+		//nRet = recv(cliSocket,(char *)recvBuf,MAX_BUF_LEN,0);
 		if(nRet == 0 || nRet == SOCKET_ERROR){
 
 			CLog::Log(LOG_LEVEL_WARNING,"Client %d Quit.\n",cliSocket);
@@ -99,9 +104,7 @@ VOID ProcessClientData(LPVOID lpParameter){
 
 		//gen resposne data, then send to client
 		//Old the Recv and send 
-	//	nRet = SendServerData((LPVOID)&cliSocket,recvBuf,len);
-
-		nRet = SendServerData2((LPVOID)&cliSocket,recvBuf,len);
+		nRet = SendServerData((LPVOID)&cliSocket,recvBuf,len);
 		if (nRet != 0){
 
 			CLog::Log(LOG_LEVEL_WARNING,"Server Process Data Error\n");
@@ -110,9 +113,7 @@ VOID ProcessClientData(LPVOID lpParameter){
 		}
 
 	}
-
 	return ;
-
 }
 
 /*
@@ -250,15 +251,8 @@ INT SendServerData2(LPVOID pClient,LPBYTE pData,UINT len){
 
 		case CMD_WORKITEM_RESULT:
 			{
-
-
 				memset(recvBuf,0,1024);
 				memset(uncompbuf,0,1024);
-
-				
-
-
-
 				ret = recv(cliSocket,(char *)recvBuf,1024,0);
 				if (ret < 0 ){
 
@@ -266,7 +260,6 @@ INT SendServerData2(LPVOID pClient,LPBYTE pData,UINT len){
 					return -1;
 
 				}
-
 
 				//uncompress data
 
@@ -302,23 +295,14 @@ INT SendServerData2(LPVOID pClient,LPBYTE pData,UINT len){
 				{
 					CLog::Log(LOG_LEVEL_WARNING,"%s: 未解出密码\n", result->guid);
 				}
-
-				
 				
 			}
 
 			break;
 
 		default :
-
-
 			return -1;
-
-
-
 	}
-
-
 
 	return 0;
 }
@@ -500,93 +484,83 @@ INT SimpleSendData(LPVOID pClient,LPBYTE pdata, UINT len,int tag){
 INT SendServerData(LPVOID pClient, LPBYTE pData, UINT len)
 {
 
-	/*
-
-	//for test the socket 
-
-
-	SOCKET cliSocket = *(SOCKET *)pClient;
-	
-	BYTE sendBuf[MAX_BUF_LEN];
-
-	memset(sendBuf,0,MAX_BUF_LEN);
-
-	memcpy(sendBuf,pData,len);
-	
-	memcpy(sendBuf+len,":hello",6);
-
-
-	send(cliSocket,(char *)sendBuf,len+6,0);
-	
-	*/
-	
 	UINT nRet = 0;
-	NET_BUFF_HEADER *pBufHeader = NULL;
-	UINT nCompressLen = 0;
-	UINT nUnCompressLen = 0;
-	UINT nTotalLen = 0;
-	LPBYTE pUNCompressBuf = NULL;
-	ULONG lLen = 0;
+	control_header *pCtlHeader = NULL;
+	BYTE recvBuf[MAX_BUF_LEN];
+	BYTE unCompressBuf[MAX_BUF_LEN];
+	int ctlHdrLen = 0;
+	BYTE bCmd = 0 ;
+	unsigned long uOrgLen = 0;
+	unsigned long uCompLen = 0;
 	
-	if (len < HEADER_SIZE){
+	//use new header
+	SOCKET cliSocket = *(SOCKET *)pClient;
+	pCtlHeader = (control_header*)pData;
+	/*
+	unsigned char magic[5];			//G&CPU
+	unsigned char cmd;				//命令字
+	short response;					//回应状态
+	unsigned int dataLen;			//原始数据长度
+	unsigned int compressLen;		//压缩数据后长度
+	*/
 
-		CLog::Log(LOG_LEVEL_WARNING,"Buffer Len at least 13.\n");
+	memset(recvBuf,0,MAX_BUF_LEN);
+	memset(unCompressBuf,0,MAX_BUF_LEN);
+
+
+	if (len != sizeof(control_header)){
+
+		CLog::Log(LOG_LEVEL_WARNING,"Input Len is Not Correct.\n");
 		return -1;
-	}
 	
-	pBufHeader = new NET_BUFF_HEADER;
-	if (NULL == pBufHeader){
-
-		CLog::Log(LOG_LEVEL_WARNING,"Create Buffer Error.\n");
-		return -1;
 	}
-	CopyMemory(pBufHeader,pData,sizeof(NET_BUFF_HEADER));
-	if (memcmp(pBufHeader->tag,BUFF_TAG,5) != 0){
+
+	if (strncmp((char *)pCtlHeader->magic,(char *)BUFF_TAG,5) != 0){
 		
-		CLog::Log(LOG_LEVEL_WARNING,"BUFF Tag is Error\n");
-		delete pBufHeader;
-		return -1;
-
-	}
-	
-	delete pBufHeader;
-
-	nTotalLen = pBufHeader->totallen;
-	nUnCompressLen = pBufHeader->uncompresslen;
-
-
-	//uncompress buffer 
-	nCompressLen = nTotalLen - HEADER_SIZE;
-	
-	pUNCompressBuf = (LPBYTE)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,nUnCompressLen);
-	if (!pUNCompressBuf){
-
-		CLog::Log(LOG_LEVEL_WARNING,"Create UNCompress Buff Error\n");
+		CLog::Log(LOG_LEVEL_WARNING,"Buffer Tag is Not Correct.\n");
 		return -2;
 	}
 	
-	nRet = uncompress(pUNCompressBuf,&lLen,&pData[HEADER_SIZE],nCompressLen);
-	if (nRet != 0 ){
-		
-		CLog::Log(LOG_LEVEL_WARNING,"UnCompress Error\n");
-		HeapFree( GetProcessHeap(),HEAP_NO_SERIALIZE,pUNCompressBuf);
-		return -3;
+	bCmd = pCtlHeader->cmd;
+	uOrgLen = pCtlHeader->dataLen;
+	uCompLen = pCtlHeader->compressLen;
+	
+	if (uOrgLen > 0 ){
+			
+		nRet = recv(cliSocket,(char *)recvBuf,MAX_BUF_LEN,0);
+		if(nRet == 0 || nRet == SOCKET_ERROR){
+
+			CLog::Log(LOG_LEVEL_WARNING,"Client %d Quit.\n",cliSocket);
+			return -3;
+			
+		}else{
+			
+			CLog::Log(LOG_LEVEL_WARNING,"Recv Data Len :%d.\n",nRet);
+
+		}
+
+		uOrgLen = MAX_BUF_LEN;
+		//解压缩
+		nRet = uncompress(unCompressBuf,&uOrgLen,recvBuf,uCompLen);
+		if (nRet != 0 ){
+			
+			CLog::Log(LOG_LEVEL_WARNING,"UnCompress Error\n");
+			return -4;
+
+		}
 
 	}
 
-	nUnCompressLen = lLen;
 	//处理请求报文，生成应答报文
 	nRet = 0;
-	nRet = process_recv_data(pClient,pUNCompressBuf,nUnCompressLen);
+	nRet = process_recv_data(pClient,unCompressBuf,uOrgLen,bCmd);
 	if (nRet != 0){
 		
 		CLog::Log(LOG_LEVEL_WARNING,"Process Recv Data Error\n");
-		HeapFree( GetProcessHeap(),HEAP_NO_SERIALIZE,pUNCompressBuf);
 		return -4;
 
 	}
 	
-	HeapFree( GetProcessHeap(),HEAP_NO_SERIALIZE,pUNCompressBuf);
 	CLog::Log(LOG_LEVEL_WARNING,"Process Recv Data OK.\n");
 
 	return 0;
@@ -595,14 +569,14 @@ INT SendServerData(LPVOID pClient, LPBYTE pData, UINT len)
 
 //处理请求，生成应答并发送
 
-INT process_recv_data(LPVOID pClient, LPBYTE pData, UINT len){
+INT process_recv_data(LPVOID pClient, LPBYTE pData, UINT len,BYTE cmdTag){
 
-	BYTE bCmd = pData[0];   //获得请求命令字
+	//BYTE bCmd = pData[0];   //获得请求命令字
 	
 	INT nRet = 0;
 	
 
-	nRet = doRecvData(pClient,pData,len,bCmd);
+	nRet = doRecvData(pClient,pData,len,cmdTag);
 	if (nRet != 0){
 
 		CLog::Log(LOG_LEVEL_WARNING,"Recv Data Done Error\n");

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include "algorithm_types.h"
 
 /*******************************************************************
 //workitem状态标记
@@ -26,7 +27,23 @@ class CWorkItem
 {
 
 public:
-
+	
+	//New workitem define
+/*	unsigned char m_algo;		//解密算法
+	unsigned char m_charset;	//解密字符集
+	unsigned char m_type;		//解密类型
+	unsigned char m_special;	//是否是文件解密（pdf+office+rar+zip）
+	char m_guid[40];			//服务端的workitem的GUID
+	char m_john[sizeof(struct crack_hash)];		//原始Hash格式：hash值+盐
+	unsigned short m_start;	//开始长度
+	unsigned short m_end;		//结束长度
+	//以下两个是索引
+	unsigned short m_start2;	//55555-99999:start2=5,end2=9	000-55555:start2=0,end2=5
+	unsigned short m_end2;
+	char m_custom[0]; //用户自定义的字符集
+*/
+	//Old workitem define
+	
 	std::string m_string_wi_guid;	//workitem的guid
 
 	std::string m_string_wi_john;	//目标破解的信息
@@ -36,8 +53,9 @@ public:
 
 	unsigned char m_wi_status;	//workitem当前状态
 	std::string m_comp_guid; //分配的计算节点guid
+
 	
-	LPVOID	* m_ptask;	//指向本workitem 属于的任务
+	void * m_ptask;	//指向本workitem 属于的任务
 
 
 public:
@@ -47,7 +65,7 @@ public:
 	/***************************************************************
 	初始化workitem信息，并返回guid字符串
 	***************************************************************/
-	std::string init(std::string sjohn,std::string sbegin,std::string send,std::string scset);
+	//std::string init(std::string sjohn,std::string sbegin,std::string send,std::string scset);
 	/***************************************************************
 	更新workitem状态
 	***************************************************************/

@@ -16,6 +16,25 @@ CTask::CTask(void)
 
 }
 
+/*
+//使用crack_task 初始化任务
+CTask::CTask(crack_task ct){
+
+	m_algo = ct.algo;
+	m_charset = ct.charset;
+	m_type = ct.type;
+	m_special = ct.special;
+	m_startLength = ct.startLength;
+	m_endLength = ct.endLength;
+	memset(m_filename,0,256);
+	memset(m_guid,0,40);
+
+	memcpy(m_filename,ct.filename,strlen(ct.filename));
+
+	gen_guid(m_guid);
+
+}
+*/
 CTask::~CTask(void)
 {
 

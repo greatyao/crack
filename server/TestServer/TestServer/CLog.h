@@ -6,9 +6,9 @@
 * 更新记录 无
 *
 *****************************************************************************/
-#ifndef WIN32_LEAN_AND_MEAN
-#define	WIN32_LEAN_AND_MEAN
-#endif
+#ifndef _CLOG_H_
+#define	_CLOG_H_
+
 #include <windows.h>
 
 
@@ -103,3 +103,7 @@ public:
 	/*****************************************************************************/
 	static void Log(UINT uLevel,LPCSTR pszFormat, ... );
 };
+
+#endif
+
+

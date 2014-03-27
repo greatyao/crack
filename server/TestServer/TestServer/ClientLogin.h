@@ -5,6 +5,8 @@
 
 #include <vector>
 
+//登录请求，数据组织
+
 
 struct SUPER_CTL_LOGIN{
 	
