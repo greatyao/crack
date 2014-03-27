@@ -163,7 +163,6 @@ int Client::Connect(const char* ip, unsigned short port)
 	//struct timeval timeout = {3, 0};
 	//setsockopt(sck, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 	
-	/*
 	unsigned char cmd = TOKEN_LOGIN;
 	short status;
 	char buf[1024];
