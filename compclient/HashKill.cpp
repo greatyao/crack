@@ -87,7 +87,7 @@ static struct hash_parameter all_support_hashes[] =
 	{algo_sapg,         "-p sapg -b%d:%d:%s %s %s"},
 	{algo_sl3,          "-p sl3 -b%d:%d:%s %s %s"},
 	{algo_smf,          "-p smf -b%d:%d:%s %s %s"},
-	{algo_wordpress,    "-p wordpress -b%d:%d:%s %s %s"},
+	{algo_wordpress,    "-p wordpress -r brute -a %d:%d:%s %s %s"},
 	{algo_wpa,          "-p wpa -b%d:%d:%s %s %s"},
 };
 
@@ -177,7 +177,7 @@ static float GetSpeed(const char* speed)
 	if(f == 'M'){
 		s[n-1] = 0;
 		return (float)atoi(s)*1000*1000;
-	} else if(f == 'k'){
+	} else if(f == 'K'){
 		s[n-1] = 0;
 		return atoi(s)*1000;
 	}	
