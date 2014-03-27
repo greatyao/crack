@@ -29,14 +29,14 @@ unsigned long speed_algorithm[]=
 	6729,//algo_sha1,            //SHA1 plugin
 	4012,//algo_sha1sha1,        //sha1(sha1(pass)) plugin
 	1882,//algo_sha256,          //SHA-256 plugin
-	0,//algo_sha256unix,      //SHA256(Unix) plugin (shadow files)
+	1,//algo_sha256unix,      //SHA256(Unix) plugin (shadow files)
 	181,//algo_sha512,          //SHA-512 plugin
 	1810,//algo_sha512unix,      //SHA512(Unix) plugin (shadow files)
 	0,//algo_msoffice_old,    //MS Office XP/2003 plugin
-	0,//algo_msoffice,        //MS Office 2007/2010/2013 plugin
+	1,//algo_msoffice,        //MS Office 2007/2010/2013 plugin
 	0,//algo_django256,       //Django SHA-256 plugin
-	6,//algo_zip,             //ZIP passwords plugin
-	4,//algo_rar,             //RAR3 passwords plugin
+	22,//algo_zip,             //ZIP passwords plugin
+	1,//algo_rar,             //RAR3 passwords plugin
 	5452,//algo_apr1,            //Apache apr1 plugin
 	0,//algo_bfunix,          //bfunix plugin (shadow files)
 	0,//algo_dmg,             //FileVault (v1)  passwords plugin
@@ -60,7 +60,7 @@ unsigned long speed_algorithm[]=
 	0,//algo_phpbb3,          //phpBB3 hashes plugin
 	14620,//algo_pixmd5,          //Cisco PIX password hashes plugin
 	0,//algo_privkey,         //SSH/SSL private key passphrase plugin
-	0,//algo_ripemd160,       //RIPEMD-160 plugin
+	2600,//algo_ripemd160,       //RIPEMD-160 plugin
 	0,//algo_sapg,            //SAP CODVN G passwords plugin
 	8002,//algo_sl3,             //Nokia SL3 plugin
 	5777,//algo_smf,             //SMF plugin
