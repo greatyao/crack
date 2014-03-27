@@ -21,6 +21,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <memory.h>
+#include <sys/stat.h>
+
+static string filedb_path;
 
 CrackManager& CrackManager::Get()
 {
@@ -61,6 +64,13 @@ static int to_lower(int c)
 int CrackManager::Init()
 {
 	string value;
+	
+	Config::Get().GetValue("files_path", value);
+	if(value == "")
+		value = "files_db";
+	filedb_path = value;
+	if(access(filedb_path.c_str(), 0) != 0)
+		mkdir(filedb_path.c_str(), 0777);
 	
 	if(Config::Get().GetValue("crack_tools_count", value) != 0 ||
 		(toolCount = atoi(value.c_str())) < 0)
@@ -146,14 +156,21 @@ void CrackManager::RegisterCallback(int (*done)(char*, bool, const char*),
 	}
 }
 
+void CrackManager::GetFilename(const char* guid, char* filename, int size)
+{
+	snprintf(filename, size, "%s/%s", filedb_path.c_str(), guid);
+}
 	
 int CrackManager::StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short deviceId)
 {
 	if(!tools || !tools[toolPriority])
 		return ERR_NOENTRY;
 	
-	if(item->special !=0 && access(item->guid, 0) != 0)
-		Client::Get().DownloadFile(item->guid);
+	char file[512];
+	GetFilename(item->guid, file, sizeof(file));
+	
+	if(item->special !=0 && access(file, 0) != 0)
+		Client::Get().DownloadFile(item->guid, filedb_path.c_str());
 		
 	return tools[toolPriority]->StartCrack(item, guid, gpu, deviceId);
 }

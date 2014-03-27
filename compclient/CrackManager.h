@@ -23,6 +23,8 @@ public:
 	int StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short deviceId);
 	int StopCrack(const char* guid);
 	
+	void GetFilename(const char* guid, char* filename, int size);
+	
 private:
 	CrackManager();
 	~CrackManager();
