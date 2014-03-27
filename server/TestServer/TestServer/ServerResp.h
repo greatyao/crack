@@ -6,5 +6,7 @@
 
 int SendDataToPeer(void *pclient, unsigned char * pdata, unsigned int len);
 
+int RecvDataFromPeer(void *pclient, unsigned char * pdata, unsigned int len);
+
 
 #endif

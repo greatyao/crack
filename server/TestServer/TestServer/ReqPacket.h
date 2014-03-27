@@ -36,5 +36,14 @@ struct task_result_req {
 	unsigned char guid[40];
 };
 
+
+struct download_file_req {
+
+	unsigned char guid[40];
+};
+
+
+
+
 #endif
 

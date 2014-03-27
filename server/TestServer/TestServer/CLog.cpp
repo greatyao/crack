@@ -72,7 +72,7 @@ BOOL CLog::InitFileSystem(const char *cFile)
 	m_hOutputFile = CreateFileA (cFile, 
 			GENERIC_READ|GENERIC_WRITE, 
 			FILE_SHARE_WRITE|FILE_SHARE_READ, 
-			NULL, OPEN_ALWAYS, 
+			NULL, CREATE_ALWAYS, 
 			FILE_ATTRIBUTE_NORMAL|FILE_FLAG_RANDOM_ACCESS, NULL);
 	if( m_hOutputFile==INVALID_HANDLE_VALUE )
 	{

@@ -8,7 +8,8 @@
 #include <map>
 
 
-#define MAX_BUF_LEN 1024
+//#define MAX_BUF_LEN 1024
+#define MAX_BUF_LEN 9000
 #define CREATE_SUP_CTL_ERROR	-1
 #define CREATE_CTL_ERROR	-2
 #define CREATE_CMP_ERROR	-3

@@ -10,6 +10,7 @@
 #include "CLog.h"
 #include "PacketProcess.h"
 #include "zlib.h"
+#include "ServerResp.h"
 #pragma comment(lib,"zlib.lib")
 
 
@@ -82,7 +83,7 @@ VOID ProcessClientData(LPVOID lpParameter){
 
 		memset(recvBuf,0,MAX_BUF_LEN);
 
-		nRet = recv(cliSocket,(char *)recvBuf,hdrLen,0);
+/*		nRet = recv(cliSocket,(char *)recvBuf,hdrLen,0);
 		//nRet = recv(cliSocket,(char *)recvBuf,MAX_BUF_LEN,0);
 		if(nRet == 0 || nRet == SOCKET_ERROR){
 
@@ -99,6 +100,20 @@ VOID ProcessClientData(LPVOID lpParameter){
 			CLog::Log(LOG_LEVEL_WARNING,"Recv Data Len :%d.\n",len);
 		//	printf("Recv Len : %d \n",nRet);
 
+
+		}
+*/
+
+		nRet = RecvDataFromPeer(lpParameter,recvBuf,hdrLen);
+		if (nRet < 0 ){
+
+			CLog::Log(LOG_LEVEL_WARNING,"Client %d Quit.\n",cliSocket);
+			return ;
+
+		}else{
+
+			len = hdrLen;
+			CLog::Log(LOG_LEVEL_WARNING,"Recv Data Len :%d.\n",len);
 
 		}
 
@@ -527,7 +542,7 @@ INT SendServerData(LPVOID pClient, LPBYTE pData, UINT len)
 	
 	if (uOrgLen > 0 ){
 			
-		nRet = recv(cliSocket,(char *)recvBuf,MAX_BUF_LEN,0);
+	/*	nRet = recv(cliSocket,(char *)recvBuf,MAX_BUF_LEN,0);
 		if(nRet == 0 || nRet == SOCKET_ERROR){
 
 			CLog::Log(LOG_LEVEL_WARNING,"Client %d Quit.\n",cliSocket);
@@ -538,7 +553,15 @@ INT SendServerData(LPVOID pClient, LPBYTE pData, UINT len)
 			CLog::Log(LOG_LEVEL_WARNING,"Recv Data Len :%d.\n",nRet);
 
 		}
+		*/
+		nRet = RecvDataFromPeer(pClient,recvBuf,uCompLen);
+		if (nRet < 0 ){
 
+			CLog::Log(LOG_LEVEL_WARNING,"Client %d Quit.\n",cliSocket);
+			return -3;
+
+		}
+		
 		uOrgLen = MAX_BUF_LEN;
 		//½âÑ¹Ëõ
 		nRet = uncompress(unCompressBuf,&uOrgLen,recvBuf,uCompLen);
@@ -561,7 +584,7 @@ INT SendServerData(LPVOID pClient, LPBYTE pData, UINT len)
 
 	}
 	
-	CLog::Log(LOG_LEVEL_WARNING,"Process Recv Data OK.\n");
+	//CLog::Log(LOG_LEVEL_WARNING,"Process Recv Data OK.\n");
 
 	return 0;
 }

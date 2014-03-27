@@ -19,6 +19,7 @@
 
 #include "ReqPacket.h"
 #include "ResPacket.h"
+#include <stdio.h>
 
 
 CFileUploadManager g_FileUploadManager;
@@ -115,11 +116,108 @@ int doSendDataNew(void *pClient,unsigned char *pdata,unsigned int len){
 	}
 
 
-	CLog::Log(LOG_LEVEL_WARNING,"Send Data OK\n");
+//	CLog::Log(LOG_LEVEL_WARNING,"Send Data OK\n");
 	return 0;
 
 
 }
+
+//完成数据的组装,包含两部分，一部分为固定长度包头，另一部分为包内容
+int doSendDataNoCompress(void *pClient,unsigned char *pdata,unsigned int len){
+
+	int nRet = 0;
+	LPBYTE pSendBuf = NULL;
+	UINT nTotal = 0;
+	UINT nCompressLen = 0;
+	unsigned long lcomlen = 0;
+
+	BYTE sendBuf[MAX_BUF_LEN];
+	unsigned long lOrgLen = 0;
+	unsigned long lCompLen = 0;
+	control_header replyHdr = INITIALIZE_EMPTY_HEADER(TOKEN_LOGIN);
+	unsigned int cltHdrLen = 0;
+	cltHdrLen = sizeof(control_header);
+	
+	if (cltHdrLen > len){
+
+		CLog::Log(LOG_LEVEL_WARNING,"Reply Len Must Bigger than Control Header\n");
+		return -1;
+
+	}
+
+			
+	if (cltHdrLen == len){
+
+		CopyMemory(&replyHdr,pdata,cltHdrLen);
+		nRet = SendDataToPeer(pClient, (unsigned char *)&replyHdr, cltHdrLen);
+		
+		if (nRet != 0){
+			
+			CLog::Log(LOG_LEVEL_WARNING,"Send Reply Header Error\n");
+			return -1;
+
+		}
+
+
+		CLog::Log(LOG_LEVEL_WARNING,"Reply Only Contain a Control Header OK\n");
+		return 0;
+	}
+
+
+	CLog::Log(LOG_LEVEL_WARNING,"Reply Contain a buffer\n");
+
+	lOrgLen =len - cltHdrLen;
+	ZeroMemory(sendBuf,MAX_BUF_LEN);
+
+	//计算获得发送数据长度
+/*	lCompLen = MAX_BUF_LEN;
+
+	nRet = compress(sendBuf,&lCompLen,pdata+cltHdrLen,lOrgLen);
+	if (nRet != 0){
+
+		CLog::Log(LOG_LEVEL_WARNING,"Compress Send Buff Error\n");
+		return -2;
+
+	}
+	*/	
+	//调用发送接口，发送给对端
+
+	/*
+		short response;					//回应状态
+	unsigned int dataLen;			//原始数据长度
+	unsigned int compressLen;		//压缩数据后长度
+	*/
+	
+	CopyMemory(&replyHdr,pdata,cltHdrLen);
+	replyHdr.response = 0;
+	replyHdr.dataLen = lOrgLen;
+	replyHdr.compressLen = -1;
+
+	nRet = SendDataToPeer(pClient,(unsigned char *)&replyHdr, cltHdrLen);
+	
+	if (nRet < 0){
+		
+		CLog::Log(LOG_LEVEL_WARNING,"Send Reply Header Error\n");
+		return -1;
+
+	}
+
+	nRet = SendDataToPeer(pClient, pdata+sizeof(control_header), lOrgLen);
+	if (nRet < 0){
+		
+		CLog::Log(LOG_LEVEL_WARNING,"Send Data Error\n");
+		return -3;
+
+	}
+
+
+//	CLog::Log(LOG_LEVEL_WARNING,"Send Data OK\n");
+	return 0;
+
+
+}
+
+
 
 
 
@@ -1056,8 +1154,6 @@ int cc_refresh_status(void *pclient, unsigned char * pdata, UINT len){
 //获取计算机节点信息
 /*
  计算节点信息结构  ClientInfo
-
-
 */
 int cc_get_client_list(void *pclient, unsigned char * pdata, UINT len){
 
@@ -1936,6 +2032,233 @@ int cc_get_client_listnew(void *pclient, unsigned char * pdata, UINT len){
 
 
 
+//download file res
+// download file 
+int cc_task_file_download_start(void *pclient, unsigned char * pdata,UINT len){
+
+	CLog::Log(LOG_LEVEL_WARNING,"this is file download start \n");
+	int ret = 0;
+	FILE *pfile = NULL;
+	unsigned int sendLen = 0;
+	BYTE resBuf[MAX_BUF_LEN];
+	file_info fileinfo;
+	control_header reshdr = INITIALIZE_EMPTY_HEADER(CMD_DOWNLOAD_FILE);
+	unsigned int filelen =  0;
+	unsigned char guid[40];
+
+
+	memcpy(guid,pdata,len);
+
+	pfile = fopen((char *)guid,"rb");
+	if (!pfile){
+		
+		CLog::Log(LOG_LEVEL_WARNING,"fopen file %s error \n",guid);
+		return -1;
+
+	}
+	
+
+	fseek(pfile,0L,SEEK_END);
+	filelen = ftell(pfile);  //获取文件长度
+	fseek(pfile,0L,SEEK_SET);
+			
+	fileinfo.f = pfile;
+	fileinfo.len = filelen;
+	fileinfo.offset = 0;
+
+	CLog::Log(LOG_LEVEL_WARNING,"pfile %p,len : %d ,offset:%d, guid : %s \n",fileinfo.f,fileinfo.len,fileinfo.offset,guid);
+
+	reshdr.dataLen = sizeof(file_info);
+
+	memset(resBuf,0,MAX_BUF_LEN);
+
+	memcpy(resBuf,&reshdr,sizeof(control_header));
+	memcpy(resBuf+sizeof(control_header),&fileinfo,sizeof(file_info));
+	
+	sendLen = sizeof(control_header)+sizeof(file_info);
+
+
+	ret = doSendDataNew(pclient, resBuf, sendLen);
+	if (ret != 0){
+		CLog::Log(LOG_LEVEL_WARNING,"file download start Error\n");
+		ret = -2;
+	}else{
+		CLog::Log(LOG_LEVEL_WARNING,"file download start OK\n");
+		ret = 0;
+	}
+	
+	return ret;
+}
+
+
+
+//download file res tran
+//download file start
+int cc_task_file_download(void *pclient,unsigned char *pdata,UINT len){
+	
+	CLog::Log(LOG_LEVEL_WARNING,"this is file download ...\n");
+	int ret = 0;
+	int rdlen = 0;
+	int readLen = 0;
+	FILE *pfile = NULL;
+	unsigned int sendLen = 0;
+	BYTE resBuf[MAX_BUF_LEN];
+	file_info *pFileInfo = NULL;
+	control_header reshdr = INITIALIZE_EMPTY_HEADER(CMD_START_DOWNLOAD);
+	unsigned int filelen =  0;
+	unsigned char guid[40];
+
+	
+	pFileInfo = (file_info *)pdata;
+
+	pfile = (FILE *)pFileInfo->f;
+
+
+	CLog::Log(LOG_LEVEL_WARNING,"pfile %p,len : %d ,offset:%d \n",pFileInfo->f,pFileInfo->len,pFileInfo->offset);
+
+
+	/*ret = fseek(pfile,pFileInfo->offset,SEEK_SET);
+	if (ret!= 0){
+
+
+		CLog::Log(LOG_LEVEL_WARNING,"fssek ret:%d \n",ret);
+
+		return -1;
+
+	}
+
+	*/
+
+	if (pFileInfo->len > 8196){
+		
+		rdlen = 8196;
+
+	}else{
+		rdlen = pFileInfo->len;
+
+	}
+
+	while(!feof(pfile)){
+		memset(resBuf,0,MAX_BUF_LEN);
+
+		readLen  = fread(resBuf+sizeof(control_header),1,rdlen,pfile);
+
+		//CLog::Log(LOG_LEVEL_WARNING,"file read %d %d\n",readLen,rdlen);
+
+		if (readLen < 0){
+
+			CLog::Log(LOG_LEVEL_WARNING,"file read error.\n");
+			return -2;
+
+		}
+				
+		reshdr.dataLen = readLen;
+		reshdr.compressLen = 0;
+
+		memcpy(resBuf,&reshdr,sizeof(control_header));
+		
+		sendLen = sizeof(control_header)+readLen;
+
+
+		ret = doSendDataNoCompress(pclient, resBuf, sendLen);
+		if (ret != 0){
+			CLog::Log(LOG_LEVEL_WARNING,"file download .... Error\n");
+			ret = -2;
+		}else{
+			CLog::Log(LOG_LEVEL_WARNING,"file download .... OK\n");
+			ret = 0;
+		}
+	
+	}
+	return ret;
+
+}
+
+
+//download file res end
+//download file end
+int cc_task_file_download_end(void *pclient,unsigned char *pdata,UINT len){
+
+	CLog::Log(LOG_LEVEL_WARNING,"this is file download end\n");
+	int ret = 0;
+	int readLen = 0;
+	FILE *pfile = NULL;
+	unsigned int sendLen = 0;
+	BYTE resBuf[128];
+	file_info *pFileInfo = NULL;
+	control_header reshdr = INITIALIZE_EMPTY_HEADER(CMD_END_DOWNLOAD);
+	unsigned int filelen =  0;
+	unsigned char guid[40];
+
+	
+	pFileInfo = (file_info *)pdata;
+
+	pfile = (FILE *)pFileInfo->f;
+
+	fclose(pfile);
+
+
+	memset(resBuf,0,128);
+
+	memcpy(resBuf,&reshdr,sizeof(control_header));
+	
+	sendLen = sizeof(control_header);
+
+
+	ret = doSendDataNew(pclient, resBuf, sendLen);
+	if (ret != 0){
+		CLog::Log(LOG_LEVEL_WARNING,"file download End. Error\n");
+		ret = -2;
+	}else{
+		CLog::Log(LOG_LEVEL_WARNING,"file download End OK\n");
+		ret = 0;
+	}
+	
+	return ret;
+
+}
+
+//control client : upload start
+
+//upload file req  
+int cc_task_upload_file(void *pclient,unsigned char *pdata,UINT len){
+
+	int ret = 0;
+	
+
+
+	return ret;
+}
+
+
+
+//upload file start req  
+int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
+	
+	int ret = 0;
+
+
+
+
+	return ret;
+
+}
+
+
+//upload file .....
+int cc_task_upload_file_transfer(void *pclient,unsigned char *pdata,UINT len){
+	
+	int ret = 0;
+
+
+
+
+
+	return ret;
+
+}
+
+
 static FUNC_MAP::value_type func_value_type[] ={
 
 	FUNC_MAP::value_type(TOKEN_HEARTBEAT,client_keeplive),
@@ -1955,9 +2278,15 @@ static FUNC_MAP::value_type func_value_type[] ={
 	FUNC_MAP::value_type(CMD_REFRESH_STATUS,cc_refresh_statusnew),
 	FUNC_MAP::value_type(CMD_GET_CLIENT_LIST,cc_get_client_listnew),
 
+	FUNC_MAP::value_type(CMD_START_DOWNLOAD,cc_task_file_download),
+	FUNC_MAP::value_type(CMD_DOWNLOAD_FILE,cc_task_file_download_start),
+	FUNC_MAP::value_type(CMD_END_DOWNLOAD,cc_task_file_download_end),
+
+
+
 };
 
-static FUNC_MAP recv_data_map(func_value_type,func_value_type+13);
+static FUNC_MAP recv_data_map(func_value_type,func_value_type+16);
 
 static int (*recv_data_done[])(void *pclient, unsigned char * pdata, unsigned int len) = {
 

@@ -129,7 +129,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="..\..\..\common\include;.\;"
-				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG"
+				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNING"
 				MinimalRebuild="true"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
