@@ -79,7 +79,8 @@ struct file_info
 	void* f;			//文件fd
 	unsigned int len;	//文件长度
 	unsigned int offset;//文件游标
-}；
+};
+
 
 
 #define	MAX_WRITE_RETRY			15 // 重试写入文件次数
