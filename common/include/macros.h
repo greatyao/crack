@@ -61,10 +61,23 @@ enum
 	CMD_WORKITEM_UNRECOVERED,	//一个运算结束，标记信息
 	CMD_WORKITEM_GET,			//取得workitem的内容信息
 	CMD_WORKITEM_FAILED,		//一个运算解密失败（故障）
+	
+	//文件传输
+	CMD_DOWNLOAD_FILE,			//下载文件
+	CMD_UPLOAD_FILE,			//上传文件
+	CMD_START_TRANSFER,			//传输文件
+	CMD_END_TRANSFER,			//结束文件
 
 	CMD_TEST_CMD,
 	CMD_MAX_VALUE
 };
+
+struct file_info
+{
+	void* f;			//文件fd
+	unsigned int len;	//文件长度
+	unsigned int offset;//文件游标
+}；
 
 
 #define	MAX_WRITE_RETRY			15 // 重试写入文件次数
