@@ -36,6 +36,8 @@ public:
 	//通报服务端解密解密结果
 	int ReportResultToServer(crack_result* result);
 	
+	int DownloadFile(const char* filename);
+	
 	static void* MonitorThread(void* p);
 	
 private:

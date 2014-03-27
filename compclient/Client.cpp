@@ -163,6 +163,7 @@ int Client::Connect(const char* ip, unsigned short port)
 	//struct timeval timeout = {3, 0};
 	//setsockopt(sck, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 	
+	/*
 	unsigned char cmd = TOKEN_LOGIN;
 	short status;
 	char buf[1024];
@@ -197,6 +198,79 @@ static int read_timeout(int fd, unsigned int wait_seconds)
 	return ret;
 }
 
+
+int Client::DownloadFile(const char* filename)
+{
+	if(connected != 2)
+		return ERR_CONNECTIONLOST;
+	
+	unsigned char cmd = CMD_DOWNLOAD_FILE;
+	short status;
+	char buf[4096];
+	int m, n;
+	
+	Lock lk(&mutex);
+	
+	//第一步：请求下载文件，得到文件信息
+	m = Write(CMD_DOWNLOAD_FILE, filename, strlen(filename)+1);
+	if(m < 0)	return m;
+	n = Read(&cmd, &status, buf, sizeof(buf));
+	if(n < 0) return n;
+	if(cmd != CMD_DOWNLOAD_FILE || status != 0)
+		return ERR_DOWNLOADFILE;
+	file_info info;
+	memcpy(&info, buf, sizeof(info));
+	CLog::Log(LOG_LEVEL_NOMAL, "download: %s [fd=%p len=%d]\n", filename, info.f, info.len);
+	
+	//第二步：传输文件
+	FILE* fd = fopen(filename, "w");
+	file_info fi = {info.f, 4096, 0};
+	unsigned int total = 0;
+	bool failed = false;
+	while(1)
+	{
+		fi.offset = total;
+		if(fi.offset % (40960) == 0 || fi.offset >= info.len)
+			CLog::Log(LOG_LEVEL_NOMAL, " %d VS %d\n", fi.offset, info.len);
+		if(fi.offset >= info.len)
+			break;
+			
+		if(fi.offset == 0)
+		{
+			if((m = Write(CMD_START_DOWNLOAD, &fi, sizeof(fi))) < 0)
+			{
+				failed = true;
+				CLog::Log(LOG_LEVEL_WARNING, "downloadfile: write err %d\n", m);
+				break;
+			}
+		}
+		
+		if((n = Read(&cmd, &status, buf, sizeof(buf))) < 0 ||
+			cmd != CMD_START_DOWNLOAD || status != 0)
+		{
+			failed = true;
+			CLog::Log(LOG_LEVEL_WARNING, "downloadfile: read err %d %d %d\n", n, cmd, status);
+			break;
+		}
+		
+		fwrite(buf, 1, n, fd);
+		total += n;
+	}
+	
+	//第三步:结束传输
+	m = Write(CMD_END_DOWNLOAD, &info, sizeof(info));
+	m = Read(&cmd, &status, buf, sizeof(buf));
+	fclose(fd);
+	
+	if(failed)
+	{	
+		unlink(filename);
+		return ERR_DOWNLOADFILE;
+	}
+	
+	return 0;
+}
+
 int Client::Read(unsigned char *cmd, short* status, void* data, int size)
 {
 	if(connected != 2)
@@ -217,17 +291,38 @@ int Client::Read(unsigned char *cmd, short* status, void* data, int size)
 	int totalN = hdr.compressLen;
 	int origN = hdr.dataLen;
 	
-	if(totalN < 0 || origN < 0 || size < origN)
+	if(origN < 0 || size < origN)
 		return ERR_INVALIDDATA;
 	if(origN == 0)
 		return 0;
-		
-	unsigned char* buf = new unsigned char[totalN];
-	if(read(sck, buf, totalN) < 0)
+	
+	unsigned char* buf = NULL;
+	int m;
+	if(totalN == -1) 
 	{
-		delete []buf;
-		return ERR_CONNECTIONLOST;
-	}	
+		buf = (unsigned char*)data;
+		m = origN;
+	}
+	else
+	{
+		buf = new unsigned char[totalN];
+		m = totalN;
+	}
+	
+	int total = 0;
+	int n;
+	do{	
+		if((n=read(sck, buf+total, m-total)) < 0)
+		{
+			delete []buf;
+			return ERR_CONNECTIONLOST;
+		}
+		total += n;
+		if(total == m) break;
+	}while(1);	
+	
+	if(totalN == -1) 
+		return m; 
 	
 	unsigned long uncompressLen = size;
 	int ret = uncompress((Bytef*)data, (uLongf*)&uncompressLen, buf, totalN);
