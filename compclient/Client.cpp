@@ -162,6 +162,9 @@ int Client::Connect(const char* ip, unsigned short port)
 	
 	//struct timeval timeout = {3, 0};
 	//setsockopt(sck, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+	//char file[256];
+	//sprintf(file, "%s/%s", "files_db", "aaa");
+	//if(access(file, 0) != 0) DownloadFile("aaa", "files_db");
 	
 	unsigned char cmd = TOKEN_LOGIN;
 	short status;
@@ -198,7 +201,7 @@ static int read_timeout(int fd, unsigned int wait_seconds)
 }
 
 
-int Client::DownloadFile(const char* filename)
+int Client::DownloadFile(const char* filename, const char* path)
 {
 	if(connected != 2)
 		return ERR_CONNECTIONLOST;
@@ -222,7 +225,9 @@ int Client::DownloadFile(const char* filename)
 	CLog::Log(LOG_LEVEL_NOMAL, "download: %s [fd=%p len=%d]\n", filename, info.f, info.len);
 	
 	//第二步：传输文件
-	FILE* fd = fopen(filename, "w");
+	char file[512];
+	sprintf(file, "%s/%s", path, filename);
+	FILE* fd = fopen(file, "w");
 	file_info fi = {info.f, 4096, 0};
 	unsigned int total = 0;
 	bool failed = false;
@@ -252,18 +257,18 @@ int Client::DownloadFile(const char* filename)
 			break;
 		}
 		
-		fwrite(buf, 1, n, fd);
+		if(fd) fwrite(buf, 1, n, fd);
 		total += n;
 	}
 	
 	//第三步:结束传输
 	m = Write(CMD_END_DOWNLOAD, &info, sizeof(info));
 	m = Read(&cmd, &status, buf, sizeof(buf));
-	fclose(fd);
+	if(fd) fclose(fd);
 	
 	if(failed)
 	{	
-		unlink(filename);
+		unlink(file);
 		return ERR_DOWNLOADFILE;
 	}
 	
