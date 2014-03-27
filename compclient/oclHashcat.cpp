@@ -111,52 +111,39 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short devic
 	const char* fmt;
 	int i;
 	char cmd[4096];
-        char others[128];
+	char others[128];
 
-	//if(algo==algo_sha1||algo==algo_md5||algo==algo_oscommerce||algo==algo_desunix)
-	if(algo==algo_ripemd160)//algo==algo_oscommerce||
-	{
-		printf("!!!!!!!!!!! supported algo %d \n",algo);
-	}
-	else{
-		//printf("********************** not supported algo %d  \n",algo);
-                return ERR_NO_SUPPORT_ALGO;
-	}
+	if(!gpu)
+		return ERR_INVALID_PARAM;
+		
 	switch(type){
-		case bruteforce:
+	case bruteforce:
 		for(i = 0; i < SUPPORT_HASH_NUM; i++)
-        	{	
-                	if(algo == all_support_hashes[i].algo)
-                	{
+		{	
+			if(algo == all_support_hashes[i].algo)
+			{
 				fmt = all_support_hashes[i].params;
-	                        break;
-        		}
-	        }	
-        	if(i == SUPPORT_HASH_NUM)
-        	{
-               		 //¿¿¿¿¿¿¿¿¿
-	                return ERR_NO_SUPPORT_ALGO;
-        	}
+				break;
+			}
+		}	
+        if(i == SUPPORT_HASH_NUM)
+        {
+			//¿¿¿¿¿¿¿¿¿
+	        return ERR_NO_SUPPORT_ALGO;
+        }
 		if(charset < charset_num || charset > charset_ascii)
-        	{
-                	//¿¿¿¿¿¿¿¿
-	                return ERR_NO_SUPPORT_CHARSET;
-        	}
-	 	if(!gpu ){
-        	        sprintf(others, "-c");
-                	return ERR_INVALID_PARAM;
-        	}
-        	else
-                	sprintf(others, "-d %d", deviceId+1);
+        {
+			//¿¿¿¿¿¿¿¿
+			return ERR_NO_SUPPORT_CHARSET;
+        }
+	 	
+        sprintf(others, "-d %d", deviceId+1);
 		sprintf(cmd, fmt, start, end, charsets[charset], others, item->john);
-		//this->MapTargetHash[item->guid]=item->john;
 		struct maphashtarget a;
 		a.algo = algo;
-		//a.hash = item->john;
-	//	strcpy(a.hash,item->john);
 		memcpy(a.hash,item->john,sizeof(item->john));
 		if(algo==algo_mssql_2005||algo==algo_mssql_2012)
-                {
+        {
 			int i=0;
 			char c;
 			while(a.hash[i])
@@ -167,14 +154,14 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short devic
 			}
 		}
 		this->MapTargetHash.insert(pair<string,maphashtarget>(item->guid,a));
-			break;
-		case dict:
-			break;
-		case rule:
-			break;
-		default:
-			printf("#######   crack type: %d  ###########\n",type);
-			break;
+		break;
+	case dict:
+		break;
+	case rule:
+		break;
+	default:
+		CLog::Log(LOG_LEVEL_NOMAL, "#######   crack type: %d  ###########\n",type);
+		break;
 	}
 
 	int pid = this->Exec(item->guid, path, cmd, MonitorThread, true, true, false);
@@ -214,7 +201,7 @@ void *oclHashcat::MonitorThread(void *p)
 	memcpy(guid, param->guid, sizeof(guid));
 	free(param);
 	time_t t0 = time(NULL), t1, t2 = t0;
-        bool cracked = false;	
+    bool cracked = false;	
 	char buffer[2048] = {0};
 	int n;
 	string s,s_result,s_hash_with_comma;
@@ -226,7 +213,7 @@ void *oclHashcat::MonitorThread(void *p)
 	map<string,struct maphashtarget>::iterator iter;
 	iter = ocl_hashcat->MapTargetHash.find(guid);
 	s_hash_with_comma = iter->second.hash;
-        s_hash_with_comma.append(":");
+	s_hash_with_comma.append(":");
 	algo = iter->second.algo;
 
 	while(1)
@@ -235,78 +222,65 @@ void *oclHashcat::MonitorThread(void *p)
 		t1 = time(NULL);
 		if(n == ERR_CHILDEXIT) {
 			CLog::Log(LOG_LEVEL_ERROR,"%s: Detected child exit\n",__FUNCTION__);
-			//exit(0);
 			break;
 		}else if(n < 0){
 			goto write;
-		} 
+		} else if(n == 0){
+			continue;
+		}
 		buffer[n] = 0;
 		if(n!=0)
 			CLog::Log(LOG_LEVEL_NOMAL,"read[%d] %s\n", n, buffer);
 		s = buffer;
-				
-//	CLog::Log(LOG_LEVEL_ERROR,"%s",ocl_hashcat->crack);
-		//	printf("guid %s \n",guid);
-		//printf("%s\n",s_hash_with_comma.c_str());
-		//printf("size of string_with_comma: %d ",s_hash_with_comma.length());
-			
-			if(algo==algo_mssql_2000)
-				idx = s.rfind(s_hash_with_comma.substr(0,14));//mssql_2000:
-			else
-				idx = s.rfind(s_hash_with_comma);
-			if(idx != string::npos){
-				//printf("%d\n",idx);
-			//	CLog::Log(LOG_LEVEL_ERROR,"find hash\n");
-		//		for(int jj = idx; jj<=idx+100; jj++)
-		//			printf("%d:%c\n",jj,  s[jj]);
-				idx2 = s.find("\n",idx);
-				printf("idx2 = %d\n",idx2);
-			//	idx3 = s.rfind("\n",idx);
-				if(idx2 != string::npos){
-					printf("find idx2\n");
-					string s2=s.substr(idx,idx2-idx);
-					printf("%s\n",s2.c_str());
-					idx3 = s2.find(":",s_hash_with_comma.length()-1);// fixed here
-				printf("idx3 = %d\n",idx3);
-					if(idx3>0)
-					{
-						s_result=s2.substr(idx3+1,idx2-idx3);
-						CLog::Log(LOG_LEVEL_ERROR,"%s\n",s_result.c_str());
-						goto confirm;
-					}
-				}                   
-			}
-			idx = s.rfind("Status.........: Exhausted");
-			if(idx != string::npos){
-				CLog::Log(LOG_LEVEL_ERROR,"Exhausted Cracking\n");
-				cracked = false;
-			}	
+		
+		if(algo==algo_mssql_2000)
+			idx = s.rfind(s_hash_with_comma.substr(0,14));//mssql_2000:
+		else
+			idx = s.rfind(s_hash_with_comma);
+		if(idx != string::npos){
+			idx2 = s.find("\n",idx);
+			if(idx2 != string::npos){
+				string s2=s.substr(idx,idx2-idx);
+				idx3 = s2.find(":",s_hash_with_comma.length()-1);// fixed here
+				if(idx3>0)
+				{
+					s_result=s2.substr(idx3+1,idx2-idx3);
+					CLog::Log(LOG_LEVEL_ERROR,"%s\n",s_result.c_str());
+					goto confirm;
+				}
+			}                   
+		}
+		idx = s.rfind("Status.........: Exhausted");
+		if(idx != string::npos){
+			CLog::Log(LOG_LEVEL_ERROR,"Exhausted Cracking\n");
+			cracked = false;
+		}	
 confirm:
-	idx = s.rfind("Status.........: Cracked");//¿¿¿¿
+		idx = s.rfind("Status.........: Cracked");//¿¿¿¿
         if(idx != string::npos){
      		CLog::Log(LOG_LEVEL_ERROR,"%s: Confirming Cracked successfully\n", guid);
-		cracked = true;
-		iter = ocl_hashcat->MapTargetHash.find(guid);
-		ocl_hashcat->MapTargetHash.erase(iter);//TODO:ADD LOCK
-		break;
-	}
+			cracked = true;
+			break;
+		}
 	
 write:	
-		 if(t1 - t2 >= 2)
-                {
-                        t2 = t1;
-                      //n = ocl_hashcat->WriteToLancher(guid, "\n", 1);
-                        if(n == ERR_NO_THISTASK || n == 0)
-                        {
-                                CLog::Log(LOG_LEVEL_NOMAL,"%s: Detected child exit2\n", __FUNCTION__);
-                                break;
-                        }
-                }
+		if(t1 - t2 >= 2)
+		{
+			t2 = t1;
+			/*
+			n = ocl_hashcat->WriteToLancher(guid, "\n", 1);
+			if(n == ERR_NO_THISTASK || n == 0)
+			{
+				CLog::Log(LOG_LEVEL_NOMAL,"%s: Detected child exit2\n", __FUNCTION__);
+				break;
+			}
+			*/
+		}
 	}
+	
 	if(ocl_hashcat->doneFunc)
 		ocl_hashcat->doneFunc(guid,cracked,s_result.c_str());
-//	printf("uploaded result!____________________________________\n");
-//	iter = ocl_hashcat->MapTargetHash.find(guid);	
-//	ocl_hashcat->MapTargetHash.erase(iter);//TODO:ADD LOCK 
+	iter = ocl_hashcat->MapTargetHash.find(guid);	
+	ocl_hashcat->MapTargetHash.erase(iter);//TODO:ADD LOCK 
 	return NULL;
 }
