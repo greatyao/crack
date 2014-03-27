@@ -65,8 +65,10 @@ enum
 	//文件传输
 	CMD_DOWNLOAD_FILE,			//下载文件
 	CMD_UPLOAD_FILE,			//上传文件
-	CMD_START_TRANSFER,			//传输文件
-	CMD_END_TRANSFER,			//结束文件
+	CMD_START_DOWNLOAD,			//开始下载文件
+	CMD_START_UPLOAD,			//开始上传文件
+	CMD_END_DOWNLOAD,			//结束下载文件
+	CMD_END_UPLOAD,				//结束上传文件
 
 	CMD_TEST_CMD,
 	CMD_MAX_VALUE
