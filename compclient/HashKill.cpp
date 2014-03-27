@@ -226,7 +226,7 @@ void *HashKill::MonitorThread(void *p)
 				if(ret == 3){
 					CLog::Log(LOG_LEVEL_NOMAL,"%d %s %d\n", progress, temp, ncount);
 					unsigned int ct = t1-t0;
-					unsigned rt = (progress==0) ? 0xFFFFFFFF : 100/progress*ct-ct;
+					unsigned rt = (progress==0) ? 0xFFFFFFFF : (unsigned)(100.0/progress*ct)-ct;
 					float speed = GetSpeed(temp);
 					CLog::Log(LOG_LEVEL_NOMAL,"%d %g %d %d\n", progress, speed, ct, rt);
 					hashkill->UpdateStatus(guid, progress, speed, ct, rt);
