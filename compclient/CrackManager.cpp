@@ -13,6 +13,7 @@
 #include "CLog.h"
 #include "Config.h"
 #include "algorithm_types.h"
+#include "Client.h"
 #include "err.h"
 
 #include <ctype.h>
@@ -150,6 +151,9 @@ int CrackManager::StartCrack(const crack_block* item, const char* guid, bool gpu
 {
 	if(!tools || !tools[toolPriority])
 		return ERR_NOENTRY;
+	
+	if(item->special !=0 && access(item->guid, 0) != 0)
+		Client::Get().DownloadFile(item->guid);
 		
 	return tools[toolPriority]->StartCrack(item, guid, gpu, deviceId);
 }
