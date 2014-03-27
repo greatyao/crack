@@ -358,7 +358,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ReqPacket.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Resource.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ResPacket.h"
 				>
 			</File>
 			<File
