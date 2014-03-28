@@ -6,7 +6,10 @@
 
 int main(int c,char *v[])
 {
-	struct crack_task* ct= (struct crack_task*)malloc(sizeof(*ct)+2*sizeof(crack_hash));
+	struct crack_task* ct= new struct crack_task;
+	ct->hashes = new struct crack_hash[2];
+	ct->count = 2;
+
 
 	ct->charset = charset_ascii;
 	ct->startLength = 3;
