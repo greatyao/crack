@@ -42,7 +42,7 @@ static struct hash_parameter all_support_hashes[] =
 	{algo_md4,			"-p md4 -b%d:%d:%s %s %s"},
 	{algo_md5,			"-p md5 -b%d:%d:%s %s %s"},
 	{algo_md5md5,		"-p md5md5 -b%d:%d:%s %s %s"},
-	{algo_md5unix,		"-p md5unix -b%d:%d:%s %s %s"},
+	{algo_md5unix,		"-p md5unix -r brute -a %d:%d:%s %s %s"},
 	{algo_mediawiki,	"-p mediawiki -b%d:%d:%s %s %s"},
 	{algo_oscommerce,	"-p oscommerce -b%d:%d:%s %s %s"},
 	{algo_ipb2,			"-p ipb2 -b%d:%d:%s %s %s"},
