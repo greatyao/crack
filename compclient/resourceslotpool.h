@@ -81,8 +81,8 @@ public:
 	***************************************************************/
 	unsigned m_bIsLauncher;
 
-	//Coordinator查询接口
-	struct _resourceslotpool* CoordinatorQuery(unsigned &u_status);
+	//Coordinator查询接口(-1表示不限类型)
+	struct _resourceslotpool* CoordinatorQuery(unsigned &u_status, int type = -1);
 	
 	//Launcher查询接口
 	struct _resourceslotpool* LauncherQuery(unsigned &u_status);

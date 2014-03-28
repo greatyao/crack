@@ -154,7 +154,7 @@ void ResourcePool::UnLock(void)
 	pthread_mutex_unlock(&mutex);
 }
 
-struct _resourceslotpool* ResourcePool::CoordinatorQuery(unsigned &u_status)
+struct _resourceslotpool* ResourcePool::CoordinatorQuery(unsigned &u_status, int type)
 {
 	struct _resourceslotpool* p_rsp = 0;
 	u_status = 0;
@@ -166,7 +166,8 @@ struct _resourceslotpool* ResourcePool::CoordinatorQuery(unsigned &u_status)
 		for(; m_base_coordinator<m_rs_pool.size(); m_base_coordinator++)
 		{
 			struct _resourceslotpool* p = m_rs_pool[m_base_coordinator];
-			if(p->m_rs_status>=RS_STATUS_READY && p->m_rs_status<=RS_STATUS_UNRECOVERED) 
+			if((type == -1 || p->m_worker_type == type) && 
+				p->m_rs_status>=RS_STATUS_READY && p->m_rs_status<=RS_STATUS_UNRECOVERED) 
 			{
 				u_status = p->m_rs_status;
 				p_rsp = p;
