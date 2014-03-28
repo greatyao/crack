@@ -1,7 +1,5 @@
 #include "split.h"
-
-#include <Objbase.h>
-#pragma comment(lib,"Rpcrt4.lib")
+#include "guidgenerator.h"
 
 const unsigned long split_combinations = 0xFFFFFFFF;
 const unsigned long split_multiple     = 500;
@@ -88,19 +86,6 @@ csplit::~csplit()
 {
 }
 
-string csplit::new_guid(void)
-{
-	UUID uuid;
-	UuidCreate( &uuid);
-
-	unsigned char * str;
-	UuidToStringA( &uuid, &str);
-
-	string s( (char*)str );
-	RpcStringFreeA( &str );
-
-	return s;
-}
 
 Big_Int csplit::compute_combinations(unsigned characters,unsigned len_max,unsigned len_min)
 {
@@ -324,9 +309,8 @@ struct crack_block *csplit::split_default(struct crack_task *pct,unsigned &nspli
 		p_crack_block[i].type   = loc_p_ct->type;
 		p_crack_block[i].special= loc_p_ct->special;
 
-		string s_guid =new_guid();
+		new_guid(p_crack_block[i].guid, sizeof(p_crack_block[i].guid));
 
-		memcpy( p_crack_block[i].guid, s_guid.c_str(), s_guid.length()+1 );
 		memcpy( p_crack_block[i].john, loc_p_ct->hashes[0].hash, sizeof(struct crack_hash) );
 		
 		if(i==0)//第一个
@@ -361,8 +345,7 @@ struct crack_block *csplit::split_default(struct crack_task *pct,unsigned &nspli
 			{
 				memcpy( p_crack_block[nsplits*i+j].john, loc_p_ct->hashes[i].hash, sizeof(struct crack_hash) );
 
-				string s_guid =new_guid();
-				memcpy( p_crack_block[nsplits*i+j].guid,  s_guid.c_str(), s_guid.length()+1);
+				new_guid( p_crack_block[nsplits*i+j].guid,  sizeof(p_crack_block[nsplits*i+j].guid));
 			}
 		}		
 	}
@@ -406,9 +389,7 @@ struct crack_block *csplit::split_easy(struct crack_task *pct,unsigned &nsplits)
 		p_crack_block[i].type   = loc_p_ct->type;
 		p_crack_block[i].special= loc_p_ct->special;
 
-		string s_guid =new_guid();
-
-		memcpy( p_crack_block[i].guid, s_guid.c_str(), s_guid.length()+1 );
+		new_guid( p_crack_block[i].guid, sizeof(p_crack_block[i].guid) );
 		memcpy( p_crack_block[i].john, loc_p_ct->hashes[0].hash, sizeof(struct crack_hash) );
 		
 		//按照密码长度切分
@@ -447,8 +428,7 @@ struct crack_block *csplit::split_easy(struct crack_task *pct,unsigned &nsplits)
 			for(unsigned j=0; j<nsplits; j++)
 			{
 				memcpy( p_crack_block[nsplits*i+j].john, loc_p_ct->hashes[i].hash, sizeof(struct crack_hash) );
-				string s_guid =new_guid();
-				memcpy( p_crack_block[nsplits*i+j].guid,  s_guid.c_str(), s_guid.length()+1);
+				new_guid( p_crack_block[nsplits*i+j].guid,  sizeof(p_crack_block[nsplits*i+j].guid));
 			}
 		}		
 	}
@@ -548,9 +528,7 @@ struct crack_block *csplit::split_normal(struct crack_task *pct,unsigned &nsplit
 		p_crack_block[i].type   = loc_p_ct->type;
 		p_crack_block[i].special= loc_p_ct->special;
 
-		string s_guid =new_guid();
-
-		memcpy( p_crack_block[i].guid, s_guid.c_str(), s_guid.length()+1 );
+		new_guid( p_crack_block[i].guid, sizeof(p_crack_block[i].guid) );
 		memcpy( p_crack_block[i].john, loc_p_ct->hashes[0].hash, sizeof(struct crack_hash) );
 		
 		if(i==0)//第一个
@@ -585,8 +563,7 @@ struct crack_block *csplit::split_normal(struct crack_task *pct,unsigned &nsplit
 			{
 				memcpy( p_crack_block[nsplits*i+j].john, loc_p_ct->hashes[i].hash, sizeof(struct crack_hash) );
 
-				string s_guid =new_guid();
-				memcpy( p_crack_block[nsplits*i+j].guid,  s_guid.c_str(), s_guid.length()+1);
+				new_guid( p_crack_block[nsplits*i+j].guid,  sizeof(p_crack_block[nsplits*i+j].guid));
 			}
 		}		
 	}

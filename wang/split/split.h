@@ -25,7 +25,6 @@ private:
 
 	BigInt::Rossi get_step_length(const string & s_charset,unsigned );
 	
-	string new_guid(void);
 	string make_character_table(enum crack_charset);//生成字符集数组
 	bool init_bf(unsigned len_min,unsigned len_max,char *character_set);//初始化
 	

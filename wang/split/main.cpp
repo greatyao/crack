@@ -24,7 +24,7 @@ int main(int c,char *v[])
 
 	for(unsigned i=0; i<n; i++)
 	{
-		printf("%d-%d:%d-%d\n",pcb[i].start,pcb[i].end,pcb[i].start2,pcb[i].end2);
+		printf("%d-%d:%d-%d %s %s\n",pcb[i].start,pcb[i].end,pcb[i].start2,pcb[i].end2, pcb[i].guid, pcb[i].john);
 	}
 	sp.release_splits((char *)pcb);
 
@@ -36,7 +36,7 @@ int main(int c,char *v[])
 
 	for(unsigned i=0; i<n; i++)
 	{
-		printf("%d-%d:%d-%d\n",pcb[i].start,pcb[i].end,pcb[i].start2,pcb[i].end2);
+		printf("%d-%d:%d-%d %s %s\n",pcb[i].start,pcb[i].end,pcb[i].start2,pcb[i].end2, pcb[i].guid, pcb[i].john);
 	}
 	sp.release_splits((char *)pcb);
 	return 1;

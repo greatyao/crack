@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\common\include"
+				AdditionalIncludeDirectories="..\..\common\include;..\..\common"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -115,7 +115,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\common\include"
+				AdditionalIncludeDirectories="..\..\common\include;..\..\common"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -177,15 +177,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\common\guidgenerator.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\main.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\split.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\split.h"
 				>
 			</File>
 		</Filter>
@@ -196,6 +196,14 @@
 			>
 			<File
 				RelativePath=".\bigInt.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\common\guidgenerator.h"
+				>
+			</File>
+			<File
+				RelativePath=".\split.h"
 				>
 			</File>
 		</Filter>
