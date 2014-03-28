@@ -26,6 +26,73 @@ CFileUploadManager g_FileUploadManager;
 
 CClientManage g_ClientManage;
 
+//recv file upload data
+int doRecvDataNoCompress(void *pClient,unsigned char *pdata,unsigned int len){
+	
+	int nRet = 0;
+	LPBYTE pSendBuf = NULL;
+	UINT nTotal = 0;
+	UINT nCompressLen = 0;
+	unsigned long lcomlen = 0;
+
+	BYTE sendBuf[MAX_BUF_LEN];
+	control_header recvhdr;
+	unsigned long lOrgLen = 0;
+	unsigned long lCompLen = 0;
+	control_header replyHdr = INITIALIZE_EMPTY_HEADER(TOKEN_LOGIN);
+	unsigned int cltHdrLen = 0;
+	cltHdrLen = sizeof(control_header);
+	
+	if (cltHdrLen > len){
+
+		CLog::Log(LOG_LEVEL_WARNING,"Reply Len Must Bigger than Control Header\n");
+		return -1;
+
+	}
+
+			
+	if (cltHdrLen == len){
+
+		CopyMemory(&replyHdr,pdata,cltHdrLen);
+		nRet = RecvDataFromPeer(pClient,pdata, cltHdrLen);
+		
+		if (nRet < 0){
+			
+			CLog::Log(LOG_LEVEL_WARNING,"Recv Req Header Error\n");
+			return -1;
+
+		}
+
+
+		CLog::Log(LOG_LEVEL_WARNING,"Recv Only Contain a Control Header OK\n");
+		return 0;
+	}
+
+lOrgLen = len - sizeof(control_header);
+
+	CLog::Log(LOG_LEVEL_WARNING,"Recv Contain a buffer\n");
+
+	nRet = RecvDataFromPeer(pClient,(unsigned char *)&recvhdr, cltHdrLen);
+	
+	if (nRet < 0){
+		
+		CLog::Log(LOG_LEVEL_WARNING,"Recv Reply Header Error\n");
+		return -1;
+
+	}
+
+	nRet = RecvDataFromPeer(pClient, pdata, lOrgLen);
+	if (nRet < 0){
+		
+		CLog::Log(LOG_LEVEL_WARNING,"Recv Data Error\n");
+		return -3;
+
+	}
+
+
+//	CLog::Log(LOG_LEVEL_WARNING,"Send Data OK\n");
+	return nRet;
+}
 
 //完成数据的组装,包含两部分，一部分为固定长度包头，另一部分为包内容
 int doSendDataNew(void *pClient,unsigned char *pdata,unsigned int len){
@@ -2223,10 +2290,54 @@ int cc_task_file_download_end(void *pclient,unsigned char *pdata,UINT len){
 //upload file req  
 int cc_task_upload_file(void *pclient,unsigned char *pdata,UINT len){
 
+	CLog::Log(LOG_LEVEL_WARNING,"this is file upload start \n");
 	int ret = 0;
+	FILE *pfile = NULL;
+	unsigned int sendLen = 0;
+	BYTE resBuf[MAX_BUF_LEN];
+	file_upload_res uploadres;
+	control_header reshdr = INITIALIZE_EMPTY_HEADER(CMD_UPLOAD_FILE);
+	unsigned int filelen =  0;
+	unsigned char guid[40];
+
+
+	memcpy(guid,pdata,len);
+/*
+	pfile = fopen((char *)guid,"ab");
+	if (!pfile){
+		
+		CLog::Log(LOG_LEVEL_WARNING,"fopen file %s error \n",guid);
+		return -1;
+
+	}
+	*/
+
+	memcpy(uploadres.guid,guid,40);
+	uploadres.f = NULL;
+	uploadres.len = 0;
+	uploadres.offset = 0;
+
+	CLog::Log(LOG_LEVEL_WARNING,"pfile %p,len : %d ,offset:%d, guid : %s \n",uploadres.f,uploadres.len,uploadres.offset,uploadres.guid);
+
+	reshdr.dataLen = sizeof(file_upload_res);
+
+	memset(resBuf,0,MAX_BUF_LEN);
+
+	memcpy(resBuf,&reshdr,sizeof(control_header));
+	memcpy(resBuf+sizeof(control_header),&uploadres,sizeof(file_upload_res));
 	
+	sendLen = sizeof(control_header)+sizeof(file_upload_res);
 
 
+	ret = doSendDataNew(pclient, resBuf, sendLen);
+	if (ret != 0){
+		CLog::Log(LOG_LEVEL_WARNING,"file upload start Error\n");
+		ret = -2;
+	}else{
+		CLog::Log(LOG_LEVEL_WARNING,"file upload start OK\n");
+		ret = 0;
+	}
+	
 	return ret;
 }
 
@@ -2235,28 +2346,117 @@ int cc_task_upload_file(void *pclient,unsigned char *pdata,UINT len){
 //upload file start req  
 int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 	
+	CLog::Log(LOG_LEVEL_WARNING,"this is file upload .... \n");
 	int ret = 0;
+	FILE *pfile = NULL;
+	unsigned int sendLen = 0;
+	BYTE resBuf[MAX_BUF_LEN];
+	file_upload_start_res startres;
+
+	file_upload_end_res endres;
+	file_upload_start_req *puploadstartreq = NULL;
+	control_header reshdr = INITIALIZE_EMPTY_HEADER(CMD_START_UPLOAD);
+	unsigned int filelen =  0;
+	unsigned int recvLen = 0;
+	unsigned int curlen = 0;
+	unsigned char guid[40];
+
+	puploadstartreq = (file_upload_start_req *)pdata;
+
+	filelen = puploadstartreq->len;
+
+	pfile = fopen((char *)puploadstartreq->guid,"ab");
+	if (!pfile){
+		
+		CLog::Log(LOG_LEVEL_WARNING,"fopen file %s error \n",guid);
+		return -1;
+
+	}
 
 
+	CLog::Log(LOG_LEVEL_WARNING,"pfile %p,len : %d ,offset:%d, guid : %s \n",puploadstartreq->f,puploadstartreq->len,puploadstartreq->offset,puploadstartreq->guid);
 
 
-	return ret;
-
-}
-
-
-//upload file .....
-int cc_task_upload_file_transfer(void *pclient,unsigned char *pdata,UINT len){
+	startres.f = pfile;
+	startres.len = 1024;
+	startres.offset = 0;
+	memcpy(startres.guid,puploadstartreq->guid,40);
 	
-	int ret = 0;
+	reshdr.dataLen = sizeof(file_upload_start_res);
+
+	memset(resBuf,0,MAX_BUF_LEN);
+
+	memcpy(resBuf,&reshdr,sizeof(control_header));
+	memcpy(resBuf+sizeof(control_header),&startres,sizeof(file_upload_start_res));
+	
+	sendLen = sizeof(control_header)+sizeof(file_upload_start_res);
 
 
+	ret = doSendDataNew(pclient, resBuf, sendLen);
+	if (ret != 0){
+		CLog::Log(LOG_LEVEL_WARNING,"file upload .... Error\n");
+		ret = -2;
+	}else{
+		CLog::Log(LOG_LEVEL_WARNING,"file upload ... OK\n");
+		ret = 0;
+	}
+	
+
+	//recv the file data 
+
+	memset(resBuf,0,MAX_BUF_LEN);
+	recvLen = startres.len+sizeof(control_header);
+
+	while(curlen < filelen){
+
+		ret = doRecvDataNoCompress(pclient,resBuf,recvLen);
+		if (ret < 0 ){
+
+			CLog::Log(LOG_LEVEL_WARNING,"Recv file data error OK\n");
+			ret = -3;
+			break;
+
+		}
+		
+
+		CLog::Log(LOG_LEVEL_WARNING,"Recv file data %d vs %d OK\n",ret,filelen);
+		fwrite(resBuf,1,ret,pfile);
+
+		curlen+=ret;		
+
+	}
+
+	fclose(pfile);
+
+	//reply a upload end 
+	endres.f = pfile;
+	endres.len = 0;
+	endres.offset = 0;
+	memcpy(endres.guid,puploadstartreq->guid,40);
+	
+	reshdr.cmd = CMD_END_UPLOAD;
+	reshdr.dataLen = sizeof(file_upload_end_res);
+
+	memset(resBuf,0,MAX_BUF_LEN);
+
+	memcpy(resBuf,&reshdr,sizeof(control_header));
+	memcpy(resBuf+sizeof(control_header),&endres,sizeof(file_upload_end_res));
+	
+	sendLen = sizeof(control_header)+sizeof(file_upload_end_res);
 
 
-
+	ret = doSendDataNew(pclient, resBuf, sendLen);
+	if (ret != 0){
+		CLog::Log(LOG_LEVEL_WARNING,"file upload End Res Error\n");
+		ret = -2;
+	}else{
+		CLog::Log(LOG_LEVEL_WARNING,"file upload End Res OK\n");
+		ret = 0;
+	}
 	return ret;
 
 }
+
 
 
 static FUNC_MAP::value_type func_value_type[] ={
@@ -2282,11 +2482,15 @@ static FUNC_MAP::value_type func_value_type[] ={
 	FUNC_MAP::value_type(CMD_DOWNLOAD_FILE,cc_task_file_download_start),
 	FUNC_MAP::value_type(CMD_END_DOWNLOAD,cc_task_file_download_end),
 
+	
+	FUNC_MAP::value_type(CMD_UPLOAD_FILE,cc_task_upload_file),
+	FUNC_MAP::value_type(CMD_START_UPLOAD,cc_task_upload_file_start),
+
 
 
 };
 
-static FUNC_MAP recv_data_map(func_value_type,func_value_type+16);
+static FUNC_MAP recv_data_map(func_value_type,func_value_type+18);
 
 static int (*recv_data_done[])(void *pclient, unsigned char * pdata, unsigned int len) = {
 

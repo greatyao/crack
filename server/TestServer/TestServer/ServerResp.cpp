@@ -87,7 +87,7 @@ int RecvDataFromPeer(void *pclient, unsigned char * pdata, unsigned int len){
 		}
 
 	}
-	return nRet;
+	return recvLen;
 }
 
 
