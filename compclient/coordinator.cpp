@@ -12,6 +12,7 @@
 #include "resourceslotpool.h"
 #include "CLog.h"
 #include "Client.h"
+#include "CrackManager.h"
 #include "algorithm_types.h"
 
 ccoordinator::ccoordinator()
@@ -35,6 +36,7 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 	int ret;
 	crack_block item;
 	ResourcePool& pool = ResourcePool::Get();
+	int crack_device = CrackManager::Get().UsingCPU() ? -1 : DEVICE_GPU;
 	
 	while(1)
 	{
@@ -42,7 +44,7 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 			
 		//从资源池获取可用的计算单元
 		pool.Lock();
-		prsp = pool.CoordinatorQuery(status);
+		prsp = pool.CoordinatorQuery(status, crack_device);
 
 		if(!status)
 			goto next;

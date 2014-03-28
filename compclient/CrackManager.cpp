@@ -24,6 +24,7 @@
 #include <sys/stat.h>
 
 static string filedb_path;
+static bool using_cpu;
 
 CrackManager& CrackManager::Get()
 {
@@ -71,6 +72,12 @@ int CrackManager::Init()
 	filedb_path = value;
 	if(access(filedb_path.c_str(), 0) != 0)
 		mkdir(filedb_path.c_str(), 0777);
+		
+	Config::Get().GetValue("using_cpu", value);
+	if(value == "" || value == "0" || value == "false")
+		using_cpu = false;
+	else
+		using_cpu = true;
 	
 	if(Config::Get().GetValue("crack_tools_count", value) != 0 ||
 		(toolCount = atoi(value.c_str())) < 0)
@@ -156,9 +163,14 @@ void CrackManager::RegisterCallback(int (*done)(char*, bool, const char*),
 	}
 }
 
-void CrackManager::GetFilename(const char* guid, char* filename, int size)
+void CrackManager::GetFilename(const char* guid, char* filename, int size)const
 {
 	snprintf(filename, size, "%s/%s", filedb_path.c_str(), guid);
+}
+
+bool CrackManager::UsingCPU()const
+{
+	return using_cpu;
 }
 	
 int CrackManager::StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short deviceId)
