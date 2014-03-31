@@ -164,7 +164,7 @@ int Crack::Exec(const char* guid, const char* path, const char* params, void* (*
 		int flag = fcntl(fd2[0], F_GETFL, 0);
 		fcntl(fd2[0], F_SETFL, flag|O_NONBLOCK);
 		
-		usleep(1000*100);
+		usleep(1000*10);
 		int status = -1;
 		int rv = waitpid(pid, &status, WNOHANG);
 		if(rv > 0){

@@ -260,7 +260,7 @@ void *HashKill::MonitorThread(void *p)
 		}
 		
 write:	
-		if(t1 - t2 >= 2)
+		if(t1 - t2 >= 2 || t1 == t0)
 		{
 			t2 = t1;
 			n = hashkill->WriteToLancher(guid, "\n", 1);
