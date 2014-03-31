@@ -66,6 +66,22 @@ int Read(int sck, unsigned char *cmd, short* status, void* data, int size)
 	return uncompressLen;
 }
 
+static int mysend(int sck, void* buf, int size, int flag)
+{
+	int total = 0;
+	int n;
+	do{	
+		if((n=send(sck, (char *)buf+total, size-total, 0)) < 0)
+		{
+			delete []buf;
+			return -1;
+		}
+		total += n;
+		if(total == size) break;
+	}while(1);	
+
+	return size;
+}
 
 int Write(int sck, unsigned char cmd, const void* data, int size)
 {
@@ -88,7 +104,7 @@ int Write(int sck, unsigned char cmd, const void* data, int size)
 	hdr.dataLen = size;
 	hdr.compressLen = destLen;
 	
-	if(send(sck, (char *)&hdr, sizeof(hdr), 0) < 0 || send(sck, (char *)dest, destLen, 0) < 0)
+	if(mysend(sck, (char *)&hdr, sizeof(hdr), 0) < 0 || mysend(sck, (char *)dest, destLen, 0) < 0)
 	{
 		delete []dest;
 		return ERR_CONNECTIONLOST;
