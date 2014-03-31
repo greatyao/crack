@@ -11,6 +11,9 @@
 #include "PacketProcess.h"
 #include "zlib.h"
 #include "ServerResp.h"
+#include "err.h"
+#include "ServerResp.h"
+
 #pragma comment(lib,"zlib.lib")
 
 
@@ -21,47 +24,19 @@ VOID ProcessClientData1(LPVOID lpParameter){
 	INT nRet = 0;
 	UINT len = 0;
 
-	BYTE recvBuf[MAX_BUF_LEN];
+	BYTE recvBuf[MAX_BUF_LEN*4];
 	INT cmdheader = sizeof(control_header);
+	unsigned char cmd;
+	short status;
 
+	while(1)
+	{
+		int m = Read(cliSocket, &cmd, &status, recvBuf, sizeof(recvBuf));
 
-	while(true){
+		if(m == ERR_CONNECTIONLOST) break;//推出了
 
-		memset(recvBuf,0,MAX_BUF_LEN);
-		nRet = recv(cliSocket,(char *)recvBuf,cmdheader,0);
-		if(nRet == 0 || nRet == SOCKET_ERROR){
-
-			CLog::Log(LOG_LEVEL_WARNING,"Client %d Quit.\n",cliSocket);
-//			printf("Client Quit!\n");
-	
-	//		g_Server->m_nCurrentThread -=1;
-	//		连接数减少
-			
-			break;
-		}else{
-			
-			len = nRet;
-			CLog::Log(LOG_LEVEL_WARNING,"Recv Data Len :%d.\n",len);
-		//	printf("Recv Len : %d \n",nRet);
-
-
-		}
-
-		//gen resposne data, then send to client
-		//Old the Recv and send 
-	//	nRet = SendServerData((LPVOID)&cliSocket,recvBuf,len);
-
-		nRet = SendServerData2((LPVOID)&cliSocket,recvBuf,len);
-		if (nRet != 0){
-
-			CLog::Log(LOG_LEVEL_WARNING,"Server Process Data Error\n");
-		//	closesocket(cliSocket);
-		//	break;
-		}
-
+		doRecvData(lpParameter, recvBuf, m, cmd);
 	}
-
-	return ;
 
 }
 
