@@ -45,6 +45,8 @@ VOID ProcessClientData1(LPVOID lpParameter){
 		doRecvData(lpParameter, recvBuf, m, cmd);
 	}
 
+	CLog::Log(LOG_LEVEL_WARNING, "Quit %s %d\n", __FUNCTION__, cliSocket);
+
 }
 
 
