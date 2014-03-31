@@ -30,7 +30,7 @@ VOID ProcessClientData1(LPVOID lpParameter){
 	short status;
 
 	struct sockaddr_in addr;
-	int len2;
+	int len2 = sizeof(addr);
 	getpeername(cliSocket, (sockaddr *)&addr, &len2);
 	char ip[16];
 	strcpy(ip, inet_ntoa(addr.sin_addr));
