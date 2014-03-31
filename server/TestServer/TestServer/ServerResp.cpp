@@ -71,11 +71,8 @@ static int mysend(int sck, void* buf, int size, int flag)
 	int total = 0;
 	int n;
 	do{	
-		if((n=send(sck, (char *)buf+total, size-total, 0)) < 0)
-		{
-			delete []buf;
+		if((n=send(sck, (char *)buf+total, size-total, flag)) < 0)
 			return -1;
-		}
 		total += n;
 		if(total == size) break;
 	}while(1);	
@@ -89,7 +86,7 @@ int Write(int sck, unsigned char cmd, short status, const void* data, int size)
 	hdr.response = status;
 	if(!data || size == 0)
 	{
-		if(send(sck, (char *)&hdr, sizeof(hdr), 0) < 0)
+		if(mysend(sck, (char *)&hdr, sizeof(hdr), 0) < 0)
 			return ERR_CONNECTIONLOST;
 		return 0;
 	}
