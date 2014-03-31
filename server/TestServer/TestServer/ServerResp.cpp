@@ -83,9 +83,10 @@ static int mysend(int sck, void* buf, int size, int flag)
 	return size;
 }
 
-int Write(int sck, unsigned char cmd, const void* data, int size)
+int Write(int sck, unsigned char cmd, short status, const void* data, int size)
 {
 	struct control_header hdr = INITIALIZE_EMPTY_HEADER(cmd);
+	hdr.response = status;
 	if(!data || size == 0)
 	{
 		if(send(sck, (char *)&hdr, sizeof(hdr), 0) < 0)

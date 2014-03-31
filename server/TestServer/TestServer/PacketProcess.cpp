@@ -2718,6 +2718,7 @@ int comp_get_a_workitem_new(void *pclient,unsigned char *pdata,UINT len){
 	unsigned char resBuf[MAX_BUF_LEN];
 	unsigned int resLen = 0;
 	unsigned int sendLen = 0;
+	int sck = *((int*)pclient);
 
 	memset(resBuf,0,MAX_BUF_LEN);
 
@@ -2738,7 +2739,7 @@ int comp_get_a_workitem_new(void *pclient,unsigned char *pdata,UINT len){
 		reshdr.dataLen = resLen;
 		reshdr.response = 0;
 	}
-	
+	/*
 	memcpy(resBuf,&reshdr,sizeof(struct control_header));
 	memcpy(resBuf+sizeof(struct control_header) ,pcrackblock,resLen);
 	sendLen = sizeof(struct control_header) + resLen;
@@ -2751,7 +2752,11 @@ int comp_get_a_workitem_new(void *pclient,unsigned char *pdata,UINT len){
 		CLog::Log(LOG_LEVEL_WARNING,"Get A Task WorkItem OK\n");
 		ret = 0;
 	}
+	*/
 
+	int m = Write(sck, CMD_GET_A_WORKITEM, 0, pcrackblock, sizeof(*pcrackblock));
+	CLog::Log(LOG_LEVEL_WARNING,"Get A Task Workitem %d\n", m);
+	
 	g_CrackBroker.Free(pcrackblock);
 
 	return ret;
