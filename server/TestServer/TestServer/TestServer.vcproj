@@ -128,7 +128,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\..\common\include;.\;"
+				AdditionalIncludeDirectories="..\..\..\common\include;.\;..\..\..\plugins;..\..\..\wang\split;"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNING"
 				MinimalRebuild="true"
 				RuntimeLibrary="2"
@@ -204,6 +204,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ClientInfo.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ClientManage.cpp"
 				>
 			</File>
@@ -213,6 +217,22 @@
 			</File>
 			<File
 				RelativePath=".\CmdBuf.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CompClient.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CrackBlock.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CrackBroker.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CrackTask.cpp"
 				>
 			</File>
 			<File
@@ -318,6 +338,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ClientInfo.h"
+				>
+			</File>
+			<File
 				RelativePath=".\ClientLogin.h"
 				>
 			</File>
@@ -339,6 +363,26 @@
 			</File>
 			<File
 				RelativePath=".\Common.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CompClient.h"
+				>
+			</File>
+			<File
+				RelativePath=".\crack_status.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CrackBlock.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CrackBroker.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CrackTask.h"
 				>
 			</File>
 			<File
@@ -593,6 +637,26 @@
 			</File>
 			<File
 				RelativePath="..\..\..\plugins\wordpress.cpp"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="split"
+			>
+			<File
+				RelativePath="..\..\..\wang\split\bigInt.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\wang\split\bigInt.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\wang\split\split.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\wang\split\split.h"
 				>
 			</File>
 		</Filter>

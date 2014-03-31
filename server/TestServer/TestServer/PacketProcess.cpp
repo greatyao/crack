@@ -19,12 +19,16 @@
 
 #include "ReqPacket.h"
 #include "ResPacket.h"
+#include "CrackBroker.h"
 #include <stdio.h>
 
 
-CFileUploadManager g_FileUploadManager;
+//CFileUploadManager g_FileUploadManager;
 
 CClientManage g_ClientManage;
+
+
+static CCrackBroker g_CrackBroker;
 
 //recv file upload data
 int doRecvDataNoCompress(void *pClient,unsigned char *pdata,unsigned int len){
@@ -68,7 +72,7 @@ int doRecvDataNoCompress(void *pClient,unsigned char *pdata,unsigned int len){
 		return 0;
 	}
 
-lOrgLen = len - sizeof(control_header);
+	//lOrgLen = len - sizeof(control_header);
 
 	CLog::Log(LOG_LEVEL_WARNING,"Recv Contain a buffer\n");
 
@@ -81,6 +85,7 @@ lOrgLen = len - sizeof(control_header);
 
 	}
 
+	lOrgLen = recvhdr.dataLen;
 	nRet = RecvDataFromPeer(pClient, pdata, lOrgLen);
 	if (nRet < 0){
 		
@@ -627,66 +632,6 @@ int client_keeplive(void *pclient, unsigned char * pdata, UINT len){
 //下边的为控制节点发送给服务器的请求
 
 //new upload for test
-
-int cc_task_uploadNew(void *pclient, unsigned char * pdata, UINT len){
-
-	CLog::Log(LOG_LEVEL_WARNING,"this is task upload New\n");
-	int nRet = 0;
-
-	UINT sendLen = 0;
-	unsigned char resBuf[MAX_BUF_LEN];
-	unsigned long lcomplen = 0;
-	unsigned long luncomplen = 0;
-
-	control_header reshdr = INITIALIZE_EMPTY_HEADER(CMD_TASK_UPLOAD);
-	crack_task *pCrackTask = NULL;
-	task_upload_res task_upload;
-	char c_guid[48];
-
-	//
-
-	memset(resBuf,0,MAX_BUF_LEN);
-	
-	
-	if (len != sizeof(crack_task)){
-
-		CLog::Log(LOG_LEVEL_WARNING,"Upload Task : Data len no crack_task size Error\n");
-		return -2;
-
-	}
-
-	pCrackTask = (crack_task *)pdata;
-
-	printf("task Task status info charset : %d, filename : %s,algo : %d\n",pCrackTask->charset,pCrackTask->filename,pCrackTask->algo);
-
-		
-	memset(resBuf,0,MAX_BUF_LEN);
-	memcpy(task_upload.guid,"9876543210987654321098765432109876543210",40);
-	
-
-	//产生应答报文，并发送
-	reshdr.dataLen = sizeof(task_upload_res);
-	
-	memcpy(resBuf,&reshdr,sizeof(control_header));
-	memcpy(resBuf+sizeof(control_header),&task_upload,sizeof(task_upload_res));
-	
-	sendLen = sizeof(control_header)+sizeof(task_upload_res);
-
-
-	nRet = doSendDataNew(pclient, resBuf, sendLen);
-	if (nRet != 0){
-		CLog::Log(LOG_LEVEL_WARNING,"Upload Task Error\n");
-		nRet = -2;
-	}else{
-		CLog::Log(LOG_LEVEL_WARNING,"Upload Task OK\n");
-		nRet = 0;
-	}
-
-	return nRet;
-}
-
-
-
 //任务upload 处理
 int cc_task_upload(void *pclient, unsigned char * pdata, UINT len){
 
@@ -1639,7 +1584,215 @@ int comp_wi_result(void *pclient, unsigned char * pdata, UINT len){
 
 
 
+
+
+
+
+
+
+
+
 ///new control client task req for test
+
+/*
+struct client_login_req {
+	
+	char m_osinfo[16];	//操作系统信息
+	char m_ip[20];		//IP地址信息
+
+	char m_type;		//客户端类型,control , compute
+	
+	char m_hostname[50];//主机名称
+	unsigned char m_guid[40]; //节点guid
+	
+	unsigned int m_clientsock;
+	int m_gputhreads;
+	int m_cputhreads;
+	*/
+
+int client_loginnew(void *pclient, unsigned char * pdata, UINT len){
+
+	//send the result data
+	INT nRet = 0;
+	char buf[40];
+	control_header cltHeader = INITIALIZE_EMPTY_HEADER(TOKEN_LOGIN);
+	CLog::Log(LOG_LEVEL_WARNING,"Enter into Login\n");
+
+	client_login_req *pC = (struct client_login_req *)pdata;
+	client_login_req myclient;
+	
+	if (pclient == NULL){
+		
+		memset(&myclient,0,sizeof(struct client_login_req));
+		memset(buf,0,40);
+		sprintf(buf,"%u",*(SOCKET *)pclient);
+		myclient.m_clientsock = *(SOCKET *)pclient;
+		myclient.m_cputhreads = myclient.m_gputhreads = 0;
+		myclient.m_type = 0;
+		memcpy(myclient.m_guid,buf,strlen(buf));
+		pC = &myclient;
+		
+	}
+
+	//处理业务逻辑
+
+	nRet = g_CrackBroker.ClientLogin(pC);
+	if (nRet < 0){
+		CLog::Log(LOG_LEVEL_WARNING,"Client Login --Error\n");
+	
+
+	}else {
+		
+		CLog::Log(LOG_LEVEL_WARNING,"Client Login ---OK\n");
+
+	}
+
+
+	////////////////////////////////////
+
+	//产生应答报文，并发送
+	cltHeader.response = nRet;
+		 
+    nRet = doSendDataNew(pclient,(unsigned char *)&cltHeader,sizeof(control_header));
+	if (nRet != 0){
+
+		CLog::Log(LOG_LEVEL_WARNING,"Client Login Error\n");
+		nRet = -2;
+
+	}else{
+
+		CLog::Log(LOG_LEVEL_WARNING,"Client Login OK\n");
+		nRet = 0;
+	}
+
+	return nRet;
+
+}
+
+//同步心跳回应
+int client_keeplivenew(void *pclient, unsigned char * pdata, UINT len){
+
+	//send the result data
+	INT nRet = 0;
+	control_header replyHdr = INITIALIZE_EMPTY_HEADER(TOKEN_HEARTBEAT);
+	CLog::Log(LOG_LEVEL_WARNING,"This is a clieng keeplive\n");
+	struct client_keeplive_req *pKeeplive = (struct client_keeplive_req *)pdata;
+	struct client_keeplive_req keeplive;
+
+	char buf[40];
+	GUID guid;
+	INT guidLen = 0;
+	time_t tmpTime = 0;
+
+	BYTE bToken = CMD_KEEPLIVE_OK;
+	guidLen = sizeof(GUID);
+	CopyMemory(&guid,&pdata[1],guidLen);
+	CopyMemory(&tmpTime,&pdata[1+guidLen],sizeof(time_t));
+	
+	//处理业务逻辑
+	if (pKeeplive == NULL){
+				
+		memset(buf,0,40);
+		sprintf(buf,"%u",*(SOCKET *)pclient);
+		memcpy(keeplive.m_guid,buf,strlen(buf));
+		pKeeplive = &keeplive;
+
+	}
+	nRet = g_CrackBroker.ClientKeepLive(pKeeplive);
+
+
+	replyHdr.response = nRet;
+
+	//生成应答并返回
+	
+	nRet = doSendDataNew(pclient,(unsigned char *)&replyHdr,sizeof(control_header));
+//	nRet = doSendData(pclient, &bToken, 1);
+	if (nRet != 0){
+		CLog::Log(LOG_LEVEL_WARNING,"Client KeepLive Error\n");
+		nRet = -2;
+	}else{
+		CLog::Log(LOG_LEVEL_WARNING,"Client KeepLive OK\n");
+		nRet = 0;
+	}
+	return nRet;
+}
+
+
+int cc_task_uploadNew(void *pclient, unsigned char * pdata, UINT len){
+
+	CLog::Log(LOG_LEVEL_WARNING,"this is task upload New\n");
+	int nRet = 0;
+
+	UINT sendLen = 0;
+	unsigned char resBuf[MAX_BUF_LEN];
+	unsigned long lcomplen = 0;
+	unsigned long luncomplen = 0;
+	unsigned int resLen = 0;
+
+	control_header reshdr = INITIALIZE_EMPTY_HEADER(CMD_TASK_UPLOAD);
+	crack_task *pCrackTask = NULL;
+	task_upload_res task_upload;
+	char c_guid[48];
+
+	memset(resBuf,0,MAX_BUF_LEN);
+	
+	if (len != sizeof(crack_task)){
+
+		CLog::Log(LOG_LEVEL_WARNING,"Upload Task : Data len no crack_task size Error\n");
+		return -2;
+
+	}
+
+
+	pCrackTask = (crack_task *)pdata;
+
+	printf("task Task status info charset : %d, filename : %s,algo : %d\n",pCrackTask->charset,pCrackTask->filename,pCrackTask->algo);
+
+		
+	memset(resBuf,0,MAX_BUF_LEN);
+	memcpy(task_upload.guid,"9876543210987654321098765432109876543210",40);
+	
+	nRet = g_CrackBroker.CreateTask(pCrackTask,task_upload.guid);
+	if (nRet < 0) {
+
+		CLog::Log(LOG_LEVEL_WARNING,"Upload Task : Create Task Error\n");
+		resLen = 0;
+	}else{
+		
+		CLog::Log(LOG_LEVEL_WARNING,"Upload Task : Create Task OK\n");
+		resLen = sizeof(struct task_upload_res);
+	}
+	
+	//业务处理
+
+	//产生应答报文，并发送
+	
+	reshdr.dataLen = resLen;
+	reshdr.response = nRet;
+	
+	memcpy(resBuf,&reshdr,sizeof(control_header));
+	
+	if (resLen != 0){
+		memcpy(resBuf+sizeof(control_header),&task_upload,resLen);
+	}
+	
+	
+	sendLen = sizeof(control_header)+resLen;
+
+
+	nRet = doSendDataNew(pclient, resBuf, sendLen);
+	if (nRet != 0){
+		CLog::Log(LOG_LEVEL_WARNING,"Upload Task Error\n");
+		nRet = -2;
+	}else{
+		CLog::Log(LOG_LEVEL_WARNING,"Upload Task OK\n");
+		nRet = 0;
+	}
+
+	return nRet;
+}
+
+
 int cc_task_startnew(void *pclient, unsigned char * pdata, UINT len){
 
 	CLog::Log(LOG_LEVEL_WARNING,"this is task start new\n");
@@ -1650,6 +1803,7 @@ int cc_task_startnew(void *pclient, unsigned char * pdata, UINT len){
 	unsigned char resBuf[MAX_BUF_LEN];
 	unsigned long lcomplen = 0;
 	unsigned long luncomplen = 0;
+	unsigned int resLen = 0;
 
 	control_header reshdr = INITIALIZE_EMPTY_HEADER(CMD_TASK_START);
 	task_start_req *pStartReq = NULL;
@@ -1677,13 +1831,32 @@ int cc_task_startnew(void *pclient, unsigned char * pdata, UINT len){
 	memcpy(taskres.guid,pStartReq->guid,strlen((char *)pStartReq->guid));
 	taskres.status = 100;
 
+	//业务处理
+	nRet = g_CrackBroker.StartTask(pStartReq);
+	if (nRet < 0 ){
+
+		CLog::Log(LOG_LEVEL_WARNING,"Start Task Error\n");
+		resLen = 0;
+
+
+	}else{
+
+		CLog::Log(LOG_LEVEL_WARNING,"Start Task OK\n");
+		resLen = sizeof(task_status_res);
+		
+
+	}
+
+taskres.status= nRet;
 	//产生应答报文，并发送
-	reshdr.dataLen = sizeof(task_status_res);
-	
+	reshdr.dataLen = resLen;
+	reshdr.response = nRet;
+
 	memcpy(resBuf,&reshdr,sizeof(control_header));
-	memcpy(resBuf+sizeof(control_header),&taskres,sizeof(task_status_res));
+	if (resLen != 0)
+		memcpy(resBuf+sizeof(control_header),&taskres,resLen);
 	
-	sendLen = sizeof(control_header)+sizeof(task_status_res);
+	sendLen = sizeof(control_header)+resLen;
 
 
 	nRet = doSendDataNew(pclient, resBuf, sendLen);
@@ -1711,6 +1884,7 @@ int cc_task_stopnew(void *pclient, unsigned char * pdata, UINT len){
 	unsigned char resBuf[MAX_BUF_LEN];
 	unsigned long lcomplen = 0;
 	unsigned long luncomplen = 0;
+	unsigned int resLen = 0;
 
 	control_header reshdr = INITIALIZE_EMPTY_HEADER(CMD_TASK_STOP);
 	task_stop_req *pStopReq = NULL;
@@ -1738,13 +1912,29 @@ int cc_task_stopnew(void *pclient, unsigned char * pdata, UINT len){
 	memcpy(taskres.guid,pStopReq->guid,strlen((char *)pStopReq->guid));
 	taskres.status = 200;
 
+	//业务处理
+	nRet = g_CrackBroker.StopTask(pStopReq);
+	if (nRet < 0 ){
+		CLog::Log(LOG_LEVEL_WARNING,"Stop Task Error\n");
+		resLen = 0;
+
+	}else{
+
+		CLog::Log(LOG_LEVEL_WARNING,"Stop Task OK\n");
+		resLen = sizeof(task_status_res);
+	
+	}
+	taskres.status = nRet;
+
 	//产生应答报文，并发送
-	reshdr.dataLen = sizeof(task_status_res);
+	reshdr.dataLen = resLen;
+	reshdr.response = nRet;
 	
 	memcpy(resBuf,&reshdr,sizeof(control_header));
-	memcpy(resBuf+sizeof(control_header),&taskres,sizeof(task_status_res));
+	if (resLen != 0)
+		memcpy(resBuf+sizeof(control_header),&taskres,resLen);
 	
-	sendLen = sizeof(control_header)+sizeof(task_status_res);
+	sendLen = sizeof(control_header)+resLen;
 
 
 	nRet = doSendDataNew(pclient, resBuf, sendLen);
@@ -2417,12 +2607,11 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 			break;
 
 		}
+		curlen+=ret;
 		
-
-		CLog::Log(LOG_LEVEL_WARNING,"Recv file data %d vs %d OK\n",ret,filelen);
+		CLog::Log(LOG_LEVEL_WARNING,"Recv file data %d vs %d OK\n",curlen,filelen);
 		fwrite(resBuf,1,ret,pfile);
-
-		curlen+=ret;		
+				
 
 	}
 
@@ -2523,10 +2712,6 @@ static int (*recv_data_done[])(void *pclient, unsigned char * pdata, unsigned in
 	comp_wi_download_file,
 
 };
-
-
-
-
 
 INT doRecvData(LPVOID pclient, LPBYTE pdata, UINT len,BYTE cmdflag){
 
