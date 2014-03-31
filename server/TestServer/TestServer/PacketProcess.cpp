@@ -23,6 +23,8 @@
 #include <stdio.h>
 
 
+#define FILE_DIR ".\\tempdir\\"
+
 //CFileUploadManager g_FileUploadManager;
 
 CClientManage g_ClientManage;
@@ -2550,10 +2552,17 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 	unsigned int recvLen = 0;
 	unsigned int curlen = 0;
 	unsigned char guid[40];
+	unsigned char filename[128];
+
 
 	puploadstartreq = (file_upload_start_req *)pdata;
 
 	filelen = puploadstartreq->len;
+
+
+	memset(filename,0,128);
+	sprintf((char *)filename,"%s%s",FILE_DIR,(char *)puploadstartreq->guid);
+
 
 	pfile = fopen((char *)puploadstartreq->guid,"ab");
 	if (!pfile){

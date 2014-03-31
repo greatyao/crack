@@ -240,7 +240,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\guidgenerator.cpp"
+				RelativePath="..\..\..\common\guidgenerator.cpp"
 				>
 			</File>
 			<File
@@ -391,6 +391,10 @@
 			</File>
 			<File
 				RelativePath=".\FileUploadManager.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\common\guidgenerator.h"
 				>
 			</File>
 			<File
