@@ -34,11 +34,12 @@ VOID ProcessClientData1(LPVOID lpParameter){
 	getpeername(cliSocket, (sockaddr *)&addr, &len2);
 	char ip[16];
 	strcpy(ip, inet_ntoa(addr.sin_addr));
+	int port = ntohs(addr.sin_port);
 
 	while(1)
 	{
 		int m = Read(cliSocket, &cmd, &status, recvBuf, sizeof(recvBuf));
-		CLog::Log(LOG_LEVEL_WARNING, "%s recv cmd %d status %d body %d\n",ip, cmd, status, m);
+		CLog::Log(LOG_LEVEL_WARNING, "%s:%d recv cmd %d status %d body %d\n",ip, port, cmd, status, m);
 
 		if(m == ERR_CONNECTIONLOST) break;//อฦณ๖มห
 
