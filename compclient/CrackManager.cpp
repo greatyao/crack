@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <memory.h>
+#include <unistd.h>
 #include <sys/stat.h>
 
 static string filedb_path;
