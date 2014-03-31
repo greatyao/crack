@@ -105,7 +105,8 @@ INT CSockServer::StartServer(void)
 
 		//printf("Client Connect : %s\n",inet_ntoa(clientAddr.sin_addr));
 		
-		hThread = CreateThread(NULL,0,reinterpret_cast<LPTHREAD_START_ROUTINE>(&ProcessClientData),(LPVOID)&clientSocket,0,NULL);
+		SOCKET* s = new SOCKET(clientSocket);
+		hThread = CreateThread(NULL,0,reinterpret_cast<LPTHREAD_START_ROUTINE>(&ProcessClientData1),(LPVOID)s,0,NULL);
 		if (hThread == 0){
 
 			CLog::Log(LOG_LEVEL_WARNING,"Create Thread Process Client Connection Error.\n");
