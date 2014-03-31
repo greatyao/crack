@@ -32,11 +32,13 @@ int CCrackTask::Init(crack_task *pCrackTask)
 {
 	CCrackBlock *pCb = NULL;
 	csplit split;
+	struct crack_hash *pch = NULL;
 	crack_block *pCrackBlock = NULL;
 	unsigned int splitnum = 0;
 	void *p = NULL;
 	int ret = 0;
 	int mcount = 0;
+	int i = 0;
 
 	algo = pCrackTask->algo;
 	charset = pCrackTask->charset;
@@ -54,6 +56,7 @@ int CCrackTask::Init(crack_task *pCrackTask)
 	count = 0;
 
 	//calculate the crack_hash 
+	/*
 	if (special){
 		mcount = HASH_NUM_IN_TASK;
 		p = Alloc(CH_LEN*HASH_NUM_IN_TASK);
@@ -61,29 +64,43 @@ int CCrackTask::Init(crack_task *pCrackTask)
 		mcount = 1;
 		p = Alloc(CH_LEN);
 	}
+	*/
+	mcount = HASH_NUM_IN_TASK;
+	p = Alloc(CH_LEN * HASH_NUM_IN_TASK);
 	
+
 	if (!p) {
 		CLog::Log(LOG_LEVEL_WARNING,"Init Crack Task Error\n");
 		return -1;
 	}
 	//调用文件分割函数
-	if (special){
+/*	if (special){
 		ret = load_hashes_file((char *)filename,algo,(struct crack_hash*)p,mcount);
 	}else{
 		ret = load_single_hash((char *)filename, algo, (struct crack_hash *)p);
 	}
+*/
 	
+	ret = load_hashes_file((char *)filename,algo,(struct crack_hash*)p,mcount);
 	if (ret < 0 ){
 		CLog::Log(LOG_LEVEL_WARNING,"load the hash Info Error\n");
 		Free(p);
 		return -2;
 	}
 	
+	pch =(struct crack_hash *)p;
+
+	for (i = 0 ;i < ret ;i ++ ){
+		
+		CLog::Log(LOG_LEVEL_WARNING,"Crack Hash is %s,%s,%s\n",pch[i].hash,pch[i].salt,pch[i].salt2);
+	}
+
 	count = ret;
 	hashes = (struct crack_hash *) p;
 
 	//出始化相关工作项
-	pCrackBlock = split.split_default(this,splitnum);
+//	pCrackBlock = split.split_default(this,splitnum);
+	pCrackBlock = split.split_easy(this,splitnum);
 	if (!pCrackBlock){
 		CLog::Log(LOG_LEVEL_WARNING,"split default Error\n");
 		Free(p);
@@ -97,6 +114,7 @@ int CCrackTask::Init(crack_task *pCrackTask)
 		pCb[i].Init(&pCrackBlock[i]);
 		pCb[i].task = this;
 		m_crackblock_map.insert(CB_MAP::value_type(pCb[i].guid,&pCb[i]));
+		CLog::Log(LOG_LEVEL_WARNING,"Crack Block is %s,%s,%d,%d,%d,%d\n",pCb[i].john,pCb[i].guid,pCb[i].start,pCb[i].end,pCb[i].start2,pCb[i].end2);
 		
 	}
 	//释放资源
@@ -226,6 +244,8 @@ int CCrackTask::updateStatusToRunning(){
 	
 	int ret = 0;
 	unsigned char tempStatus = m_status;
+	CB_MAP::iterator iter_block;
+	CCrackBlock *pCb = NULL;
 
 	if ((m_status != CT_STATUS_READY) && (m_status != CT_STATUS_PAUSED)){
 		
@@ -235,6 +255,19 @@ int CCrackTask::updateStatusToRunning(){
 	}
 	
 	m_status = CT_STATUS_RUNNING;
+
+	//设置子任务为准备运行状态
+	for(iter_block = m_crackblock_map.begin();iter_block != m_crackblock_map.end();iter_block++){
+	
+		pCb = iter_block->second;
+		if (pCb->m_status == WI_STATUS_WAITING){
+	
+
+			pCb->m_status = WI_STATUS_READY;
+		}
+
+	}
+
 	return ret;
 }
 

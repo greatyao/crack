@@ -4,7 +4,7 @@
 CTask::CTask(void)
 {
 
-	m_string_ct_guid = new_guid();
+//	m_string_ct_guid = new_guid();
 	m_split_number = 0;
 	m_finished_number = 0;
 	m_crack_success = false;

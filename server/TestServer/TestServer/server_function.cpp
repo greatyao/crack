@@ -102,20 +102,27 @@ VOID ProcessClientData(LPVOID lpParameter){
 
 
 		}
-*/
+*/	
+		
 
 		nRet = RecvDataFromPeer(lpParameter,recvBuf,hdrLen);
 		if (nRet < 0 ){
 
 			CLog::Log(LOG_LEVEL_WARNING,"Client %d Quit.\n",cliSocket);
-			return ;
+		//	closesocket(cliSocket);
+			continue;
+			//return ;
 
 		}else{
 
+			
 			len = hdrLen;
 			CLog::Log(LOG_LEVEL_WARNING,"Recv Data Len :%d.\n",len);
 
 		}
+
+		
+		unsigned int dataLen = 
 
 		//gen resposne data, then send to client
 		//Old the Recv and send 

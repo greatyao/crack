@@ -128,7 +128,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\..\common\include;.\;..\..\..\plugins;..\..\..\wang\split;"
+				AdditionalIncludeDirectories="..\..\..\common\include;.\;..\..\..\plugins;..\..\..\wang\split;..\..\..\common;"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNING"
 				MinimalRebuild="true"
 				RuntimeLibrary="2"
@@ -391,10 +391,6 @@
 			</File>
 			<File
 				RelativePath=".\FileUploadManager.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\common\guidgenerator.h"
 				>
 			</File>
 			<File

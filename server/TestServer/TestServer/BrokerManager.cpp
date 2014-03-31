@@ -20,7 +20,7 @@ CTask * CBrokerManager::GetTaskByGuid(GUID guid){
 	int task_count = serverBroker.m_coretask_list.size();
 	int i = 0;
 	
-	guid_to_string(&guid,str_guid);
+//	guid_to_string(&guid,str_guid);
 	for(i = 0; i < task_count; i++){
 
 		pTmpTask = serverBroker.m_coretask_list[i];	
@@ -309,7 +309,7 @@ TaskStatus *CBrokerManager::ReqGetTaskStatus(){
 			
 			if (ptask->m_task_status == task_status){
 						
-				string_to_guid(ptask->m_string_ct_guid,&guid);
+	//			string_to_guid(ptask->m_string_ct_guid,&guid);
 
 				CopyMemory(&pTaskStatus[num].guid,&guid,sizeof(GUID));
 				pTaskStatus[num].m_progress = ptask->m_progress;
@@ -371,7 +371,7 @@ WorkItemGuid * CBrokerManager::ReqDecRecovered(CompWIRecovered *pwirec){
 	}
 
 	
-	string_to_guid(pwirec->m_guid,&guid);
+//	string_to_guid(pwirec->m_guid,&guid);
 	pwiguid = (WorkItemGuid *)_Alloc(sizeof(WorkItemGuid));
 	if (!pwiguid){
 
@@ -423,7 +423,7 @@ WorkItemGuid * CBrokerManager::ReqDecUnRecovered(CompWIUnRecovered *pwiunrec){
 
 	}
 
-	string_to_guid(pwiunrec->m_guid,&guid);
+//	string_to_guid(pwiunrec->m_guid,&guid);
 	pwiguid =(WorkItemGuid *)_Alloc(sizeof(WorkItemGuid));
 	if (!pwiguid){
 
@@ -500,7 +500,7 @@ std::string m_string_wi_guid;	//workitemµÄguid
 			}else{
 				
 				UpdateStatusRuning(pwi);
-				string_to_guid(pwi->m_string_wi_guid,&(pWInfo->guid));
+	//			string_to_guid(pwi->m_string_wi_guid,&(pWInfo->guid));
 				strcpy_s((char *)pWInfo->wi_john,strlen(pwi->m_string_wi_john.c_str()),pwi->m_string_wi_john.c_str());
 				strcpy_s((char *)pWInfo->wi_begin,strlen(pwi->m_string_wi_begin.c_str()),pwi->m_string_wi_begin.c_str());
 				strcpy_s((char *)pWInfo->wi_end,strlen(pwi->m_string_wi_end.c_str()),pwi->m_string_wi_end.c_str());
