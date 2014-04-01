@@ -294,10 +294,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\crack_status.h"
-				>
-			</File>
-			<File
 				RelativePath=".\CrackBlock.h"
 				>
 			</File>

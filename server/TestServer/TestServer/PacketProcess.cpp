@@ -422,14 +422,14 @@ int client_loginnew(void *pclient, unsigned char * pdata, UINT len){
 	control_header cltHeader = INITIALIZE_EMPTY_HEADER(TOKEN_LOGIN);
 	CLog::Log(LOG_LEVEL_WARNING,"Enter into Login\n");
 
-	client_login_req *pC = (struct client_login_req *)pdata;
+	client_login_req *pC = (client_login_req *)pdata;
 	client_login_req myclient;
 
 	getClientIPInfo(pclient,ip,&port);
 
 	if (pclient == NULL){
 		
-		memset(&myclient,0,sizeof(struct client_login_req));
+		memset(&myclient,0,sizeof(client_login_req));
 		memset(buf,0,40);
 		sprintf(buf,"%u",*(SOCKET *)pclient);
 		myclient.m_clientsock = *(SOCKET *)pclient;
