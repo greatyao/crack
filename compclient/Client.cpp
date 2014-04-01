@@ -16,6 +16,7 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <zlib.h>
+#include <fcntl.h>
 
 #include "Client.h"
 #include "resourceslotpool.h"
@@ -164,11 +165,10 @@ int Client::Connect(const char* ip, unsigned short port)
 	
 	connected = 2;
 	
+	int flag = fcntl(sck, F_GETFL, 0);
+	fcntl(sck, F_SETFL, flag|O_NONBLOCK);
 	//struct timeval timeout = {3, 0};
 	//setsockopt(sck, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
-	//char file[256];
-	//sprintf(file, "%s/%s", "files_db", "aaa");
-	//if(access(file, 0) != 0) DownloadFile("aaa", "files_db");
 	
 	unsigned char cmd = TOKEN_LOGIN;
 	if(linfo.m_osinfo[0] == 0)
@@ -346,6 +346,8 @@ int Client::Read(unsigned char *cmd, short* status, void* data, int size)
 		if((n=read(sck, buf+total, m-total)) < 0)
 		{
 			delete []buf;
+			if(errno == EAGAIN)
+				return ERR_TIMEOUT;
 			return ERR_CONNECTIONLOST;
 		}
 		total += n;
