@@ -135,13 +135,13 @@ typedef enum CLIENT_TYPE {
 
 
 struct login_info {
-	
-	char m_osinfo[32];	//操作系统信息
-	char m_ip[16];		//IP地址信息
-
-	int m_gputhreads;
-	int m_cputhreads;			
-	char m_type;		//客户端类型,control , compute
+	char m_osinfo[64];		//操作系统信息
+	char m_hostinfo[64];	//机器名
+	char m_ip[16];			//IP地址信息
+	unsigned short m_port;	//端口
+	char m_type;			//客户端类型,control , compute
+	int m_gputhreads;		//GPU数目
+	int m_cputhreads;		//CPU数目
 	
 	unsigned int m_clientsock;
 };

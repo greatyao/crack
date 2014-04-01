@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h> 
+#include <sys/utsname.h>  
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -17,11 +18,14 @@
 #include <zlib.h>
 
 #include "Client.h"
+#include "resourceslotpool.h"
 #include "err.h"
 #include "CLog.h"
 #include "macros.h"
 #include "algorithm_types.h"
 
+
+static struct login_info linfo = {0};
 static unsigned char pack_flag[5] = {'G', '&', 'C', 'P', 'U'};
 static const int HDR_SIZE = 13;
 
@@ -167,9 +171,32 @@ int Client::Connect(const char* ip, unsigned short port)
 	//if(access(file, 0) != 0) DownloadFile("aaa", "files_db");
 	
 	unsigned char cmd = TOKEN_LOGIN;
+	if(linfo.m_osinfo[0] == 0)
+	{
+		struct utsname uts;
+		if(uname(&uts) >= 0)
+		{
+			snprintf(linfo.m_osinfo, sizeof(linfo.m_osinfo), "%s %s", uts.sysname, uts.release);
+			strncpy(linfo.m_hostinfo, uts.nodename, sizeof(linfo.m_hostinfo));
+		}
+		
+		ResourcePool::Get().GetDevicesNo(&linfo.m_gputhreads, &linfo.m_cputhreads);
+		linfo.m_type = COMPUTE_TYPE_CLIENT;
+	}  
+	{
+		struct sockaddr_in addr;
+		int len2 = sizeof(addr);
+		getsockname(sck, (sockaddr *)&addr, &len2);
+		strncpy(linfo.m_ip, inet_ntoa(addr.sin_addr), sizeof(linfo.m_ip));
+		linfo.m_port = ntohs(addr.sin_port);
+		
+		CLog::Log(LOG_LEVEL_NOMAL, "Client: %s %s %s:%d\n", linfo.m_osinfo, linfo.m_hostinfo,
+					linfo.m_ip, linfo.m_port);
+	}
+	
 	short status;
 	char buf[1024];
-	int n = Write(cmd, NULL, 0);
+	int n = Write(cmd, &linfo, sizeof(linfo));
 	int m = Read(&cmd, &status, buf, sizeof(buf));
 	CLog::Log(LOG_LEVEL_NOMAL, "Client: Read login %d %d\n", m, cmd);
 			
@@ -375,7 +402,15 @@ int Client::ReportStatusToServer(crack_status* status)
 {
 	unsigned char cmd = CMD_WORKITEM_STATUS;
 	int m = Write(cmd, status, sizeof(*status));
-	if(m == ERR_CONNECTIONLOST) connected = 0;
+	if(m == ERR_CONNECTIONLOST) 
+	{
+		connected = 0;
+		return m;
+	}
+	
+	short st;
+	char buf[1024];
+	Read(&cmd, &st, buf, sizeof(buf));
 	return m;
 }
 	
@@ -383,7 +418,15 @@ int Client::ReportResultToServer(crack_result* result)
 {
 	unsigned char cmd = CMD_WORKITEM_RESULT;
 	int m = Write(cmd, result, sizeof(*result));
-	if(m == ERR_CONNECTIONLOST) connected = 0;
+	if(m == ERR_CONNECTIONLOST)
+	{
+		connected = 0;
+		return m;
+	}
+	
+	short status;
+	char buf[1024];
+	Read(&cmd, &status, buf, sizeof(buf));
 	return m;
 }
 
@@ -402,6 +445,7 @@ int Client::GetWorkItemFromServer(crack_block* item)
 	}
 	
 	int n = Read(&cmd, &status, buffer, sizeof(buffer));
+	CLog::Log(LOG_LEVEL_NOMAL, "Client: Read workitem %d %d\n", cmd, n);
 	
 #if 1	
 	if(cmd == CMD_GET_A_WORKITEM && status == 0)
