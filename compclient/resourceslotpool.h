@@ -1,6 +1,11 @@
-﻿/***************************************************************
-资源池,最后编辑 2014年1月22日
-***************************************************************/
+﻿/* resouceslotplot.h
+ *
+ * global resource plot
+ * Copyright (C) 2014 TRIMPS
+ *
+ * Created By WANG Guofeng at  01/22/2014
+ */
+ 
 #ifndef __RS_POOL__H___
 #define __RS_POOL__H___
 
@@ -80,6 +85,9 @@ public:
 	轮流查询机制
 	***************************************************************/
 	unsigned m_bIsLauncher;
+	
+	//获取CPU和GPU设备数目
+	void GetDevicesNo(int* gpu, int* cpu);
 
 	//Coordinator查询接口(-1表示不限类型)
 	struct _resourceslotpool* CoordinatorQuery(unsigned &u_status, int type = -1);

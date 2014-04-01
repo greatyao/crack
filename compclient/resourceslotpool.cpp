@@ -1,4 +1,13 @@
-﻿#include "resourceslotpool.h"
+﻿/* resouceslotplot.cpp
+ *
+ * global resource plot
+ * Copyright (C) 2014 TRIMPS
+ *
+ * Created By WANG Guofeng at  01/22/2014
+ * Revisited By YAO Wei at 03/17/2014
+ */
+ 
+#include "resourceslotpool.h"
 #include "CLog.h"
 #include "algorithm_types.h"
 #include <CL/cl.h>
@@ -12,6 +21,9 @@
 #include <sys/types.h>
 #include <errno.h>
 #endif
+
+static int cpu_num;
+static int gpu_num;
 
 ResourcePool::ResourcePool()
 {	
@@ -62,6 +74,7 @@ static unsigned int get_num_cpu(void)
 
         fclose(fcpu);
     }
+    cpu_num = proc;
     CLog::Log(LOG_LEVEL_NOMAL, "Detected %d CPUs.\n", proc);
 #ifdef TEST
 	return 1;
@@ -141,8 +154,15 @@ void ResourcePool::Init()
 			}
 		}
 	}
-		    
+	
+	gpu_num = num_gpu;
 	m_bIsLauncher = 0;
+}
+	
+void ResourcePool::GetDevicesNo(int* gpu, int* cpu)
+{
+	if(gpu) *gpu = gpu_num;
+	if(cpu) *cpu = cpu_num;
 }
 	
 void ResourcePool::Lock(void)
