@@ -134,7 +134,7 @@ typedef enum CLIENT_TYPE {
 };
 
 
-struct login_info {
+typedef struct login_info {
 	char m_osinfo[64];		//操作系统信息
 	char m_hostinfo[64];	//机器名
 	char m_ip[16];			//IP地址信息
@@ -144,7 +144,7 @@ struct login_info {
 	int m_cputhreads;		//CPU数目
 	
 	unsigned int m_clientsock;
-};
+}client_login_req;
 
 #define	MAX_WRITE_RETRY			15 // 重试写入文件次数
 #define	MAX_SEND_BUFFER			1024 * 8 // 最大发送数据长度
