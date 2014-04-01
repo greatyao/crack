@@ -166,6 +166,7 @@ void CDlgUploadTask::OnBnClickedButton1()
 	{
 		CString strFile = dlg.GetPathName(); // È«Â·¾¶
 		m_filename = dlg.GetPathName();
+		
 		UpdateData(FALSE);
 
 	}
@@ -175,7 +176,7 @@ void CDlgUploadTask::OnBnClickedButton1()
 void CDlgUploadTask::OnBnClickedOk()
 {
 	// TODO: Add your control notification handler code here
-	OnOK();
+//	OnOK();
 
 	char buf[1024];
 	memset(buf,0,1024);
@@ -220,7 +221,7 @@ void CDlgUploadTask::OnBnClickedOk()
 	sprintf(buf,"%d %d %d %d %s %d %d",newtask.algo,newtask.charset,newtask.type,
 		newtask.special,newtask.filename,newtask.startLength,newtask.endLength);
 	CString tmpStr(buf);
-
+	UpdateData(TRUE);
 
 	AfxMessageBox(tmpStr);
 

@@ -31,7 +31,7 @@ END_MESSAGE_MAP()
 
 
 // CDlgTaskStatus message handlers
-void CDlgClientStatus::GenExampleListData(){
+void CDlgTaskStatus::GenExampleListData(){
 
 	
 	//update the list control
@@ -44,7 +44,7 @@ void CDlgClientStatus::GenExampleListData(){
 	unsigned char os[48];
 	*/
 
-
+/*
 	 LONG lStyle; 
        lStyle = GetWindowLong(m_clientlist.m_hWnd, GWL_STYLE);// 获取当前窗口style 
        lStyle &= ~LVS_TYPEMASK; // 清除显示方式位 
@@ -82,7 +82,7 @@ void CDlgClientStatus::GenExampleListData(){
 	m_clientlist.SetItemText(1,5,_T("Ubuntu"));
 
 
-
+	*/
 }
 
 

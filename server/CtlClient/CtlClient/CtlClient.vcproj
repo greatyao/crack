@@ -211,6 +211,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SocketClient.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -270,6 +274,10 @@
 			</File>
 			<File
 				RelativePath=".\SelectFileDialog.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SocketClient.h"
 				>
 			</File>
 			<File

@@ -11,6 +11,8 @@ public:
 	CDlgTaskStatus(CWnd* pParent = NULL);   // standard constructor
 	virtual ~CDlgTaskStatus();
 
+	void GenExampleListData();
+
 // Dialog Data
 	enum { IDD = IDD_DLG_TASK_STATUS };
 
