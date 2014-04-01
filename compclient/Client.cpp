@@ -340,6 +340,9 @@ int Client::Read(unsigned char *cmd, short* status, void* data, int size)
 		m = totalN;
 	}
 	
+	if(read_timeout(sck, 1) < 0)
+		return ERR_TIMEOUT;
+		
 	int total = 0;
 	int n;
 	do{	
