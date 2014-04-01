@@ -151,7 +151,7 @@ int	CCrackBroker::StartTask(struct task_start_req *pReq){
 			
 		CLog::Log(LOG_LEVEL_WARNING,"Can't find Task With GUID %s\n",pReq->guid);
 		ret =  NOT_FIND_GUID_TASK;
-
+	
 	}else{
 		
 		pCT = iter_task->second;
@@ -531,6 +531,7 @@ int CCrackBroker::GetWIStatus(struct crack_status *pReq){
 
 		CLog::Log(LOG_LEVEL_WARNING,"Can't find Crack Block With GUID %s\n",pReq->guid);
 		ret =  NOT_FIND_GUID_BLOCK;
+		return ret;
 
 
 	}
@@ -564,6 +565,7 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 
 		CLog::Log(LOG_LEVEL_WARNING,"Can't find Crack Block With GUID %s\n",pReq->guid);
 		ret =  NOT_FIND_GUID_BLOCK;
+		return ret;
 	}
 	
 	pCB = iter_block->second;
@@ -589,10 +591,10 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 			pCT =(CCrackTask *)pCB->task;
 		//	m_cracktask_cs.Lock();
 			
-			removeFromQueue((unsigned char *)pCT->guid);
+		//	removeFromQueue((unsigned char *)pCT->guid);
 			
 
-			pCT->updateStatusToFinish(pReq);
+		//	pCT->updateStatusToFinish(pReq);
 
 		//	m_cracktask_cs.Unlock();
 			break;
@@ -680,7 +682,7 @@ int CCrackBroker::removeFromQueue(unsigned char *guid){
 
 	}
 
-	if (iter_queue == m_cracktask_ready_queue.end()){
+	if (iter_queue != m_cracktask_ready_queue.end()){
 			m_cracktask_ready_queue.erase(iter_queue);
 	}
 

@@ -18,6 +18,7 @@ void CCrackBlock::Init(struct crack_block *pCrackBlock){
 	type = pCrackBlock->type;
 	special = pCrackBlock->special;
 
+
 	memset(guid,0,40);
 	memset(john,0,sizeof(struct crack_hash));
 	
