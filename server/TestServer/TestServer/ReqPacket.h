@@ -3,13 +3,15 @@
 #ifndef _REQ_PACKET_H_
 #define _REQ_PACKET_H_
 
-
+/*
 //ĞÄÌøĞÅÏ¢
 struct client_keeplive_req {
 
 	unsigned char m_guid[40];
 	
 };
+
+*/
 
 struct task_start_req {
 

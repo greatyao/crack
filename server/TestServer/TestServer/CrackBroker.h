@@ -42,6 +42,8 @@
 
 #define NOT_FIND_GUID_BLOCK STANDARD_ERR+93
 
+#define TASK_SPLIT_ERR	STANDARD_ERR+92
+
 struct MapLessCompare{
 	
 	bool operator()(const char * str1,const char *str2) const
@@ -68,12 +70,17 @@ public:
 	CCrackBroker(void);
 	~CCrackBroker(void);
 
-	int ClientLogin(client_login_req *pReq);
-	int ClientKeepLive(struct client_keeplive_req *pReq);
+	int ClientLogin(struct client_login_req *pReq);
+	int ClientKeepLive(char *ip);
 
 	//控制节点业务逻辑处理函数
 
+	//并未对任务进行切分
 	int	CreateTask(struct crack_task *pReq,unsigned char *pguid);
+
+	//文件上传成功后，对任务进行切分
+	int SplitTask(char *pguid);
+
 	int	StartTask(struct task_start_req *pReq);
 	
 	int StopTask(struct task_stop_req *pReq);

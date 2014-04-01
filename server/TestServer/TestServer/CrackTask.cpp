@@ -6,8 +6,7 @@
 #include "loadfiles.h"
 #include "CLog.h"
 #include "split.h"
-#include "macros.h"
-#include "macros.h"
+#include "crack_status.h"
 
 CCrackTask::CCrackTask(void)
 {
@@ -31,16 +30,6 @@ unsigned char algo;		//解密算法
 	*/
 int CCrackTask::Init(crack_task *pCrackTask)
 {
-	CCrackBlock *pCb = NULL;
-	csplit split;
-	struct crack_hash *pch = NULL;
-	crack_block *pCrackBlock = NULL;
-	unsigned int splitnum = 0;
-	void *p = NULL;
-	int ret = 0;
-	int mcount = 0;
-	int i = 0;
-
 	algo = pCrackTask->algo;
 	charset = pCrackTask->charset;
 	type = pCrackTask->type;
@@ -50,9 +39,32 @@ int CCrackTask::Init(crack_task *pCrackTask)
 	
 	memset(filename,0,256);
 	memset(guid,0,40);
-
-	memcpy(filename,pCrackTask->filename,256);
 	memcpy(guid,pCrackTask->guid,40);
+
+	m_status = CT_STATUS_READY;   //状态准备运行
+	
+	resetProgress();  //进度信息设置为初始状态
+	memset(m_control_guid,0,40);
+
+	m_priority = CT_PRIORITY_NORMAL;
+
+	return 0;
+}
+
+
+int CCrackTask::SplitTaskFile(char *pguid){
+
+	int ret = 0;
+	CCrackBlock *pCb = NULL;
+	csplit split;
+	struct crack_hash *pch = NULL;
+	crack_block *pCrackBlock = NULL;
+	unsigned int splitnum = 0;
+	void *p = NULL;
+	int mcount = 0;
+	int i = 0;
+
+	memcpy(guid,pguid,40);
 
 	count = 0;
 
@@ -121,16 +133,8 @@ int CCrackTask::Init(crack_task *pCrackTask)
 	//释放资源
 	split.release_splits((char *)pCrackBlock);
 	Free(p);
-	
-	m_status = CT_STATUS_READY;   //状态准备运行
-	
-	m_split_num = splitnum;
-	resetProgress();  //进度信息设置为初始状态
-	memset(m_control_guid,0,40);
+	return ret;
 
-	m_priority = CT_PRIORITY_NORMAL;
-
-	return 0;
 }
 
 

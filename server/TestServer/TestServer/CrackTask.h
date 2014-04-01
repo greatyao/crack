@@ -45,6 +45,8 @@ public:
 
 	//出始化相关内容
 	int Init(crack_task *pCrackTask);
+
+	int SplitTaskFile(char *pguid);
 	
 	int SetStatus(char status);
 

@@ -1,6 +1,6 @@
 #include "CrackBroker.h"
-#include "macros.h"
-#include "macros.h"
+#include "crack_status.h"
+
 #include "CompClient.h"
 
 
@@ -16,7 +16,7 @@ CCrackBroker::~CCrackBroker(void)
 
 
 //处理登录
-int CCrackBroker::ClientLogin(client_login_req *pReq){
+int CCrackBroker::ClientLogin(struct client_login_req *pReq){
 
 	int ret = 0;
 	CClientInfo *pCI = NULL;
@@ -66,7 +66,7 @@ int CCrackBroker::ClientLogin(client_login_req *pReq){
 }
 
 //处理心跳
-int CCrackBroker::ClientKeepLive(struct client_keeplive_req *pReq){
+int CCrackBroker::ClientKeepLive(char *ip){
 	
 	int ret = 0;
 	int i = 0;
@@ -79,7 +79,8 @@ int CCrackBroker::ClientKeepLive(struct client_keeplive_req *pReq){
 	for (i = 0 ;i < m_client_list.size(); i ++){
 
 			pCI= m_client_list[i];
-			if (memcmp(pReq->m_guid,pCI->m_guid,40) == 0){
+			if (memcmp(pCI->m_ip,ip,16) == 0){
+
 				pCI->m_keeplivetime = temptm;
 				break;
 			}
@@ -129,6 +130,36 @@ int	CCrackBroker::CreateTask(struct crack_task *pReq,unsigned char *pguid){
 	return ret;
 
 }
+
+
+//切分任务接口
+int CCrackBroker::SplitTask(char *pguid){
+	
+	int ret = 0;
+	CT_MAP::iterator iter_task;
+	CCrackTask *pCT = NULL;
+		
+	iter_task = m_cracktask_map.find(pguid);
+	if (iter_task == m_cracktask_map.end()){
+		
+		CLog::Log(LOG_LEVEL_WARNING,"Can't find Task With GUID %s\n",pguid);
+		return NOT_FIND_GUID_TASK;
+	}
+
+	pCT = iter_task->second;
+	
+	ret = pCT->SplitTaskFile(pguid);
+	if (ret < 0 ){
+		
+		CLog::Log(LOG_LEVEL_WARNING,"Task GUID %s ,Split Error\n",pguid);
+		return TASK_SPLIT_ERR;
+		
+	}
+
+
+	return ret;
+}
+
 
 //开始新任务
 int	CCrackBroker::StartTask(struct task_start_req *pReq){

@@ -422,14 +422,14 @@ int client_loginnew(void *pclient, unsigned char * pdata, UINT len){
 	control_header cltHeader = INITIALIZE_EMPTY_HEADER(TOKEN_LOGIN);
 	CLog::Log(LOG_LEVEL_WARNING,"Enter into Login\n");
 
-	client_login_req *pC = (client_login_req *)pdata;
+	client_login_req *pC = (struct client_login_req *)pdata;
 	client_login_req myclient;
 
 	getClientIPInfo(pclient,ip,&port);
 
 	if (pclient == NULL){
 		
-		memset(&myclient,0,sizeof(client_login_req));
+		memset(&myclient,0,sizeof(struct client_login_req));
 		memset(buf,0,40);
 		sprintf(buf,"%u",*(SOCKET *)pclient);
 		myclient.m_clientsock = *(SOCKET *)pclient;
@@ -483,31 +483,21 @@ int client_keeplivenew(void *pclient, unsigned char * pdata, UINT len){
 	//send the result data
 	INT nRet = 0;
 	control_header replyHdr = INITIALIZE_EMPTY_HEADER(COMMAND_REPLAY_HEARTBEAT);
-	CLog::Log(LOG_LEVEL_WARNING,"This is a clieng keeplive\n");
-	struct client_keeplive_req *pKeeplive = (struct client_keeplive_req *)pdata;
-	struct client_keeplive_req keeplive;
+	CLog::Log(LOG_LEVEL_WARNING,"This is a client keeplive\n");
+	//struct client_keeplive_req *pKeeplive = (struct client_keeplive_req *)pdata;
+	//struct client_keeplive_req keeplive;
+	char ip[20];
+	int port = 0;
 
 	char buf[40];
 	//GUID guid;
 	//INT guidLen = 0;
 	time_t tmpTime = 0;
 
-	//BYTE bToken = CMD_KEEPLIVE_OK;
-	//guidLen = sizeof(GUID);
-	//CopyMemory(&guid,&pdata[1],guidLen);
-	//CopyMemory(&tmpTime,&pdata[1+guidLen],sizeof(time_t));
-	
-	//处理业务逻辑
-	if (pKeeplive == NULL){
-				
-		memset(buf,0,40);
-		sprintf(buf,"%u",*(SOCKET *)pclient);
-		memcpy(keeplive.m_guid,buf,strlen(buf));
-		pKeeplive = &keeplive;
+	getClientIPInfo(pclient,ip,&port);
 
-	}
-	
-	nRet = g_CrackBroker.ClientKeepLive(pKeeplive);
+		
+	nRet = g_CrackBroker.ClientKeepLive(ip);
 
 
 
@@ -517,7 +507,6 @@ int client_keeplivenew(void *pclient, unsigned char * pdata, UINT len){
 	//生成应答并返回
 	
 	nRet = doSendDataNew(pclient,(unsigned char *)&replyHdr,sizeof(control_header));
-//	nRet = doSendData(pclient, &bToken, 1);
 	if (nRet != 0){
 		CLog::Log(LOG_LEVEL_WARNING,"Client KeepLive Error\n");
 		nRet = -2;
@@ -558,9 +547,9 @@ int cc_task_uploadNew(void *pclient, unsigned char * pdata, UINT len){
 
 	CLog::Log(LOG_LEVEL_WARNING,"task Task status info charset : %d, filename : %s,algo : %d\n",pCrackTask->charset,pCrackTask->filename,pCrackTask->algo);
 
-		
+	new_guid(pCrackTask->guid,sizeof(pCrackTask->guid));
+
 	memset(resBuf,0,MAX_BUF_LEN);
-	new_guid(pCrackTask->guid, sizeof(pCrackTask->guid));
 	//memcpy(task_upload.guid,"9876543210987654321098765432109876543210",40);
 	
 	nRet = g_CrackBroker.CreateTask(pCrackTask,task_upload.guid);
@@ -570,7 +559,7 @@ int cc_task_uploadNew(void *pclient, unsigned char * pdata, UINT len){
 		resLen = 0;
 	}else{
 		
-		CLog::Log(LOG_LEVEL_WARNING,"Upload Task : Create Task OK\n");
+		CLog::Log(LOG_LEVEL_WARNING,"Upload Task : Create Task %s OK\n",task_upload.guid);
 		resLen = sizeof(struct task_upload_res);
 	}
 	
@@ -619,29 +608,17 @@ int cc_task_startnew(void *pclient, unsigned char * pdata, UINT len){
 	control_header reshdr = INITIALIZE_EMPTY_HEADER(CMD_TASK_START);
 	task_start_req *pStartReq = NULL;
 	task_status_res taskres;
-	char c_guid[48];
-
-	//
 
 	memset(resBuf,0,MAX_BUF_LEN);
-	
-	
 	if (len != sizeof(task_start_req)){
-
 		CLog::Log(LOG_LEVEL_WARNING,"Start Task : Data len not task_start_req size Error\n");
 		return -2;
-
 	}
 
 	pStartReq = (task_start_req *)pdata;
-
-	printf("Start Task guid : %s\n",pStartReq->guid);
-
+	CLog::Log(LOG_LEVEL_WARNING,"Start Task guid : %s\n",pStartReq->guid);
 		
-	memset(resBuf,0,MAX_BUF_LEN);
-	
 	memcpy(taskres.guid,pStartReq->guid,strlen((char *)pStartReq->guid));
-	taskres.status = 100;
 
 	//业务处理
 	nRet = g_CrackBroker.StartTask(pStartReq);
@@ -659,7 +636,7 @@ int cc_task_startnew(void *pclient, unsigned char * pdata, UINT len){
 
 	}
 
-taskres.status= nRet;
+	taskres.status= nRet;
 	//产生应答报文，并发送
 	reshdr.dataLen = resLen;
 	reshdr.response = nRet;
@@ -700,12 +677,8 @@ int cc_task_stopnew(void *pclient, unsigned char * pdata, UINT len){
 	control_header reshdr = INITIALIZE_EMPTY_HEADER(CMD_TASK_STOP);
 	struct task_stop_req *pStopReq = NULL;
 	struct task_status_res taskres;
-	char c_guid[48];
-
 	//
-
 	memset(resBuf,0,MAX_BUF_LEN);
-	
 	
 	if (len != sizeof(task_stop_req)){
 
@@ -1356,6 +1329,7 @@ int cc_task_upload_file(void *pclient,unsigned char *pdata,UINT len){
 	}
 	*/
 
+	memset(uploadres.guid,0,sizeof(uploadres.guid));
 	memcpy(uploadres.guid,guid,40);
 	uploadres.f = NULL;
 	uploadres.len = 0;
@@ -1403,10 +1377,10 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 	unsigned int filelen =  0;
 	unsigned int recvLen = 0;
 	unsigned int curlen = 0;
-	unsigned char guid[40];
 	unsigned char filename[128];
 
 
+	memset(&startres,0,sizeof(file_upload_start_res));
 	puploadstartreq = (file_upload_start_req *)pdata;
 
 	filelen = puploadstartreq->len;
@@ -1416,10 +1390,10 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 	sprintf((char *)filename,"%s%s",FILE_DIR,(char *)puploadstartreq->guid);
 
 
-	pfile = fopen((char *)puploadstartreq->guid,"w");
+	pfile = fopen((char *)filename,"w");
 	if (!pfile){
 		
-		CLog::Log(LOG_LEVEL_WARNING,"fopen file %s error \n",guid);
+		CLog::Log(LOG_LEVEL_WARNING,"fopen file %s error \n",filename);
 		return -1;
 
 	}
@@ -1431,6 +1405,7 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 	startres.f = pfile;
 	startres.len = 1024;
 	startres.offset = 0;
+	
 	memcpy(startres.guid,puploadstartreq->guid,40);
 	
 	reshdr.dataLen = sizeof(file_upload_start_res);
@@ -1486,6 +1461,8 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 	
 	reshdr.cmd = CMD_END_UPLOAD;
 	reshdr.dataLen = sizeof(file_upload_end_res);
+	if (ret < 0)
+		reshdr.response = ret;
 
 	memset(resBuf,0,MAX_BUF_LEN);
 
@@ -1503,6 +1480,16 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 		CLog::Log(LOG_LEVEL_WARNING,"file upload End Res OK\n");
 		ret = 0;
 	}
+	
+	if (ret == 0){
+		
+		//通过任务guid 进行查找，并且分任务
+
+
+		
+
+	}
+
 	return ret;
 
 }
