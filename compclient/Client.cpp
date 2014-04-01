@@ -173,10 +173,25 @@ int Client::Connect(const char* ip, unsigned short port)
 	unsigned char cmd = TOKEN_LOGIN;
 	if(linfo.m_osinfo[0] == 0)
 	{
+		FILE* f = fopen("/etc/issue", "r");
+		if(f)
+		{
+			char line[256];
+			if(fgets(line, sizeof(line), f))
+			{
+				char* p = strstr(line, "\\n");
+				if(p) *p = 0;
+				strncpy(linfo.m_osinfo, line, sizeof(linfo.m_osinfo));
+			}
+			fclose(f);
+		}		
+		
 		struct utsname uts;
 		if(uname(&uts) >= 0)
 		{
-			snprintf(linfo.m_osinfo, sizeof(linfo.m_osinfo), "%s %s", uts.sysname, uts.release);
+			if(linfo.m_osinfo[0] == 0)
+			snprintf(linfo.m_osinfo, sizeof(linfo.m_osinfo), "%s %s ", uts.sysname, uts.release);
+			strncat(linfo.m_osinfo, uts.machine, sizeof(linfo.m_osinfo));
 			strncpy(linfo.m_hostinfo, uts.nodename, sizeof(linfo.m_hostinfo));
 		}
 		
