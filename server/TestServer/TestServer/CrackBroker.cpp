@@ -1,6 +1,6 @@
 #include "CrackBroker.h"
 #include "crack_status.h"
-
+#include "macros.h"
 #include "CompClient.h"
 
 
@@ -16,7 +16,7 @@ CCrackBroker::~CCrackBroker(void)
 
 
 //´¦ÀíµÇÂ¼
-int CCrackBroker::ClientLogin(struct client_login_req *pReq){
+int CCrackBroker::ClientLogin(client_login_req *pReq){
 
 	int ret = 0;
 	CClientInfo *pCI = NULL;

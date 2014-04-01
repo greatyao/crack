@@ -7,6 +7,7 @@
 #include "CLog.h"
 #include "split.h"
 #include "crack_status.h"
+#include "macros.h"
 
 CCrackTask::CCrackTask(void)
 {

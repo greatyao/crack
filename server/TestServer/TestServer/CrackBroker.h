@@ -68,7 +68,7 @@ public:
 	CCrackBroker(void);
 	~CCrackBroker(void);
 
-	int ClientLogin(struct client_login_req *pReq);
+	int ClientLogin(client_login_req *pReq);
 	int ClientKeepLive(struct client_keeplive_req *pReq);
 
 	//控制节点业务逻辑处理函数

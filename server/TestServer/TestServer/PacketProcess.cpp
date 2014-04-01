@@ -422,14 +422,14 @@ int client_loginnew(void *pclient, unsigned char * pdata, UINT len){
 	control_header cltHeader = INITIALIZE_EMPTY_HEADER(TOKEN_LOGIN);
 	CLog::Log(LOG_LEVEL_WARNING,"Enter into Login\n");
 
-	client_login_req *pC = (struct client_login_req *)pdata;
+	client_login_req *pC = (client_login_req *)pdata;
 	client_login_req myclient;
 
 	getClientIPInfo(pclient,ip,&port);
 
 	if (pclient == NULL){
 		
-		memset(&myclient,0,sizeof(struct client_login_req));
+		memset(&myclient,0,sizeof(client_login_req));
 		memset(buf,0,40);
 		sprintf(buf,"%u",*(SOCKET *)pclient);
 		myclient.m_clientsock = *(SOCKET *)pclient;
@@ -543,7 +543,6 @@ int cc_task_uploadNew(void *pclient, unsigned char * pdata, UINT len){
 	control_header reshdr = INITIALIZE_EMPTY_HEADER(CMD_TASK_UPLOAD);
 	crack_task *pCrackTask = NULL;
 	task_upload_res task_upload;
-	char c_guid[48];
 
 	memset(resBuf,0,MAX_BUF_LEN);
 	
@@ -561,6 +560,7 @@ int cc_task_uploadNew(void *pclient, unsigned char * pdata, UINT len){
 
 		
 	memset(resBuf,0,MAX_BUF_LEN);
+	new_guid(pCrackTask->guid, sizeof(pCrackTask->guid));
 	//memcpy(task_upload.guid,"9876543210987654321098765432109876543210",40);
 	
 	nRet = g_CrackBroker.CreateTask(pCrackTask,task_upload.guid);
