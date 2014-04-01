@@ -308,6 +308,7 @@ struct crack_block *csplit::split_default(struct crack_task *pct,unsigned &nspli
 		p_crack_block[i].charset = loc_p_ct->charset;//×Ö·û¼¯
 		p_crack_block[i].type   = loc_p_ct->type;
 		p_crack_block[i].special= loc_p_ct->special;
+		p_crack_block[i].hash_idx = 0;
 
 		new_guid(p_crack_block[i].guid, sizeof(p_crack_block[i].guid));
 
@@ -346,6 +347,7 @@ struct crack_block *csplit::split_default(struct crack_task *pct,unsigned &nspli
 				memcpy( p_crack_block[nsplits*i+j].john, loc_p_ct->hashes[i].hash, sizeof(struct crack_hash) );
 
 				new_guid( p_crack_block[nsplits*i+j].guid,  sizeof(p_crack_block[nsplits*i+j].guid));
+				p_crack_block[nsplits*i+j].hash_idx = i;
 			}
 		}		
 	}
@@ -388,6 +390,7 @@ struct crack_block *csplit::split_easy(struct crack_task *pct,unsigned &nsplits)
 		p_crack_block[i].charset = loc_p_ct->charset;//×Ö·û¼¯
 		p_crack_block[i].type   = loc_p_ct->type;
 		p_crack_block[i].special= loc_p_ct->special;
+		p_crack_block[i].hash_idx = 0;
 
 		new_guid( p_crack_block[i].guid, sizeof(p_crack_block[i].guid) );
 		memcpy( p_crack_block[i].john, loc_p_ct->hashes[0].hash, sizeof(struct crack_hash) );
@@ -429,6 +432,7 @@ struct crack_block *csplit::split_easy(struct crack_task *pct,unsigned &nsplits)
 			{
 				memcpy( p_crack_block[nsplits*i+j].john, loc_p_ct->hashes[i].hash, sizeof(struct crack_hash) );
 				new_guid( p_crack_block[nsplits*i+j].guid,  sizeof(p_crack_block[nsplits*i+j].guid));
+				p_crack_block[nsplits*i+j].hash_idx = i;
 			}
 		}		
 	}
@@ -527,6 +531,7 @@ struct crack_block *csplit::split_normal(struct crack_task *pct,unsigned &nsplit
 		p_crack_block[i].charset = loc_p_ct->charset;//×Ö·û¼¯
 		p_crack_block[i].type   = loc_p_ct->type;
 		p_crack_block[i].special= loc_p_ct->special;
+		p_crack_block[i].hash_idx = 0;
 
 		new_guid( p_crack_block[i].guid, sizeof(p_crack_block[i].guid) );
 		memcpy( p_crack_block[i].john, loc_p_ct->hashes[0].hash, sizeof(struct crack_hash) );
@@ -564,6 +569,7 @@ struct crack_block *csplit::split_normal(struct crack_task *pct,unsigned &nsplit
 				memcpy( p_crack_block[nsplits*i+j].john, loc_p_ct->hashes[i].hash, sizeof(struct crack_hash) );
 
 				new_guid( p_crack_block[nsplits*i+j].guid,  sizeof(p_crack_block[nsplits*i+j].guid));
+				p_crack_block[nsplits*i+j].hash_idx = i;
 			}
 		}		
 	}
