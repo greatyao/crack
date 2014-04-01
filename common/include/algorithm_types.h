@@ -98,8 +98,6 @@ struct crack_hash
 	char hash[HASHFILE_MAX_PLAIN_LENGTH+4];
 	char salt[HASHFILE_MAX_SALT_LENGTH];
 	char salt2[HASHFILE_MAX_SALT_LENGTH];
-	char guid[40];
-	struct crack_task* task;
 };
 
 struct crack_task;
@@ -118,7 +116,8 @@ struct crack_block
 	//以下两个是索引
 	unsigned short start2;	//55555-99999:start2=5,end2=9	000-55555:start2=0,end2=5
 	unsigned short end2;
-	struct crack_hash* hash;	//指向所属的hash
+	struct crack_task* task;	//指向所属的task
+	int hash_idx;				//指向所属的hash
 };
 
 //解密任务
