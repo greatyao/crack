@@ -25,7 +25,7 @@ int CCrackBroker::ClientLogin(struct client_login_req *pReq){
 	pCI = new CClientInfo;
 	pCI->m_clientsock = pReq->m_clientsock;
 	pCI->m_type = pReq->m_type;
-	memcpy(pCI->m_guid,pReq->m_guid,40);
+	//memcpy(pCI->m_guid,pReq->m_guid,40);
 	memcpy(pCI->m_ip,pReq->m_ip,20);
 	memcpy(pCI->m_osinfo,pReq->m_osinfo,16);
 	time(&tempTm);
@@ -150,9 +150,7 @@ int	CCrackBroker::StartTask(struct task_start_req *pReq){
 	if (iter_task == m_cracktask_map.end()){
 			
 		CLog::Log(LOG_LEVEL_WARNING,"Can't find Task With GUID %s\n",pReq->guid);
-		ret =  NOT_FIND_GUID_TASK;
-		return ret;
-	
+		return NOT_FIND_GUID_TASK;
 	}else{
 		
 		pCT = iter_task->second;
@@ -190,9 +188,7 @@ int CCrackBroker::StopTask(struct task_stop_req *pReq){
 	if (iter_task == m_cracktask_map.end()){
 			
 		CLog::Log(LOG_LEVEL_WARNING,"Can't find Task With GUID %s\n",pReq->guid);
-		ret =  NOT_FIND_GUID_TASK;
-		return ret;
-
+		return NOT_FIND_GUID_TASK;
 	}else{
 		
 		pCT = iter_task->second;
@@ -227,7 +223,7 @@ int CCrackBroker::DeleteTask(struct task_delete_req *pReq){
 	if (iter_task == m_cracktask_map.end()){
 			
 		CLog::Log(LOG_LEVEL_WARNING,"Can't find Task With GUID %s\n",pReq->guid);
-		ret =  NOT_FIND_GUID_TASK;
+		return NOT_FIND_GUID_TASK;
 
 	}else{
 		
@@ -266,7 +262,7 @@ int CCrackBroker::PauseTask(struct task_pause_req *pReq){
 	if (iter_task == m_cracktask_map.end()){
 			
 		CLog::Log(LOG_LEVEL_WARNING,"Can't find Task With GUID %s\n",pReq->guid);
-		ret =  NOT_FIND_GUID_TASK;
+		return NOT_FIND_GUID_TASK;
 
 	}else{
 		
@@ -307,7 +303,7 @@ int CCrackBroker::GetTaskResult(struct task_result_req *pReq,struct task_status_
 	if (iter_task == m_cracktask_map.end()){
 		
 		CLog::Log(LOG_LEVEL_WARNING,"Can't find Task With GUID %s\n",pReq->guid);
-		ret =  NOT_FIND_GUID_TASK;
+		return NOT_FIND_GUID_TASK;
 	}else{
 
 		

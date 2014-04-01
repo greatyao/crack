@@ -21,6 +21,19 @@
 
 static CCrackBroker g_CrackBroker;
 
+int getClientIPInfo(void *pclient,char *pip,int *port){
+	
+	SOCKET clisock = *(SOCKET *)pclient;
+
+	struct sockaddr_in addr;
+	int addrlen = sizeof(addr);
+	getpeername(clisock, (sockaddr *)&addr, &addrlen);
+
+	strcpy(pip, inet_ntoa(addr.sin_addr));
+	*port = ntohs(addr.sin_port);
+
+	return 0;
+}
 //recv file upload data
 int doRecvDataNoCompress(void *pClient,unsigned char *pdata,unsigned int len){
 	
@@ -404,12 +417,16 @@ int client_loginnew(void *pclient, unsigned char * pdata, UINT len){
 	//send the result data
 	INT nRet = 0;
 	char buf[40];
+	char ip[20];
+	int port = 0;
 	control_header cltHeader = INITIALIZE_EMPTY_HEADER(TOKEN_LOGIN);
 	CLog::Log(LOG_LEVEL_WARNING,"Enter into Login\n");
 
 	client_login_req *pC = (struct client_login_req *)pdata;
 	client_login_req myclient;
-	
+
+	getClientIPInfo(pclient,ip,&port);
+
 	if (pclient == NULL){
 		
 		memset(&myclient,0,sizeof(struct client_login_req));
@@ -418,7 +435,9 @@ int client_loginnew(void *pclient, unsigned char * pdata, UINT len){
 		myclient.m_clientsock = *(SOCKET *)pclient;
 		myclient.m_cputhreads = myclient.m_gputhreads = 0;
 		myclient.m_type = 0;
-		memcpy(myclient.m_guid,buf,strlen(buf));
+//		memcpy(myclient.m_guid,buf,strlen(buf));
+		memcpy(myclient.m_ip,ip,16);
+
 		pC = &myclient;
 		
 	}
@@ -427,12 +446,12 @@ int client_loginnew(void *pclient, unsigned char * pdata, UINT len){
 
 	nRet = g_CrackBroker.ClientLogin(pC);
 	if (nRet < 0){
-		CLog::Log(LOG_LEVEL_WARNING,"Client Login --Error\n");
+		CLog::Log(LOG_LEVEL_WARNING,"Client Login IP %s port %d Error\n",ip,port);
 	
 
 	}else {
 		
-		CLog::Log(LOG_LEVEL_WARNING,"Client Login ---OK\n");
+		CLog::Log(LOG_LEVEL_WARNING,"Client Login IP %s port %d OK\n",ip,port);
 
 	}
 
@@ -445,12 +464,12 @@ int client_loginnew(void *pclient, unsigned char * pdata, UINT len){
     nRet = doSendDataNew(pclient,(unsigned char *)&cltHeader,sizeof(control_header));
 	if (nRet != 0){
 
-		CLog::Log(LOG_LEVEL_WARNING,"Client Login Error\n");
+		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client Login Error\n",ip,port);
 		nRet = -2;
 
 	}else{
 
-		CLog::Log(LOG_LEVEL_WARNING,"Client Login OK\n");
+		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client Login OK\n",ip,port);
 		nRet = 0;
 	}
 
@@ -487,7 +506,8 @@ int client_keeplivenew(void *pclient, unsigned char * pdata, UINT len){
 		pKeeplive = &keeplive;
 
 	}
-	//nRet = g_CrackBroker.ClientKeepLive(pKeeplive);
+	
+	nRet = g_CrackBroker.ClientKeepLive(pKeeplive);
 
 
 

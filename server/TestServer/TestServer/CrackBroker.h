@@ -10,6 +10,7 @@
 #include "CLog.h"
 #include "ReqPacket.h"
 #include "ResPacket.h"
+#include "macros.h"
 
 
 
