@@ -185,7 +185,7 @@ int Client::Connect(const char* ip, unsigned short port)
 	}  
 	{
 		struct sockaddr_in addr;
-		int len2 = sizeof(addr);
+		socklen_t len2 = sizeof(addr);
 		getsockname(sck, (sockaddr *)&addr, &len2);
 		strncpy(linfo.m_ip, inet_ntoa(addr.sin_addr), sizeof(linfo.m_ip));
 		linfo.m_port = ntohs(addr.sin_port);
