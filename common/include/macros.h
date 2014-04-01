@@ -81,7 +81,19 @@ struct file_info
 	unsigned int offset;//文件游标
 };
 
+//登录信息
 
+struct client_login_req {
+	
+	char m_osinfo[32];	//操作系统信息
+	char m_ip[16];		//IP地址信息
+
+	int m_gputhreads;
+	int m_cputhreads;			
+	char m_type;		//客户端类型,control , compute
+	
+	unsigned int m_clientsock;
+};
 
 #define	MAX_WRITE_RETRY			15 // 重试写入文件次数
 #define	MAX_SEND_BUFFER			1024 * 8 // 最大发送数据长度
