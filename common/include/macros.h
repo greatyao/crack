@@ -83,7 +83,7 @@ struct file_info
 
 //登录信息
 
-struct client_login_req {
+struct login_info {
 	
 	char m_osinfo[32];	//操作系统信息
 	char m_ip[16];		//IP地址信息
