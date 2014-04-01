@@ -116,7 +116,11 @@ struct crack_block
 	//以下两个是索引
 	unsigned short start2;	//55555-99999:start2=5,end2=9	000-55555:start2=0,end2=5
 	unsigned short end2;
+#if defined(WIN32) || defined(WIN64)	
 	struct crack_task* task;	//指向所属的task
+#else
+	unsigned int task;
+#endif
 	int hash_idx;				//指向所属的hash
 };
 
