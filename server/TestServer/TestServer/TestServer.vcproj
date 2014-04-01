@@ -196,14 +196,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Broker.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\BrokerManager.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\ClientInfo.cpp"
 				>
 			</File>
@@ -213,10 +205,6 @@
 			</File>
 			<File
 				RelativePath=".\CLog.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\CmdBuf.cpp"
 				>
 			</File>
 			<File
@@ -252,19 +240,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ServerManager.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\ServerResp.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\SimpleTaskSchedule.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\SimpleTaskSegment.cpp"
 				>
 			</File>
 			<File
@@ -296,31 +272,11 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\Task.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\TaskManager.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\TestServer.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\TestServerDlg.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\UnifBuffer.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\WorkItem.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\WorkItemManager.cpp"
 				>
 			</File>
 		</Filter>
@@ -329,14 +285,6 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-			<File
-				RelativePath=".\Broker.h"
-				>
-			</File>
-			<File
-				RelativePath=".\BrokerManager.h"
-				>
-			</File>
 			<File
 				RelativePath=".\ClientInfo.h"
 				>
@@ -355,10 +303,6 @@
 			</File>
 			<File
 				RelativePath=".\CLog.h"
-				>
-			</File>
-			<File
-				RelativePath=".\CmdBuf.h"
 				>
 			</File>
 			<File
@@ -426,14 +370,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\SimpleTaskSchedule.h"
-				>
-			</File>
-			<File
-				RelativePath=".\SimpleTaskSegment.h"
-				>
-			</File>
-			<File
 				RelativePath=".\SockServer.h"
 				>
 			</File>
@@ -446,35 +382,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Task.h"
-				>
-			</File>
-			<File
-				RelativePath=".\TaskManager.h"
-				>
-			</File>
-			<File
-				RelativePath=".\TaskSchedule.h"
-				>
-			</File>
-			<File
-				RelativePath=".\TaskSegment.h"
-				>
-			</File>
-			<File
 				RelativePath=".\TestServer.h"
 				>
 			</File>
 			<File
 				RelativePath=".\TestServerDlg.h"
-				>
-			</File>
-			<File
-				RelativePath=".\WorkItem.h"
-				>
-			</File>
-			<File
-				RelativePath=".\WorkItemManager.h"
 				>
 			</File>
 		</Filter>
