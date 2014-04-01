@@ -53,7 +53,6 @@
 // ##############################################################
 
 // include section
-//#include "stdafx.h"
 #include "bigInt.h"
 
 

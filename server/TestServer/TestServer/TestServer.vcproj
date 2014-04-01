@@ -200,10 +200,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ClientManage.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\CLog.cpp"
 				>
 			</File>
@@ -224,10 +220,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\FileUploadManager.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\common\guidgenerator.cpp"
 				>
 			</File>
@@ -245,10 +237,6 @@
 			</File>
 			<File
 				RelativePath=".\SockServer.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\SplitChars.cpp"
 				>
 			</File>
 			<File
@@ -290,14 +278,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ClientLogin.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ClientManage.h"
-				>
-			</File>
-			<File
 				RelativePath=".\ClientRequest.h"
 				>
 			</File>
@@ -330,18 +310,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\FileInfo.h"
-				>
-			</File>
-			<File
-				RelativePath=".\FileUploadManager.h"
-				>
-			</File>
-			<File
-				RelativePath=".\PacketManager.h"
-				>
-			</File>
-			<File
 				RelativePath=".\PacketProcess.h"
 				>
 			</File>
@@ -359,10 +327,6 @@
 			</File>
 			<File
 				RelativePath=".\server_function.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ServerManager.h"
 				>
 			</File>
 			<File
