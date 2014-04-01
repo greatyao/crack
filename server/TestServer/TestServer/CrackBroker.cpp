@@ -151,6 +151,7 @@ int	CCrackBroker::StartTask(struct task_start_req *pReq){
 			
 		CLog::Log(LOG_LEVEL_WARNING,"Can't find Task With GUID %s\n",pReq->guid);
 		ret =  NOT_FIND_GUID_TASK;
+		return ret;
 	
 	}else{
 		
@@ -190,6 +191,7 @@ int CCrackBroker::StopTask(struct task_stop_req *pReq){
 			
 		CLog::Log(LOG_LEVEL_WARNING,"Can't find Task With GUID %s\n",pReq->guid);
 		ret =  NOT_FIND_GUID_TASK;
+		return ret;
 
 	}else{
 		

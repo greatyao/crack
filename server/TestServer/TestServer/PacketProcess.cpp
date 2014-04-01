@@ -1396,7 +1396,7 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 	sprintf((char *)filename,"%s%s",FILE_DIR,(char *)puploadstartreq->guid);
 
 
-	pfile = fopen((char *)puploadstartreq->guid,"ab");
+	pfile = fopen((char *)puploadstartreq->guid,"w");
 	if (!pfile){
 		
 		CLog::Log(LOG_LEVEL_WARNING,"fopen file %s error \n",guid);
@@ -1604,6 +1604,8 @@ int comp_get_workitem_res_new(void *pclient,unsigned char *pdata,UINT len){
 
 	
 	pres = (struct crack_result *)pdata;
+
+	CLog::Log(LOG_LEVEL_WARNING,"Get A WorkItem Result password : %s,status %d,guid %s\n",pres->password,pres->status,pres->guid);
 
 	ret = g_CrackBroker.GetWIResult(pres);
 	if (ret < 0 ){
