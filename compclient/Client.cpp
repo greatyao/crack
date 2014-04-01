@@ -165,8 +165,8 @@ int Client::Connect(const char* ip, unsigned short port)
 	
 	connected = 2;
 	
-	int flag = fcntl(sck, F_GETFL, 0);
-	fcntl(sck, F_SETFL, flag|O_NONBLOCK);
+	//int flag = fcntl(sck, F_GETFL, 0);
+	//fcntl(sck, F_SETFL, flag|O_NONBLOCK);
 	//struct timeval timeout = {3, 0};
 	//setsockopt(sck, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 	
