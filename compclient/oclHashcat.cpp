@@ -331,19 +331,23 @@ void *oclHashcat::MonitorThread(void *p)
 				}
 			}                   
 		}
-		idx = s.rfind("Speed.GPU.#1...:");
+		idx = s.rfind("Speed.GPU.#*...:");
+		if(idx == string::npos)
+			idx = s.rfind("Speed.GPU.#1...:");
 		if(idx != string::npos){
+			idx += strlen("Speed.GPU.#1...:");
 			idx2 = s.find("\n",idx);
 			if(idx2 != string::npos){
 				string s2 = s.substr(idx,idx2-idx);
-				int ret = sscanf(s2.c_str(),"Speed.GPU.#1...: %lf %s",&tempspeed,&avgspeed);
+				int ret = sscanf(s2.c_str(),"%lf %s",&tempspeed,&avgspeed);
 				if(ret == 2){
 					idx = s.rfind("Progress.......:");
                 			if(idx != string::npos){
-                        			idx2 = s.find("\n",idx);
+                        			idx += strlen("Progress.......:");
+									idx2 = s.find("\n",idx);
 			                        if(idx2 != string::npos){
                         		    		string s2 = s.substr(idx,idx2-idx);
-		                               		int ret = sscanf(s2.c_str(),"Progress.......: %*llu/%*llu (%lf%%)",&percent);
+		                               		int ret = sscanf(s2.c_str(),"%*llu/%*llu (%lf%%)",&percent);
 
                 		                		if(ret == 1){
                                 		        		CLog::Log(LOG_LEVEL_NOMAL,"Progress is %f \n",percent);
