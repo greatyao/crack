@@ -18,6 +18,7 @@
 #include <pthread.h>
 using namespace std;
 
+static const int MAX_PARALLEL_NUM = 6;
 
 enum{
 	RS_STATUS_UNDEFINED,	//未定义
@@ -36,6 +37,9 @@ enum{
 	RS_STATUS_MAX
 };
 
+static const char* status_msg[] = {"undefined", "ready", "recoverd", "unrecovered",
+									"available", "failed", "occupied", "unknown"};
+
 enum{
 	DEVICE_CPU,  //CPU Worker
 	DEVICE_GPU,  //GPU Worker
@@ -44,7 +48,7 @@ enum{
 
 struct crack_block;
 
-struct _resourceslotpool
+typedef struct _resourceslotpool
 {
 	char		    m_guid[40];				//解密单元工作者编号
 	unsigned short	m_worker_type;			//工作者类型，CPU,GPU,FPGA
@@ -57,7 +61,7 @@ struct _resourceslotpool
 	char		    m_password[32];			//如果解密成功，这里保存密码明文
 	crack_block*	m_item;					//解密的workitem，需要动态分配
 	unsigned short  m_shared;				//是否与其他device的共享
-};
+}resourceslot;
 
 class ResourcePool
 {
@@ -92,10 +96,15 @@ public:
 	//Coordinator查询接口(-1表示不限类型)
 	struct _resourceslotpool* CoordinatorQuery(unsigned &u_status, int type = -1);
 	
+	//获取多个资源（注意所有的资源状态必须一致）
+	int CoordinatorQuery(resourceslot* plots[], int n, int type = -1);
+	
 	//Launcher查询接口
 	struct _resourceslotpool* LauncherQuery(unsigned &u_status);
+	int LauncherQuery(resourceslot* plots[], int n);
 	
 	struct _resourceslotpool* QueryByGuid(const char* guid);
+	int QueryByGuid(resourceslot* plots[], int n, const char* guid);
 		
 	/***************************************************************
 	处理接口
@@ -105,6 +114,12 @@ public:
 	void SetToFailed(struct _resourceslotpool*);
 	void SetToAvailable(struct _resourceslotpool*, crack_block* item);
 	void SetToRecover(struct _resourceslotpool*, bool cracked, const char* passwd);
+	
+	void SetToReady(resourceslot* plots[], int n);
+	void SetToOccupied(resourceslot* plots[], int n);
+	void SetToFailed(resourceslot* plots[], int n);
+	void SetToAvailable(resourceslot* plots[], int n, crack_block* item);
+	void SetToRecover(resourceslot* plots[], int n, bool cracked, const char* passwd);
 	
 	//可以增加其他处理函数。
 };

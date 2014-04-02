@@ -30,9 +30,12 @@ clauncher::~clauncher()
 
 int clauncher::ReportDone(char* guid, bool cracked, const char* passwd)
 {
-	struct _resourceslotpool *prsp;
-	prsp = ResourcePool::Get().QueryByGuid(guid);
-	if(!prsp)	return -1;
+	//struct _resourceslotpool *prsp;
+	//prsp = ResourcePool::Get().QueryByGuid(guid);
+	//if(!prsp)	return -1;
+	struct _resourceslotpool* rs[MAX_PARALLEL_NUM];
+	int k = ResourcePool::Get().QueryByGuid(rs, MAX_PARALLEL_NUM, guid);
+	if(k == 0)	return -1;
 	
 	ResourcePool::Get().Lock();
 	
@@ -41,7 +44,8 @@ int clauncher::ReportDone(char* guid, bool cracked, const char* passwd)
 	else
 		CLog::Log(LOG_LEVEL_ERROR, "clauncher: Crack non password [guid=%s]\n", guid);
 	
-	ResourcePool::Get().SetToRecover(prsp, cracked, passwd);
+	//ResourcePool::Get().SetToRecover(prsp, cracked, passwd);
+	ResourcePool::Get().SetToRecover(rs, k, cracked, passwd);
 	
 	ResourcePool::Get().UnLock();
 	
@@ -66,9 +70,9 @@ int clauncher::ReportStatus(char* guid, int progress, float speed, unsigned int 
 void *clauncher::Thread(void*par)//扫描线程
 {
 	clauncher *p = (clauncher*)par;
-	struct _resourceslotpool *prsp;
 	unsigned uStatus = 0;
 	ResourcePool& pool = ResourcePool::Get();
+	struct _resourceslotpool* rs[MAX_PARALLEL_NUM];
 
 	while(1)
 	{
@@ -76,8 +80,13 @@ void *clauncher::Thread(void*par)//扫描线程
 		
 		//do
 		pool.Lock();
-		prsp = pool.LauncherQuery(uStatus);
-		if(!uStatus)	goto next;
+		//prsp = pool.LauncherQuery(uStatus);
+		//if(!uStatus)	goto next;
+		
+		int k = pool.LauncherQuery(rs, MAX_PARALLEL_NUM);
+		if(k == 0) goto next;
+		uStatus = rs[0]->m_rs_status;
+		CLog::Log(LOG_LEVEL_NOMAL, "clauncher: LauncherQuery %d %s\n", k, status_msg[uStatus]);
 		
 		//处理
 		switch(uStatus)
@@ -85,26 +94,23 @@ void *clauncher::Thread(void*par)//扫描线程
 			case RS_STATUS_AVAILABLE:
 				{
 					//提交给解密插件执行，执行完毕设置执行结果
-					crack_block* block = prsp->m_item;
-					bool lauched = CrackManager::Get().StartCrack(block, block->guid, prsp->m_worker_type == DEVICE_GPU, prsp->m_device) == 0;
+					crack_block* block = rs[0]->m_item;
+					bool lauched = CrackManager::Get().StartCrack(block, block->guid, rs[0]->m_worker_type == DEVICE_GPU, rs[0]->m_device) == 0;
 					
 					crack_result result;
-					strcpy(result.guid, prsp->m_guid);
+					strcpy(result.guid, rs[0]->m_guid);
 					result.status = lauched ? WORK_ITEM_WORKING : WORK_ITEM_UNLOCK;
 					Client::Get().ReportResultToServer(&result);
-			
-					if(!lauched){
-						pool.SetToFailed(prsp);
-					} else{
-						pool.SetToOccupied(prsp);
-					}
+					
+					if(!lauched)	pool.SetToFailed(rs, k);
+					else			pool.SetToOccupied(rs, k);
 				}
 				break;
 			case RS_STATUS_FAILED:
 				{	
 					//重新初始化资源池，并释放资源池
-					CLog::Log(LOG_LEVEL_NOMAL,"clauncher: Find failed task [guid=%s]\n", prsp->m_guid);
-					pool.SetToReady(prsp);
+					CLog::Log(LOG_LEVEL_NOMAL,"clauncher: Find failed task [guid=%s]\n", rs[0]->m_guid);
+					pool.SetToReady(rs, k);
 				}
 				break;
 	

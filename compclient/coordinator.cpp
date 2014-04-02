@@ -31,23 +31,27 @@ ccoordinator::~ccoordinator()
 void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 {
 	ccoordinator *p = (ccoordinator*)par;
-	struct _resourceslotpool *prsp;
 	unsigned status = 0;
 	int ret;
 	crack_block item;
 	ResourcePool& pool = ResourcePool::Get();
 	int crack_device = CrackManager::Get().UsingCPU() ? -1 : DEVICE_GPU;
-	
+	struct _resourceslotpool* rs[MAX_PARALLEL_NUM];
+		
 	while(1)
 	{
 		if(p->m_bStop) break;
 			
 		//从资源池获取可用的计算单元
 		pool.Lock();
-		prsp = pool.CoordinatorQuery(status, crack_device);
-
-		if(!status)
-			goto next;
+		//prsp = pool.CoordinatorQuery(status, crack_device);
+		//if(!status)
+		//	goto next;
+		
+		int k = pool.CoordinatorQuery(rs, MAX_PARALLEL_NUM, crack_device);
+		if(k == 0) goto next;
+		status = rs[0]->m_rs_status;
+		CLog::Log(LOG_LEVEL_NOMAL, "ccoordinator: CoordinatorQuery %d %s\n", k, status_msg[status]);
 		
 		//处理
 		if(status == RS_STATUS_READY)
@@ -59,23 +63,23 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 		
 			//从服务器申请任务，并且将资源状态设置为RS_STATUS_AVAILABLE
 			CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator: Lock one compute unit\n");
-			pool.SetToAvailable(prsp, &item);
+			pool.SetToAvailable(rs, k, &item);
 		}
 		else if(status == RS_STATUS_RECOVERED || status == RS_STATUS_UNRECOVERED)
 		{	
 			//提交结果到服务器，并释放资源池
-			CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator: Submit result [guid=%s]\n", prsp->m_guid);
+			CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator: Submit result [guid=%s]\n", rs[0]->m_guid);
 			crack_result result;
-			strcpy(result.guid, prsp->m_guid);
-			if(prsp->m_is_recovered){
+			strcpy(result.guid, rs[0]->m_guid);
+			if(rs[0]->m_is_recovered){
 				result.status = WORK_ITEM_CRACKED;
-				strncpy(result.password, prsp->m_password, sizeof(result.password));
+				strncpy(result.password, rs[0]->m_password, sizeof(result.password));
 			} else{
 				result.status = WORK_ITEM_UNCRACKED;
 			}
 			//TODO:需要考虑如果服务器宕机，需要将解密结果持久化:-)
 			Client::Get().ReportResultToServer(&result);
-			pool.SetToReady(prsp);
+			pool.SetToReady(rs, k);
 		}
 		
 next:	

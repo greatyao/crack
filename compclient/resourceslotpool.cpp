@@ -102,7 +102,7 @@ void ResourcePool::Init()
 		struct _resourceslotpool *p = (_resourceslotpool *)malloc(sizeof(*p));
 		memset(p, 0, sizeof(*p));
 		p->m_worker_type = DEVICE_CPU;
-		p->m_device = i;
+		p->m_device = 0xff00 | i;
 		p->m_rs_status = RS_STATUS_READY;
 		m_rs_pool.push_back(p);
 	}
@@ -174,6 +174,46 @@ void ResourcePool::UnLock(void)
 	pthread_mutex_unlock(&mutex);
 }
 
+int ResourcePool::CoordinatorQuery(resourceslot* plots[], int n, int type)
+{
+	m_base_coordinator%=m_rs_pool.size();
+	int i = 0, j = m_base_coordinator;
+	unsigned short platformId = 0xff;
+	unsigned short status0;
+	
+	//char text[2048] = {0};
+	//for(int i = 0; i < m_rs_pool.size(); i++)
+	//	sprintf(text, "%s (%04x,%d)", text, m_rs_pool[i]->m_device, m_rs_pool[i]->m_rs_status);
+	//CLog::Log(LOG_LEVEL_NOMAL,"resources %s\n", text);
+	
+	do{
+		resourceslot* p = m_rs_pool[j];
+		unsigned short status = p->m_rs_status;
+			
+		if((type == -1 || p->m_worker_type == type) && 
+			status>=RS_STATUS_READY && status<=RS_STATUS_UNRECOVERED) 
+		{
+			if(i == 0)
+			{
+				platformId = (p->m_device) >> 8;
+				status0 = status;
+				plots[i++] = p;
+			}
+			else if(status0 == status && platformId == ((p->m_device) >> 8))
+			{
+				plots[i++] = p;
+			}	
+			if(i == n) break;
+		}
+		
+		j = (j+1) % m_rs_pool.size();
+	}while(j != m_base_coordinator);
+	
+	m_base_coordinator = (m_base_coordinator+1)% m_rs_pool.size();
+
+	return i;
+}
+
 struct _resourceslotpool* ResourcePool::CoordinatorQuery(unsigned &u_status, int type)
 {
 	struct _resourceslotpool* p_rsp = 0;
@@ -199,6 +239,38 @@ struct _resourceslotpool* ResourcePool::CoordinatorQuery(unsigned &u_status, int
 		m_bIsLauncher = 1;
 	}
 	return p_rsp;
+}
+
+int ResourcePool::LauncherQuery(resourceslot* plots[], int n)
+{
+	m_base_coordinator%=m_rs_pool.size();
+	int i = 0, j = m_base_coordinator;
+	unsigned short status0;
+	unsigned short platformId = 0xff;
+	do{
+		resourceslot* p = m_rs_pool[j];
+		unsigned short status = p->m_rs_status;
+		if( (status==RS_STATUS_AVAILABLE)||(status==RS_STATUS_FAILED) )
+		{
+			if(i == 0)
+			{
+				platformId = (p->m_device) >> 8;
+				status0 = status;
+				plots[i++] = p;
+			}
+			else if(status0 == status && platformId == ((p->m_device) >> 8))
+			{
+				plots[i++] = p;
+			}	
+			if(i == n) break;
+		}
+		
+		j = (j+1) % m_rs_pool.size();
+	}while(j != m_base_coordinator);
+	
+	m_base_coordinator = (m_base_coordinator+1)% m_rs_pool.size();
+
+	return i;
 }
 
 struct _resourceslotpool* ResourcePool::LauncherQuery(unsigned &u_status)
@@ -240,6 +312,21 @@ struct _resourceslotpool* ResourcePool::QueryByGuid(const char* guid)
 }
 
 	
+int ResourcePool::QueryByGuid(resourceslot* plots[], int n, const char* guid)
+{
+	int j = 0;
+	for(int i = 0; i<m_rs_pool.size(); i++)
+	{
+		struct _resourceslotpool* p = m_rs_pool[i];
+		if(strcmp(guid, p->m_guid) == 0)
+		{
+			plots[j++] = p;
+		}
+	}
+	
+	return j;
+}
+
 void ResourcePool::SetToReady(struct _resourceslotpool*p)
 {
 	p->m_rs_status = RS_STATUS_READY;
@@ -275,4 +362,34 @@ void ResourcePool::SetToRecover(struct _resourceslotpool* p, bool cracked, const
 	p->m_is_recovered = cracked;
 	if(cracked)
 		strncpy(p->m_password, passwd, sizeof(p->m_password));
+}
+
+void ResourcePool::SetToReady(resourceslot* plots[], int n)
+{
+	for(int i = 0; i < n; i++)
+		SetToReady(plots[i]);
+}
+
+void ResourcePool::SetToOccupied(resourceslot* plots[], int n)
+{
+	for(int i = 0; i < n; i++)
+		SetToOccupied(plots[i]);
+}
+
+void ResourcePool::SetToFailed(resourceslot* plots[], int n)
+{
+	for(int i = 0; i < n; i++)
+		SetToFailed(plots[i]);
+}
+
+void ResourcePool::SetToAvailable(resourceslot* plots[], int n, crack_block* item)
+{
+	for(int i = 0; i < n; i++)
+		SetToAvailable(plots[i], item);
+}
+
+void ResourcePool::SetToRecover(resourceslot* plots[], int n, bool cracked, const char* passwd)
+{
+	for(int i = 0; i < n; i++)
+		SetToRecover(plots[i], cracked, passwd);
 }
