@@ -98,6 +98,12 @@ oclHashcat::~oclHashcat(void)
 {
 }
 
+
+int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* deviceIds, int ndevices)
+{
+	return 0;
+}
+
 int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short deviceId)
 {
 	unsigned short platformId = deviceId >> 8;

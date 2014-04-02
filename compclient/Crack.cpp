@@ -75,6 +75,27 @@ int Crack::StartCrack(const crack_block* item, const char* guid, bool gpu, unsig
 	return 0;
 }
 
+int Crack::StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short deviceIds[], int ndevices)
+{
+	struct hash_support_plugins* plugin = locate_by_algorithm(item->algo);
+	if(plugin){
+		struct crack_hash hash;
+		if(plugin->special() == 0)
+		{
+			if(plugin->parse((char*)item->john, NULL, &hash) != 0)
+			{
+				CLog::Log(LOG_LEVEL_WARNING, "check: Invalid hash format %s\n", item->john);
+				return ERR_INVALID_PARAM;
+			}
+		}
+	}
+
+	int pid = this->Launcher(item, gpu, deviceIds, ndevices);
+	if(pid <= 0) return ERR_LAUCH_TASK;
+
+	return 0;
+}
+
 int Crack::Kill(const char* guid)
 {
 	std::map<std::string, lauch_param>::iterator it = running.find(guid);

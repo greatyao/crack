@@ -57,6 +57,7 @@ protected:
 
 public:
 	int StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short deviceId);
+	int StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short deviceIds[], int ndevices);
 	int StopCrack(const char* guid);
 	
 	//注册回调函数
@@ -74,6 +75,7 @@ public:
 	
 	//启动
 	virtual int Launcher(const crack_block* item, bool gpu, unsigned short deviceId) = 0;
+	virtual int Launcher(const crack_block* item, bool gpu, unsigned short* deviceIds, int ndevices) = 0;
 };
 
 #endif

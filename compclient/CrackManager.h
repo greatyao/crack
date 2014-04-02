@@ -22,6 +22,7 @@ public:
 	
 	//解密接口
 	int StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short deviceId);
+	int StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short* deviceIds, int ndevices);
 	int StopCrack(const char* guid);
 	
 	//获取解密文件名路径

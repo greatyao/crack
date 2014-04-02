@@ -188,6 +188,20 @@ int CrackManager::StartCrack(const crack_block* item, const char* guid, bool gpu
 	return tools[toolPriority]->StartCrack(item, guid, gpu, deviceId);
 }
 
+int CrackManager::StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short* deviceIds, int ndevices)
+{
+	if(!tools || !tools[toolPriority])
+		return ERR_NOENTRY;
+	
+	char file[512];
+	GetFilename(item->guid, file, sizeof(file));
+	
+	if(item->special !=0 && access(file, 0) != 0)
+		Client::Get().DownloadFile(item->guid, filedb_path.c_str());
+		
+	return tools[toolPriority]->StartCrack(item, guid, gpu, deviceIds, ndevices);
+}
+
 int CrackManager::StopCrack(const char* guid)
 {
 	if(!tools || !tools[toolPriority])

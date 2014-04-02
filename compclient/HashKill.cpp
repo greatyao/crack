@@ -101,6 +101,87 @@ HashKill::~HashKill(void)
 {
 }
 
+int HashKill::Launcher(const crack_block* item, bool gpu, unsigned short* deviceIds, int ndevices)
+{
+	unsigned char algo = item->algo;
+	unsigned char charset = item->charset;
+	unsigned short start = item->start;
+	unsigned short end = item->end;
+	const char* hash = item->john;
+	const char* fmt;
+	int i;
+
+	for(i = 0; i < SUPPORT_HASH_NUM; i++)
+	{
+		if(algo == all_support_hashes[i].algo)
+		{
+			fmt = all_support_hashes[i].params;
+			break;
+		}
+	}
+	if(i == SUPPORT_HASH_NUM)
+	{
+		//未找到指定解密类型
+		return ERR_NO_SUPPORT_ALGO;
+	}
+
+	if(charset < charset_num || charset > charset_ascii)
+	{
+		//不支持自定义类型
+		return ERR_NO_SUPPORT_CHARSET;
+	}
+	
+	if(ndevices < 1 || ndevices > 16)
+	{
+		return ERR_INVALID_PARAM;
+	}
+	
+	unsigned short platformId = deviceIds[0] >> 8;
+	unsigned short ids[16] = {0};
+	for(i = 0; i < ndevices; i++)
+		ids[i] = deviceIds[i] & 0xff;
+
+	char cmd[4096];
+	char others[128];
+	if(!gpu)
+		sprintf(others, "-c");
+	else if(ndevices == 1)
+		sprintf(others, "-t %d", platformId);
+	else 
+	{
+		sprintf(others, "-t %d -d ", platformId);
+		for(i = 0; i < ndevices-1; i++)
+			sprintf(others, "%s%d,", others, ids[i]);
+		sprintf(others, "%s%d", others, ids[i]);
+	}
+
+	string john = item->john;
+	if(item->algo == algo_mscash)
+	{
+		int id = john.find(":");
+		if(id != string::npos)
+			john = john.substr(id+1, john.length()-id-1) + ":" + john.substr(0, id);
+	}
+	else if(item->algo == algo_mediawiki)
+	{
+		int id = john.find(":");
+		if(id != string::npos)
+			john = string("B:") + john.substr(id+1, john.length()-id-1) + ":" + john.substr(0, id);
+	}
+	
+	sprintf(cmd, fmt, start, end, charsets[charset], others, john.c_str());
+	
+	int pid = this->Exec(item->guid, path, cmd, MonitorThread, true, true, false);
+	
+	if(pid > 0){
+		CLog::Log(LOG_LEVEL_NOTICE, "hashkill: Laucher OK [guid=%s, pid=%d]\n", item->guid, pid);
+	}else{
+		CLog::Log(LOG_LEVEL_ERROR, "hashkill: Laucher failed [guid=%s]\n", item->guid);
+	}
+
+	return pid;	
+}
+
 int HashKill::Launcher(const crack_block* item, bool gpu, unsigned short deviceId)
 {
 	unsigned short platformId = deviceId >> 8;
