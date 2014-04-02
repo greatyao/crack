@@ -125,7 +125,8 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short devic
 
 	if(!gpu)
 		return ERR_INVALID_PARAM;
-		
+	//if(algo!= algo_md5)
+	//	return ERR_INVALID_PARAM;		
 	switch(type){
 	case bruteforce:
 		for(i = 0; i < SUPPORT_HASH_NUM; i++)
@@ -153,7 +154,7 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short devic
 		a.algo = algo;
 		memcpy(a.hash,item->john,sizeof(item->john));
 		if(algo==algo_mssql_2005||algo==algo_mssql_2012)
-        {
+        	{
 			int i=0;
 			char c;
 			while(a.hash[i])
@@ -190,17 +191,13 @@ static float GetSpeed(const char* speed)
 	int n = strlen(speed);
 	char s[64];
 	strcpy(s, speed);
-	
-	char f = s[n-1];
+	char f = s[n-4];
 	if(f == 'M'){
-		s[n-1] = 0;
-		return (float)atoi(s)*1000*1000;
+		return 1000*1000;
 	} else if(f == 'k'){
-		s[n-1] = 0;
-		return atoi(s)*1000;
-	}	
-	
-	return atoi(speed);
+		return 1000;
+	}		
+	return 1;
 }
 
 void *oclHashcat::MonitorThread(void *p)
@@ -211,14 +208,14 @@ void *oclHashcat::MonitorThread(void *p)
 	memcpy(guid, param->guid, sizeof(guid));
 	free(param);
 	time_t t0 = time(NULL), t1, t2 = t0;
-    bool cracked = false;	
+  	bool cracked = false;	
 	char buffer[2048] = {0};
 	int n;
 	string s,s_result,s_hash_with_comma;
 	unsigned char algo;
 	int idx, idx2,idx3;
-	int progress, ncount;
-	char avgspeed[128];	
+	double percent=0.0,tempspeed=0.0;
+	char avgspeed[128]={0};	
 	char text[128]={0};
 	map<string,struct maphashtarget>::iterator iter;
 	iter = ocl_hashcat->MapTargetHash.find(guid);
@@ -229,6 +226,7 @@ void *oclHashcat::MonitorThread(void *p)
 	while(1)
 	{
 		n = ocl_hashcat->ReadFromLancher(guid, buffer, sizeof(buffer)-1);
+		//CLog::Log(LOG_LEVEL_NOMAL,"read[%d]\n", n);
 		t1 = time(NULL);
 		if(n == ERR_CHILDEXIT) {
 			CLog::Log(LOG_LEVEL_ERROR,"%s: Detected child exit\n",__FUNCTION__);
@@ -239,8 +237,7 @@ void *oclHashcat::MonitorThread(void *p)
 			continue;
 		}
 		buffer[n] = 0;
-		if(n!=0)
-			CLog::Log(LOG_LEVEL_NOMAL,"read[%d] %s\n", n, buffer);
+		//CLog::Log(LOG_LEVEL_NOMAL,"read[%d]\n", n);
 		s = buffer;
 		
 		if(algo==algo_mssql_2000)
@@ -260,37 +257,60 @@ void *oclHashcat::MonitorThread(void *p)
 				}
 			}                   
 		}
-		idx = s.rfind("Status.........: Exhausted");
+		idx = s.rfind("Speed.GPU.#1...:");
 		if(idx != string::npos){
-			CLog::Log(LOG_LEVEL_ERROR,"Exhausted Cracking\n");
-			cracked = false;
-		}	
+			idx2 = s.find("\n",idx);
+			if(idx2 != string::npos){
+				string s2 = s.substr(idx,idx2-idx);
+				int ret = sscanf(s2.c_str(),"Speed.GPU.#1...: %lf %s",&tempspeed,&avgspeed);
+				if(ret == 2){
+					idx = s.rfind("Progress.......:");
+                			if(idx != string::npos){
+                        			idx2 = s.find("\n",idx);
+			                        if(idx2 != string::npos){
+                        		    		string s2 = s.substr(idx,idx2-idx);
+		                               		int ret = sscanf(s2.c_str(),"Progress.......: %*llu/%*llu (%lf%%)",&percent);
+
+                		                		if(ret == 1){
+                                		        		CLog::Log(LOG_LEVEL_NOMAL,"Progress is %f \n",percent);
+									unsigned int ct = t1-t0;
+									unsigned rt = (percent==0.0f)?0xFFFFFFFF : (unsigned)(100.0/percent*ct)-ct;
+                                			       		if(ocl_hashcat->statusFunc)
+                                               					 ocl_hashcat->statusFunc(guid, percent, tempspeed*GetSpeed(avgspeed), rt);
+               //                        CLog::Log(LOG_LEVEL_NOMAL,"Progress updated!!!!!!!!!!!1 \n");
+                                				}
+                        			}
+                			}
+				}
+			}
+		}
 confirm:
 		idx = s.rfind("Status.........: Cracked");//¿¿¿¿
         if(idx != string::npos){
      		CLog::Log(LOG_LEVEL_ERROR,"%s: Confirming Cracked successfully\n", guid);
 			cracked = true;
-			break;
+			//break;
 		}
 	
 write:	
 		if(t1 - t2 >= 2)
 		{
 			t2 = t1;
-			/*
-			n = ocl_hashcat->WriteToLancher(guid, "\n", 1);
-			if(n == ERR_NO_THISTASK || n == 0)
+			
+			n = ocl_hashcat->WriteToLancher(guid, "s", 1);
+			if(n == ERR_CHILDEXIT)
 			{
 				CLog::Log(LOG_LEVEL_NOMAL,"%s: Detected child exit2\n", __FUNCTION__);
 				break;
 			}
-			*/
+			
 		}
 	}
 	
 	if(ocl_hashcat->doneFunc)
 		ocl_hashcat->doneFunc(guid,cracked,s_result.c_str());
 	iter = ocl_hashcat->MapTargetHash.find(guid);	
-	ocl_hashcat->MapTargetHash.erase(iter);//TODO:ADD LOCK 
+	printf("++++++++++++++++++++++++++++++++++++++\n");
+	//ocl_hashcat->MapTargetHash.erase(iter);//TODO:ADD LOCK 
 	return NULL;
 }
