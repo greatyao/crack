@@ -8,7 +8,7 @@ int isAlphaDotSlash(char *hashline);
 int isbase64(char *hashline);
 int isStartsWith(char *hashline, char *str);
 int isEndsWith(char *hashline, char *str);
-int isContains(char *hashline, char *str);
+size_t countSpecChar(char *hashline, char c);
 int isupperhex(char *hashline);
 std::vector<char*> split(char *hashline, char *str);
 

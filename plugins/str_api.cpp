@@ -85,13 +85,10 @@ int isEndsWith(char *hashline, char *str)
 		return 0;
 }
 
-int isContains(char *hashline, char *str)
+size_t countSpecChar(char *hashline, char c)
 {
-	std::string line = hashline;
-	if(line.find(str)!=std::string::npos)
-		return 1;
-	else
-		return 0;
+	std::string s = hashline;
+	return std::count(s.begin(), s.end(), c);
 }
 
 int isupperhex(char *hashline)

@@ -193,6 +193,13 @@ int nsldaps_is_special();
 int nsldaps_check_valid(struct crack_hash* hash);
 int nsldaps_recovery(const struct crack_hash* hash, char* line, int size);
 
+//
+int django256_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
+int django256_is_special();
+int django256_check_valid(struct crack_hash* hash);
+int django256_recovery(const struct crack_hash* hash, char* line, int size);
+
+
 //一些常用函数
 //char* strupr(char* ioString);//*******************************mike
 char* strlow(char* ioString);

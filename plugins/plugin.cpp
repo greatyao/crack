@@ -34,6 +34,7 @@ struct hash_support_plugins all_plugins[] =
 	{algo_sha512unix, &sha512unix_parse_hash, &sha512unix_is_special, &sha512unix_check_valid,&sha512unix_recovery},
 	{algo_nsldap, &nsldap_parse_hash, &nsldap_is_special, &nsldap_check_valid,&nsldap_recovery},
 	{algo_nsldaps, &nsldaps_parse_hash, &nsldaps_is_special, &nsldaps_check_valid,&nsldaps_recovery},
+	{algo_django256, &django256_parse_hash, &django256_is_special, &django256_check_valid,&django256_recovery},
 
 	//请在这里相应的添加各种插件
 	{0, NULL, NULL, NULL}
