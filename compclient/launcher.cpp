@@ -73,6 +73,7 @@ void *clauncher::Thread(void*par)//扫描线程
 	unsigned uStatus = 0;
 	ResourcePool& pool = ResourcePool::Get();
 	struct _resourceslotpool* rs[MAX_PARALLEL_NUM];
+	unsigned short deviceIds[MAX_PARALLEL_NUM];
 
 	while(1)
 	{
@@ -95,7 +96,11 @@ void *clauncher::Thread(void*par)//扫描线程
 				{
 					//提交给解密插件执行，执行完毕设置执行结果
 					crack_block* block = rs[0]->m_item;
-					bool lauched = CrackManager::Get().StartCrack(block, block->guid, rs[0]->m_worker_type == DEVICE_GPU, rs[0]->m_device) == 0;
+					bool gpu = rs[0]->m_worker_type == DEVICE_GPU;
+					for(int i = 0; i < k; i++)
+						deviceIds[i] = rs[i]->m_device;
+					//bool lauched = CrackManager::Get().StartCrack(block, block->guid, gpu, rs[0]->m_device) == 0;
+					bool lauched = CrackManager::Get().StartCrack(block, block->guid, gpu, deviceIds, k) == 0;
 					
 					crack_result result;
 					strcpy(result.guid, rs[0]->m_guid);

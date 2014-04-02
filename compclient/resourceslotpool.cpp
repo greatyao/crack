@@ -76,7 +76,7 @@ static unsigned int get_num_cpu(void)
     }
     cpu_num = proc;
     CLog::Log(LOG_LEVEL_NOMAL, "Detected %d CPUs.\n", proc);
-#ifdef TEST
+#ifndef TEST
 	return 1;
 #else
     return proc;
