@@ -185,6 +185,9 @@ int CrackManager::StartCrack(const crack_block* item, const char* guid, bool gpu
 	if(item->special !=0 && access(file, 0) != 0)
 		Client::Get().DownloadFile(item->guid, filedb_path.c_str());
 		
+	if(tools[toolPriority]->SupportMultiTasks() == 0)
+		return ERR_LAUCH_TASK;
+		
 	return tools[toolPriority]->StartCrack(item, guid, gpu, deviceId);
 }
 
@@ -198,7 +201,10 @@ int CrackManager::StartCrack(const crack_block* item, const char* guid, bool gpu
 	
 	if(item->special !=0 && access(file, 0) != 0)
 		Client::Get().DownloadFile(item->guid, filedb_path.c_str());
-		
+	
+	if(tools[toolPriority]->SupportMultiTasks() == 0)
+		return ERR_LAUCH_TASK;
+	
 	return tools[toolPriority]->StartCrack(item, guid, gpu, deviceIds, ndevices);
 }
 
