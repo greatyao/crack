@@ -265,10 +265,10 @@ static float GetSpeed(const char* speed)
 	int n = strlen(speed);
 	char s[64];
 	strcpy(s, speed);
-	char f = s[n-4];
+	char f = s[0];
 	if(f == 'M'){
 		return 1000*1000;
-	} else if(f == 'k'){
+	} else if(f == 'k' || f == 'K'){
 		return 1000;
 	}		
 	return 1;
