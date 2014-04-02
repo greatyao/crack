@@ -98,6 +98,10 @@ oclHashcat::~oclHashcat(void)
 {
 }
 
+int oclHashcat::SupportMultiTasks()const
+{
+	return 0;
+}
 
 int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* deviceIds, int ndevices)
 {

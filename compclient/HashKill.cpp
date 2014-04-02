@@ -101,6 +101,11 @@ HashKill::~HashKill(void)
 {
 }
 
+int HashKill::SupportMultiTasks()const
+{
+	return 1;
+}
+
 int HashKill::Launcher(const crack_block* item, bool gpu, unsigned short* deviceIds, int ndevices)
 {
 	unsigned char algo = item->algo;

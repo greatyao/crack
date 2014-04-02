@@ -21,6 +21,8 @@ public:
 
 	virtual int Launcher(const crack_block* item, bool gpu, unsigned short deviceId);
 	virtual int Launcher(const crack_block* item, bool gpu, unsigned short* deviceIds, int ndevices);
+	
+	virtual int SupportMultiTasks()const;	
 };
 
 #endif

@@ -48,6 +48,7 @@ protected:
 	int CleanUp(const char* guid);
 	int UpdateStatus(const char* guid, int progress, float speed, unsigned int elapseTime, unsigned int remainTime);
 	int SetPath(const char* path);
+	int RunningTasks()const;
 	
 	char path[256];
 	std::map<std::string, struct lauch_param> running;
@@ -76,6 +77,8 @@ public:
 	//启动
 	virtual int Launcher(const crack_block* item, bool gpu, unsigned short deviceId) = 0;
 	virtual int Launcher(const crack_block* item, bool gpu, unsigned short* deviceIds, int ndevices) = 0;
+	
+	virtual int SupportMultiTasks()const = 0;	
 };
 
 #endif

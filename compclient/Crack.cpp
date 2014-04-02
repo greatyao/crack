@@ -46,6 +46,10 @@ int Crack::SetPath(const char* _path)
 	return 0;
 }
 	
+int Crack::RunningTasks()const
+{
+	return running.size();
+}
 
 void Crack::RegisterCallback(ProcessDone done, ProgressStatus status)
 {
