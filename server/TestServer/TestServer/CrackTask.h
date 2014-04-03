@@ -109,6 +109,14 @@ public:
 	//任务workitem 是否都已经启动过
 	unsigned int m_runing_num;
 
+
+	//文件句柄
+	void *m_file;
+
+
+	//文件长度
+	unsigned int m_filelen;
+
 	//......
 	
 };

@@ -48,6 +48,8 @@ int CCrackTask::Init(crack_task *pCrackTask)
 
 	m_priority = CT_PRIORITY_NORMAL;
 
+	m_file = NULL;
+
 	return 0;
 }
 

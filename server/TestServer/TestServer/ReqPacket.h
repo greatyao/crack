@@ -73,6 +73,15 @@ struct file_upload_start_req {
 };
 
 
+struct file_upload_end_req{
+
+	unsigned char guid[40];
+	void *f;
+	unsigned int len;
+	unsigned int offset;
+
+};
+
 
 #endif
 

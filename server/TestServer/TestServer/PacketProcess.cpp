@@ -1462,6 +1462,7 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 
 	fclose(pfile);
 
+
 	//reply a upload end 
 	endres.f = pfile;
 	endres.len = 0;
@@ -1511,6 +1512,66 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 }
 
 
+//添加处理上传结束请求
+
+int cc_task_upload_file_end(void *pclient,unsigned char *pdata,UINT len){
+
+	CLog::Log(LOG_LEVEL_WARNING,"this is file upload End \n");
+	int ret = 0;
+	FILE *pfile = NULL;
+	unsigned int sendLen = 0;
+	BYTE resBuf[MAX_BUF_LEN];
+	file_upload_end_req *preq = NULL;
+	file_upload_res uploadres;
+	control_header reshdr = INITIALIZE_EMPTY_HEADER(CMD_END_UPLOAD);
+	unsigned int filelen =  0;
+
+	preq = (struct file_upload_end_req *)pdata;
+
+	//pfile = preq->f;
+
+	if (!pfile){
+			
+		CLog::Log(LOG_LEVEL_WARNING,"file upload end req guid %s, file is NULL\n",preq->guid);
+		return -1;
+
+
+	}
+
+	fclose(pfile);
+	pfile = NULL;
+
+	//生成应答报文
+
+	memset(uploadres.guid,0,sizeof(uploadres.guid));
+	//memcpy(uploadres.guid,guid,40);
+	uploadres.f = NULL;
+	uploadres.len = 0;
+	uploadres.offset = 0;
+
+	CLog::Log(LOG_LEVEL_WARNING,"pfile %p,len : %d ,offset:%d, guid : %s \n",uploadres.f,uploadres.len,uploadres.offset,uploadres.guid);
+
+	reshdr.dataLen = sizeof(file_upload_res);
+
+	memset(resBuf,0,MAX_BUF_LEN);
+
+	memcpy(resBuf,&reshdr,sizeof(control_header));
+	memcpy(resBuf+sizeof(control_header),&uploadres,sizeof(file_upload_res));
+	
+	sendLen = sizeof(control_header)+sizeof(file_upload_res);
+
+
+	ret = doSendDataNew(pclient, resBuf, sendLen);
+	if (ret != 0){
+		CLog::Log(LOG_LEVEL_WARNING,"file upload start Error\n");
+		ret = -2;
+	}else{
+		CLog::Log(LOG_LEVEL_WARNING,"file upload start OK\n");
+		ret = 0;
+	}
+	
+	return ret;
+}
 
 
 //计算节点请求处理
