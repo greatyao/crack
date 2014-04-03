@@ -7,9 +7,26 @@
 #include "err.h"
 #include "CLog.h"
 
+#define MAX_HASHES_PER_FILE 64
+
+int load_hashes_file2(const char *filename, struct crack_task* task)
+{
+	struct crack_hash hashes[MAX_HASHES_PER_FILE];
+	int n, special;
+	
+	n = load_hashes_file(filename, task->algo, hashes, MAX_HASHES_PER_FILE, &special);
+	if(n <= 0) return n;
+	
+	task->count = n;
+	task->hashes = (struct crack_hash*)malloc(sizeof(struct crack_hash)*n);
+	memcpy(task->hashes, hashes, sizeof(struct crack_hash)*n);
+	task->special = special;
+	return n;
+}
+
 
 /* Load hashlist file */
-int load_hashes_file(const char *filename,  int algo, struct crack_hash* hashes, int count)
+int load_hashes_file(const char *filename,  int algo, struct crack_hash* hashes, int count, int* special)
 {
     FILE *hashfile;
     char buf[HASHFILE_MAX_LINE_LENGTH*3];
@@ -25,6 +42,7 @@ int load_hashes_file(const char *filename,  int algo, struct crack_hash* hashes,
     strcpy(filename_copy, filename);
     
 	//文件类型解密的解析
+	if(*special) *special = plugin->special();
     if (plugin->special())
     {
 		ret = plugin->parse(NULL, (char *)filename, hashes);
@@ -71,6 +89,18 @@ int load_hashes_file(const char *filename,  int algo, struct crack_hash* hashes,
     return total;
 }
 
+int load_single_hash2(char *hash, struct crack_task* task)
+{
+	struct crack_hash hashes;
+	int n = load_single_hash(hash, task->algo, &hashes);
+	if(n <= 0) return n;
+	
+	task->special = 0;
+	task->count = 1;
+	task->hashes = (struct crack_hash*)malloc(sizeof(struct crack_hash));
+	memcpy(task->hashes, &hashes, sizeof(struct crack_hash));
+	return 1;
+}
 
 /* Load single hash (from command-line) */
 int load_single_hash(char *hash, int algo, struct crack_hash* hashes)
@@ -92,3 +122,13 @@ int load_single_hash(char *hash, int algo, struct crack_hash* hashes)
     return ret;
 }
 
+int release_hashes_from_load(struct crack_task* task)
+{
+	if(task->count > 0 && task->hashes)
+	{
+		free(task->hashes);
+		task->hashes = NULL;
+		task->count = 0;
+	}
+	return 0;
+}
