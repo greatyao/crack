@@ -18,7 +18,7 @@ int bfunix_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 	if(isStartsWith(hashline,"$2$")||isStartsWith(hashline,"$2a$")||isStartsWith(hashline,"$2y$"))
 	{
 		std::vector<char*> v = split(line,"$");
-		if((v.size() == 3) && isAlphaDotSlash(v[2]))
+		if((v.size() == 3) && strlen(v[2])==53 && isAlphaDotSlash(v[2]))
 		{
 			strcpy(hash->hash, hashline);
 			strcpy(hash->salt, "");
