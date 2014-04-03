@@ -5,6 +5,8 @@
 
 CPackManager::CPackManager(void)
 {
+	CLog::InitLogSystem(LOG_TO_FILE,TRUE,"ControlClient.log");
+
 	char ip[20]="192.168.18.117";
 	//÷±Ω”∂¡≈‰÷√
 	char ini_file[MAX_PATH]={0};

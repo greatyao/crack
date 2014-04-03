@@ -27,8 +27,6 @@ int CSocketClient::Init(char *ip,int port){
 	int Ret = 0;
 	struct sockaddr_in ServerAddr;
 
-	CLog::InitLogSystem(LOG_TO_FILE,TRUE,"E:\\DecSys\\ControlClient.log");
-
 	if (WSAStartup(MAKEWORD(2,2),&ws)!= 0){
 
 	//	CLog::Log(LOG_LEVEL_WARNING,"WSAStartup Error\n");
@@ -66,7 +64,7 @@ int CSocketClient::Init(char *ip,int port){
 int CSocketClient::Read(unsigned char *cmd, short* status, void* data, int size)
 {
 	control_header hdr;
-	if(recv(m_clientsocket, (char*)&hdr, sizeof(hdr), 0) < 0) 
+	if(recv(m_clientsocket, (char*)&hdr, sizeof(hdr), 0) <= 0) 
 		return ERR_CONNECTIONLOST;
 	
 	if(memcmp(hdr.magic, pack_flag, 5) != 0)
@@ -98,7 +96,7 @@ int CSocketClient::Read(unsigned char *cmd, short* status, void* data, int size)
 	int total = 0;
 	int n;
 	do{	
-		if((n=recv(m_clientsocket, (char *)buf+total, m-total, 0)) < 0)
+		if((n=recv(m_clientsocket, (char *)buf+total, m-total, 0)) <= 0)
 		{
 			delete []buf;
 			return ERR_CONNECTIONLOST;
