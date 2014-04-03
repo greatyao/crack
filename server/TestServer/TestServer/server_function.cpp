@@ -39,9 +39,13 @@ VOID ProcessClientData1(LPVOID lpParameter){
 	while(1)
 	{
 		int m = Read(cliSocket, &cmd, &status, recvBuf, sizeof(recvBuf));
-	//	CLog::Log(LOG_LEVEL_WARNING, "%s:%d recv cmd %d status %d body %d\n",ip, port, cmd, status, m);
-
+	
 		if(m == ERR_CONNECTIONLOST) break;//อฦณ๖มห
+		else if(m == ERR_INVALIDDATA || m == ERR_UNCOMPRESS)
+			continue;
+		
+		CLog::Log(LOG_LEVEL_WARNING, "%s:%d recv cmd %d status %d body %d\n",ip, port, cmd, status, m);
+
 
 		doRecvData(lpParameter, recvBuf, m, cmd);
 	}
