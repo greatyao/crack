@@ -22,7 +22,7 @@
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			UseOfMFC="2"
-			CharacterSet="2"
+			CharacterSet="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="E:\develop\dissys\all\common\include"
+				AdditionalIncludeDirectories=""
 				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -68,7 +68,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="zlib.lib"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories=".\zlib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -187,6 +189,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\CLog.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\CtlClient.cpp"
 				>
 			</File>
@@ -204,6 +210,10 @@
 			</File>
 			<File
 				RelativePath=".\DlgUploadTask.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\PackManager.cpp"
 				>
 			</File>
 			<File
@@ -258,6 +268,14 @@
 			</File>
 			<File
 				RelativePath=".\DlgUploadTask.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\dissys\all\common\include\err.h"
+				>
+			</File>
+			<File
+				RelativePath=".\PackManager.h"
 				>
 			</File>
 			<File

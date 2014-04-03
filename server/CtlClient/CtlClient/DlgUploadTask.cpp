@@ -7,6 +7,9 @@
 
 #include "algorithm_types.h"
 
+#include "PackManager.h"
+#include "CLog.h"
+
 
 // CDlgUploadTask dialog
 
@@ -154,7 +157,7 @@ void CDlgUploadTask::OnBnClickedButton1()
 	strAppName = strAppName.Left(nPos + 1);
 
 	// AfxMessageBox(strAppName);
-
+	UpdateData(TRUE);
 
 	// 文件扩展名过滤器
 	//第一个参数变成FALSE，就是保存文件，初始目录是当前工作目录, 初始选择的文件名是file，初始后缀过滤器是 Chart Files (*.xlc)
@@ -162,6 +165,7 @@ void CDlgUploadTask::OnBnClickedButton1()
 
 	//CFileDialog::SetControlText(IDOK,_T("选择"));
 
+	
 	if(dlg.DoModal() == IDOK)
 	{
 		CString strFile = dlg.GetPathName(); // 全路径
@@ -178,6 +182,7 @@ void CDlgUploadTask::OnBnClickedOk()
 	// TODO: Add your control notification handler code here
 //	OnOK();
 
+	char *p = NULL;
 	char buf[1024];
 	memset(buf,0,1024);
 /*
@@ -198,12 +203,93 @@ void CDlgUploadTask::OnBnClickedOk()
 */
 	crack_task newtask;
 
-	newtask.algo = m_comboalgo.GetCurSel();
+
+
+	newtask.algo = m_comboalgo.GetCurSel()+1;
 	newtask.charset = m_combocharset.GetCurSel();
 	newtask.type = m_dectype.GetCurSel();
 
-	newtask.special = m_btndec.GetCheck();
+	newtask.special = 0;
 
+	p = (LPSTR)(LPCTSTR)m_endlength.GetBuffer();
+	newtask.endLength = strtoul(p,NULL,10);
+
+	p = (LPSTR)(LPCTSTR)m_startlength.GetBuffer(); 
+	newtask.startLength = strtoul(p,NULL,10);
+
+	sprintf((char *)newtask.filename,"%s",m_filename);
+
+	struct task_upload_res res;
+	int ret =0;
+	ret = g_packmanager.DoTaskUploadPack(newtask,&res);
+	if (ret < 0){
+
+		CString tmpStr("Upload Task Error");
+
+		AfxMessageBox(tmpStr);
+		return ;
+
+	}
+
+	file_upload_req uploadreq;
+	memset(&uploadreq,0,sizeof(file_upload_req));
+	memcpy(uploadreq.guid,res.guid,sizeof(res.guid));
+	memset(g_packmanager.m_cur_upload_guid,0,sizeof(g_packmanager.m_cur_upload_guid));
+	memcpy(g_packmanager.m_cur_upload_guid,res.guid,40);
+
+	file_upload_res uploadres;
+	memset(&uploadres,0,sizeof(file_upload_res));
+	
+	ret = g_packmanager.GenFileUploadPack(uploadreq,&uploadres);
+	if (ret < 0){
+
+		CString tmpStr("Upload File Error");
+
+		AfxMessageBox(tmpStr);
+		return ;
+
+	}
+	
+	file_upload_end_res endres;
+	memset(&endres,0,sizeof(file_upload_end_res));
+
+	memset(g_packmanager.m_cur_local_file,0,sizeof(g_packmanager.m_cur_local_file));
+	memcpy(g_packmanager.m_cur_local_file,this->m_filename,strlen(m_filename));
+	
+	
+	ret = g_packmanager.GenFileUploadStart(&endres);
+	if (ret < 0){
+
+		CString tmpStr("Upload File End Error");
+
+		AfxMessageBox(tmpStr);
+		return ;
+
+	}
+
+	CString tmpStr1("Upload File End OK");
+
+	AfxMessageBox(tmpStr1);
+
+	task_start_req startreq;
+	task_status_res startres;
+
+	memset(&startreq,0,sizeof(task_start_req));
+	memcpy(startreq.guid,g_packmanager.m_cur_upload_guid,40);
+
+	TRACE("guid : %s",g_packmanager.m_cur_upload_guid);
+	ret = g_packmanager.GenTaskStartPack(startreq,&startres);
+	if (ret < 0){
+
+		TRACE("GenTaskStartPack Error : %d",ret);
+		return ;
+
+	}
+
+
+
+
+/*
 	TRACE(m_filename);
 	sprintf((char *)newtask.filename,"%s",m_filename);
 
@@ -224,5 +310,9 @@ void CDlgUploadTask::OnBnClickedOk()
 	UpdateData(TRUE);
 
 	AfxMessageBox(tmpStr);
+*/
+
+
+
 
 }

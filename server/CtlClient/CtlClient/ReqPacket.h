@@ -36,5 +36,25 @@ struct task_result_req {
 	unsigned char guid[40];
 };
 
+
+
+struct file_upload_req {
+
+	unsigned char guid[40];
+
+};
+
+
+struct file_upload_start_req {
+
+
+	unsigned char guid[40];
+	void *f;
+	unsigned int len;
+	unsigned int offset;
+
+};
+
+
 #endif
 
