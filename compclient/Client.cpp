@@ -420,6 +420,8 @@ int Client::Write(unsigned char cmd, const void* data, int size)
 
 int Client::ReportStatusToServer(crack_status* status)
 {
+	Lock lk(&mutex);
+	
 	unsigned char cmd = CMD_WORKITEM_STATUS;
 	int m = Write(cmd, status, sizeof(*status));
 	if(m == ERR_CONNECTIONLOST) 
@@ -436,6 +438,8 @@ int Client::ReportStatusToServer(crack_status* status)
 	
 int Client::ReportResultToServer(crack_result* result)
 {
+	Lock lk(&mutex);
+	
 	unsigned char cmd = CMD_WORKITEM_RESULT;
 	int m = Write(cmd, result, sizeof(*result));
 	if(m == ERR_CONNECTIONLOST)
