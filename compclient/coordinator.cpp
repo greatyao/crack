@@ -57,6 +57,8 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 		if(status == RS_STATUS_READY)
 		{
 			//这里需要从网络获取workitem数据，只有有数据才会进行下一步
+			if(CrackManager::Get().CouldCrack() == false)
+				goto next;
 			ret = Client::Get().GetWorkItemFromServer(&item);
 			if(ret != sizeof(item))	goto next;
 			CLog::Log(LOG_LEVEL_NOMAL, "ccoordinator: Fetch workitem [guid=%s]\n", item.guid);

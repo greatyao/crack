@@ -173,6 +173,18 @@ bool CrackManager::UsingCPU()const
 {
 	return using_cpu;
 }
+
+bool CrackManager::CouldCrack()const
+{
+	if(!tools || !tools[toolPriority])
+		return false;
+	
+	if(tools[toolPriority]->RunningTasks() != 0 && 
+		tools[toolPriority]->SupportMultiTasks() == 0)
+		return false;
+	
+	return true;
+}
 	
 int CrackManager::StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short deviceId)
 {
