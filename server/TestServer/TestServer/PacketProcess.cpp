@@ -18,6 +18,7 @@
 
 #define FILE_DIR ".\\tempdir\\"
 
+//#define FILE_DIR ".\\"
 
 static CCrackBroker g_CrackBroker;
 
@@ -963,7 +964,7 @@ int cc_refresh_statusnew(void *pclient, unsigned char * pdata, UINT len){
 	unsigned int resNum = 0;
 
 	memset(resBuf,0,MAX_BUF_LEN);
-	memset(&reshdr,0,sizeof(struct control_header));
+	//memset(&reshdr,0,sizeof(struct control_header));
 	
 	/*
 	pTasksStatus = (task_status_info *)malloc(sizeof(task_status_info)*2);
@@ -1378,6 +1379,7 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 	unsigned int recvLen = 0;
 	unsigned int curlen = 0;
 	unsigned char filename[128];
+	char tmpguid[40];
 
 
 	memset(&startres,0,sizeof(file_upload_start_res));
@@ -1385,9 +1387,16 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 
 	filelen = puploadstartreq->len;
 
+	memset(tmpguid,0,40);
+	memcpy(tmpguid,puploadstartreq->guid,40);
+
+	CLog::Log(LOG_LEVEL_WARNING,"upload start guid: %s \n",puploadstartreq->guid);
 
 	memset(filename,0,128);
-	sprintf((char *)filename,"%s%s",FILE_DIR,(char *)puploadstartreq->guid);
+	sprintf((char *)filename,"%s%s",".\\tempdir\\",(char *)puploadstartreq->guid);
+
+
+	CLog::Log(LOG_LEVEL_WARNING,"filename : %s \n",filename);
 
 
 	pfile = fopen((char *)filename,"w");
@@ -1485,7 +1494,14 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 		
 		//通过任务guid 进行查找，并且分任务
 
-
+		//处理业务逻辑
+		ret = g_CrackBroker.SplitTask(tmpguid);
+		if (ret < 0){
+			CLog::Log(LOG_LEVEL_WARNING,"Broker Split ErrorCode : %d\n",ret);
+		
+		}else{
+			CLog::Log(LOG_LEVEL_WARNING,"Broker Get Clients ,number is %d OK\n",ret);
+		}
 		
 
 	}

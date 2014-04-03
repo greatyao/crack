@@ -93,6 +93,9 @@ int CCrackTask::SplitTaskFile(char *pguid){
 		ret = load_single_hash((char *)filename, algo, (struct crack_hash *)p);
 	}
 */
+	memset(filename,0,sizeof(filename));
+	sprintf((char *)filename,".\\tempdir\\%s",guid);
+	//sprintf((char *)filename,".\\%s",guid);
 	
 	ret = load_hashes_file((char *)filename,algo,(struct crack_hash*)p,mcount);
 	if (ret < 0 ){
@@ -126,13 +129,17 @@ int CCrackTask::SplitTaskFile(char *pguid){
 		
 		pCb[i].Init(&pCrackBlock[i]);
 		pCb[i].task = this;
+
 		m_crackblock_map.insert(CB_MAP::value_type(pCb[i].guid,&pCb[i]));
 		CLog::Log(LOG_LEVEL_WARNING,"Crack Block is %s,%s,%d,%d,%d,%d\n",pCb[i].john,pCb[i].guid,pCb[i].start,pCb[i].end,pCb[i].start2,pCb[i].end2);
 		
 	}
 	//ÊÍ·Å×ÊÔ´
 	split.release_splits((char *)pCrackBlock);
-	Free(p);
+	//Free(p);
+	this->m_split_num = splitnum;
+	this->m_finish_num = 0;
+
 	return ret;
 
 }

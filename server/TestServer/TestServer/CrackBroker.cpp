@@ -118,7 +118,8 @@ int	CCrackBroker::CreateTask(struct crack_task *pReq,unsigned char *pguid){
 
 	for(temp_iter = m_cracktask_map.begin(); temp_iter != m_cracktask_map.end();temp_iter ++ ){
 		
-			
+
+		pTask = temp_iter->second;
 		CLog::Log(LOG_LEVEL_WARNING,"Task guid : %s, Task : %d, %d, %s\n",pTask->guid,pTask->algo,pTask->charset,pTask->filename);
 		
 
