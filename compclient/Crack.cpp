@@ -25,10 +25,45 @@
 #include <errno.h>
 #endif
 
+class RLock
+{
+private:
+	pthread_rwlock_t* rwlock;
+public:
+	RLock(pthread_rwlock_t* lock):rwlock(lock)
+	{
+		pthread_rwlock_rdlock(rwlock);
+	}
+	
+	~RLock()
+	{
+		pthread_rwlock_unlock(rwlock);
+	}
+
+};
+
+class WLock
+{
+private:
+	pthread_rwlock_t* rwlock;
+public:
+	WLock(pthread_rwlock_t* lock):rwlock(lock)
+	{
+		pthread_rwlock_wrlock(rwlock);
+	}
+	
+	~WLock()
+	{
+		pthread_rwlock_unlock(rwlock);
+	}
+
+};
+
 Crack::Crack(void)
 {
 	this->doneFunc = NULL;
 	this->statusFunc = NULL;
+	pthread_rwlock_init(&rwlock, NULL);
 }
 
 Crack::~Crack(void)
@@ -38,6 +73,7 @@ Crack::~Crack(void)
 	{
 		pthread_cancel(it->second.tid);
 	}
+	pthread_rwlock_destroy(&rwlock);
 }
 
 int Crack::SetPath(const char* _path)
@@ -102,6 +138,8 @@ int Crack::StartCrack(const crack_block* item, const char* guid, bool gpu, unsig
 
 int Crack::Kill(const char* guid)
 {
+	WLock lock(&rwlock);
+	
 	std::map<std::string, lauch_param>::iterator it = running.find(guid);
 	if(it == running.end())
 	{
@@ -120,6 +158,8 @@ int Crack::Kill(const char* guid)
 		return ERR_FAILED_KILL;
 	}
 
+	close(it->second.read_fd);
+	close(it->second.write_fd)
 	running.erase(it);
 	return 0;
 }
@@ -199,11 +239,12 @@ int Crack::Exec(const char* guid, const char* path, const char* params, void* (*
 			return ERR_LAUCH_TASK;    		
 		}
 
-		struct lauch_param p = {pid, (pthread_t)-1, fd2[0], fd1[1], 0, 0, 0, 0};
-		running[guid] = p;
-		
-		pthread_t tid;
 		{
+			WLock lock(&rwlock);
+			struct lauch_param lp = {pid, (pthread_t)-1, fd2[0], fd1[1], 0, 0, 0, 0};
+			running[guid] = lp;
+			
+			pthread_t tid;
 			thread_param* p = (thread_param*)malloc(sizeof(*p));
 			memcpy(p->guid, guid, sizeof(p->guid));
 			p->crack = this;
@@ -218,13 +259,20 @@ int Crack::Exec(const char* guid, const char* path, const char* params, void* (*
 
 int Crack::ReadFromLancher(const char* guid, char* buf, int n)
 {
-	std::map<std::string, lauch_param>::iterator it = running.find(guid);
-	if(it == running.end())
+	int pid = -1;
+	int fd = -1;
+	
 	{
-		//非法的，没有该解密任务
-		return ERR_NO_THISTASK;
+		RLock lock(&rwlock);
+		std::map<std::string, lauch_param>::iterator it = running.find(guid);
+		if(it == running.end())
+		{
+			//非法的，没有该解密任务
+			return ERR_NO_THISTASK;
+		}
+		pid = it->second.pid;
+		fd = it->second.read_fd;
 	}
-	int pid = it->second.pid;
 
 #if defined(WIN32) || defined(WIN64)
 	return 0;
@@ -241,7 +289,6 @@ int Crack::ReadFromLancher(const char* guid, char* buf, int n)
 		return 0;
 	}
 	
-	int fd = it->second.read_fd;
 	//下面是200毫秒的等待直至有数据可读
 	{
 		fd_set read_fdset;        
@@ -263,13 +310,20 @@ int Crack::ReadFromLancher(const char* guid, char* buf, int n)
 
 int Crack::WriteToLancher(const char* guid, const char* buf, int n)
 {
-	std::map<std::string, lauch_param>::iterator it = running.find(guid);
-	if(it == running.end())
+	int pid = -1;
+	int fd = -1;
+	
 	{
-		//非法的，没有该解密任务
-		return ERR_NO_THISTASK;
+		RLock lock(&rwlock);
+		std::map<std::string, lauch_param>::iterator it = running.find(guid);
+		if(it == running.end())
+		{
+			//非法的，没有该解密任务
+			return ERR_NO_THISTASK;
+		}
+		pid = it->second.pid;
+		fd = it->second.write_fd;
 	}
-	int pid = it->second.pid;
 #if defined(WIN32) || defined(WIN64)
 	return 0;
 #else
@@ -285,13 +339,15 @@ int Crack::WriteToLancher(const char* guid, const char* buf, int n)
 		return 0;
 	}
 
-	return write(it->second.write_fd, buf, n);
+	return write(fd, buf, n);
 #endif
 
 }
 
 int Crack::CleanUp(const char* guid)
 {
+	WLock lock(&rwlock);
+	
 	std::map<std::string, lauch_param>::iterator it = running.find(guid);
 	if(it == running.end())
 		return ERR_NO_THISTASK;
@@ -304,13 +360,5 @@ int Crack::CleanUp(const char* guid)
 
 int Crack::UpdateStatus(const char* guid, int progress, float speed, unsigned int elapseTime, unsigned int remainTime)
 {
-	std::map<std::string, lauch_param>::iterator it = running.find(guid);
-	if(it == running.end())
-		return ERR_NO_THISTASK;
-		
-	it->second.progress = progress;
-	it->second.speed = speed;
-	it->second.retain_time = remainTime;
-	it->second.cost_time = elapseTime;
 	return 0;
 }

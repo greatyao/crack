@@ -51,6 +51,7 @@ protected:
 	int RunningTasks()const;
 	
 	char path[256];
+	pthread_rwlock_t rwlock;
 	std::map<std::string, struct lauch_param> running;
 	ProcessDone doneFunc;
 	ProgressStatus statusFunc;
