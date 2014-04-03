@@ -42,6 +42,35 @@ struct compute_node_info{
 
 
 
+//////upload file start 
+
+struct file_upload_res {
+
+	
+	unsigned char guid[40];
+	void *f;
+	unsigned int len;
+	unsigned int offset;
+};
+
+
+struct file_upload_start_res{
+
+	unsigned char guid[40];
+	void *f;
+	unsigned int len;
+	unsigned int offset;
+
+};
+
+struct file_upload_end_res {
+	
+	unsigned char guid[40];
+	void *f;
+	unsigned int len;
+	unsigned int offset;
+
+};
 
 
 

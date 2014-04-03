@@ -7,8 +7,8 @@
 
 #include "algorithm_types.h"
 
-#include "PackManager.h"
-#include "CLog.h"
+//#include "PackManager.h"
+//#include "CLog.h"
 
 
 // CDlgUploadTask dialog
@@ -224,7 +224,22 @@ void CDlgUploadTask::OnBnClickedButton1()
 
 void CDlgUploadTask::OnBnClickedOk()
 {
-	char *p = NULL;
+	//读取输入数据
+	//解密算法
+	int loc_algo   = m_comboalgo.GetCurSel()+1;
+	//解密字符集
+	int loc_charset= m_combocharset.GetCurSel();
+	//解密类型
+	int loc_type   = m_dectype.GetCurSel();
+	//是否文件类型
+	//起始长度
+	char *p = (LPSTR)(LPCTSTR)m_startlength.GetBuffer(); 
+	int loc_len_start = strtoul(p,NULL,10);
+	//结束长度
+	p = (LPSTR)(LPCTSTR)m_endlength.GetBuffer();
+	int loc_len_end = strtoul(p,NULL,10);
+	//文件路径
+
 	char buf[1024];
 	memset(buf,0,1024);
 /*
@@ -243,6 +258,7 @@ void CDlgUploadTask::OnBnClickedOk()
 	
 };
 */
+	/*
 	crack_task newtask;
 
 
@@ -326,7 +342,7 @@ void CDlgUploadTask::OnBnClickedOk()
 		TRACE("GenTaskStartPack Error : %d",ret);
 		return ;
 
-	}
+	}*/
 
 
 
@@ -356,6 +372,6 @@ void CDlgUploadTask::OnBnClickedOk()
 
 
 	//测试
-	m_pDlgTaskStatus->AddToTaskList(0,0,0,0,2,4,(char*)newtask.filename,"");
+	//m_pDlgTaskStatus->AddToTaskList(0,0,0,0,2,4,(char*)newtask.filename,"");
 	
 }
