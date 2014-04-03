@@ -13,7 +13,7 @@ static unsigned char pack_flag[5] = {'G', '&', 'C', 'P', 'U'};
 int Read(int sck, unsigned char *cmd, short* status, void* data, int size)
 {
 	control_header hdr;
-	if(recv(sck, (char*)&hdr, sizeof(hdr), 0) < 0) 
+	if(recv(sck, (char*)&hdr, sizeof(hdr), 0) <= 0) 
 		return ERR_CONNECTIONLOST;
 	
 	if(memcmp(hdr.magic, pack_flag, 5) != 0)
@@ -45,7 +45,7 @@ int Read(int sck, unsigned char *cmd, short* status, void* data, int size)
 	int total = 0;
 	int n;
 	do{	
-		if((n=recv(sck, (char *)buf+total, m-total, 0)) < 0)
+		if((n=recv(sck, (char *)buf+total, m-total, 0)) <= 0)
 		{
 			delete []buf;
 			return ERR_CONNECTIONLOST;
