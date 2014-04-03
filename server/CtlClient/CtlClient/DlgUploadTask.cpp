@@ -33,18 +33,17 @@ CDlgUploadTask::~CDlgUploadTask()
 void CDlgUploadTask::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_COMBO1, m_comboalgo);
-	DDX_Control(pDX, IDC_COMBO2, m_combocharset);
-	DDX_Control(pDX, IDC_COMBO3, m_dectype);
-	DDX_Text(pDX, IDC_EDIT1, m_startlength);
-	DDX_Text(pDX, IDC_EDIT2, m_endlength);
-	DDX_Text(pDX, IDC_EDIT3, m_filename);
-	DDX_Control(pDX, IDC_RADIO1, m_btndec);
+	DDX_Control(pDX, IDC_COMBO_ALG, m_comboalgo);
+	DDX_Control(pDX, IDC_COMBO_CHARSET, m_combocharset);
+	DDX_Control(pDX, IDC_COMBO_TYPE, m_dectype);
+	DDX_Control(pDX, IDC_RADIO_IS_FILE, m_btndec);
+	DDX_Control(pDX, IDC_EDIT_LEN_MIN, m_EditLenMin);
+	DDX_Control(pDX, IDC_EDIT_LEN_MAX, m_EditLenMax);
 }
 
 
 BEGIN_MESSAGE_MAP(CDlgUploadTask, CDialog)
-	ON_BN_CLICKED(IDC_BUTTON1, &CDlgUploadTask::OnBnClickedButton1)
+	ON_BN_CLICKED(IDC_BUTTON_SEL_FILE, &CDlgUploadTask::OnBnClickedButton1)
 	ON_BN_CLICKED(IDOK, &CDlgUploadTask::OnBnClickedOk)
 END_MESSAGE_MAP()
 
@@ -193,33 +192,37 @@ BOOL CDlgUploadTask::PreTranslateMessage(MSG* pMsg)
 
 void CDlgUploadTask::OnBnClickedButton1()
 {
-	// TODO: Add your control notification handler code here
-
-	// 获取当前工作路径
-	CString strAppName;//当前工作目录
-	::GetModuleFileName(NULL, strAppName.GetBuffer(_MAX_PATH), _MAX_PATH);
-	strAppName.ReleaseBuffer();
-	int nPos = strAppName.ReverseFind('\\');
-	strAppName = strAppName.Left(nPos + 1);
-
-	// AfxMessageBox(strAppName);
-
-
-	// 文件扩展名过滤器
-	//第一个参数变成FALSE，就是保存文件，初始目录是当前工作目录, 初始选择的文件名是file，初始后缀过滤器是 Chart Files (*.xlc)
-	CSelectFileDialog dlg(TRUE,NULL ,strAppName,OFN_ENABLESIZING ,NULL,NULL); // 打开用TRUE, 保存用 FALSE
-
-	//CFileDialog::SetControlText(IDOK,_T("选择"));
-
-	if(dlg.DoModal() == IDOK)
-	{
-		CString strFile = dlg.GetPathName(); // 全路径
-		m_filename = dlg.GetPathName();
-		
-		UpdateData(FALSE);
-
+	OPENFILENAME	ofn ;
+	static TCHAR pszFileName[MAX_PATH]={0};
+	static TCHAR szFilter[] = TEXT ("选择hash文件 (*.hashes)\0*.hashes\0选择全部\0*.*\0");
+	     
+	ofn.lStructSize       = sizeof (OPENFILENAME) ;
+	ofn.hwndOwner         = this->m_hWnd ;
+	ofn.hInstance         = NULL ;
+	ofn.lpstrFilter       = szFilter ;
+	ofn.lpstrCustomFilter = NULL ;
+	ofn.nMaxCustFilter    = 0 ;
+	ofn.nFilterIndex      = 0 ;
+	ofn.lpstrFile         = pszFileName ;
+	ofn.nMaxFile          = MAX_PATH ;
+	ofn.lpstrFileTitle    = NULL ;
+	ofn.nMaxFileTitle     = MAX_PATH ;
+	ofn.lpstrInitialDir   = NULL ;
+	ofn.lpstrTitle        = NULL ;
+	ofn.Flags             = 0 ;
+	ofn.nFileOffset       = 0 ;
+	ofn.nFileExtension    = 0 ;
+	ofn.lpstrDefExt       = TEXT ("打开") ;
+	ofn.lCustData         = 0L ;
+	ofn.lpfnHook          = NULL ;
+	ofn.lpTemplateName    = NULL ;
+	 
+	if ( !GetOpenFileName( &ofn))
+	{		
+		return;
 	}
-
+	SetDlgItemText(IDC_EDIT_FILE_PATH,pszFileName);
+	m_filename = pszFileName;
 }
 
 void CDlgUploadTask::OnBnClickedOk()
@@ -234,12 +237,34 @@ void CDlgUploadTask::OnBnClickedOk()
 	int loc_type   = m_dectype.GetCurSel();
 	//是否文件类型
 	//起始长度
+	m_EditLenMin.GetWindowTextA(m_startlength);
 	char *p = (LPSTR)(LPCTSTR)m_startlength.GetBuffer(); 
 	int loc_len_start = strtoul(p,NULL,10);
 	//结束长度
+	m_EditLenMax.GetWindowTextA(m_endlength);
 	p = (LPSTR)(LPCTSTR)m_endlength.GetBuffer();
 	int loc_len_end = strtoul(p,NULL,10);
 	//文件路径
+	CString loc_file_name = m_filename;
+
+
+	//错误检测
+	if(loc_file_name.GetLength()<1)
+	{
+		AfxMessageBox("上传文件不能为空");
+		return;
+	}
+	if((m_startlength.GetLength()<1)||(m_endlength.GetLength()<1))
+	{
+		AfxMessageBox("请输入密码起始长度");
+		return;
+	}
+	if((loc_len_start<1)||(loc_len_start>loc_len_end))
+	{
+		AfxMessageBox("密码起始长度错误");
+		return;
+	}
+
 
 	char buf[1024];
 	memset(buf,0,1024);
@@ -260,7 +285,7 @@ void CDlgUploadTask::OnBnClickedOk()
 };
 */
 	
-	crack_task newtask;
+	crack_task newtask={0};
 
 
 
