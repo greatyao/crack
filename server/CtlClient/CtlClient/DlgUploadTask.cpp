@@ -7,8 +7,8 @@
 
 #include "algorithm_types.h"
 
-//#include "PackManager.h"
-//#include "CLog.h"
+#include "PackManager.h"
+#include "CLog.h"
 
 
 // CDlgUploadTask dialog
@@ -224,6 +224,7 @@ void CDlgUploadTask::OnBnClickedButton1()
 
 void CDlgUploadTask::OnBnClickedOk()
 {
+	
 	//读取输入数据
 	//解密算法
 	int loc_algo   = m_comboalgo.GetCurSel()+1;
@@ -258,7 +259,7 @@ void CDlgUploadTask::OnBnClickedOk()
 	
 };
 */
-	/*
+	
 	crack_task newtask;
 
 
@@ -277,7 +278,10 @@ void CDlgUploadTask::OnBnClickedOk()
 
 	sprintf((char *)newtask.filename,"%s",m_filename);
 
+	
+
 	struct task_upload_res res;
+
 	int ret =0;
 	ret = g_packmanager.DoTaskUploadPack(newtask,&res);
 	if (ret < 0){
@@ -342,7 +346,7 @@ void CDlgUploadTask::OnBnClickedOk()
 		TRACE("GenTaskStartPack Error : %d",ret);
 		return ;
 
-	}*/
+	}
 
 
 
