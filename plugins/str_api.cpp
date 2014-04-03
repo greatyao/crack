@@ -6,6 +6,7 @@
 #include "str_api.h"
 #include "plugin.h"
 #include "algorithm_types.h"
+#include <algorithm>
 
 int ishex(char *hashline)
 {
