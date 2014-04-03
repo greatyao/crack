@@ -39,6 +39,7 @@ struct hash_support_plugins all_plugins[] =
 	{algo_oracle11g, &oracle11g_parse_hash, &oracle11g_is_special, &oracle11g_check_valid,&oracle11g_recovery},
 	{algo_bfunix, &bfunix_parse_hash, &bfunix_is_special, &bfunix_check_valid,&bfunix_recovery},
 	{algo_osx_old, &osx_old_parse_hash, &osx_old_is_special, &osx_old_check_valid,&osx_old_recovery},
+	{algo_osxlion, &osxlion_parse_hash, &osxlion_is_special, &osxlion_check_valid,&osxlion_recovery},
 
 	//请在这里相应的添加各种插件
 	{0, NULL, NULL, NULL}
