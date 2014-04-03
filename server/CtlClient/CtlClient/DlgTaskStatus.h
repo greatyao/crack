@@ -33,4 +33,6 @@ public:
 	afx_msg void OnBnClickedBtnStart();
 	virtual BOOL OnInitDialog();
 	BOOL PreTranslateMessage(MSG* pMsg);
+	afx_msg void OnBnClickedBtnRefresh();
+	void GetStatusStrByCmd(char cmd,char *pdes);
 };

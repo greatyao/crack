@@ -4,8 +4,10 @@
 #include "stdafx.h"
 #include "CtlClient.h"
 #include "DlgTaskStatus.h"
+#include "macros.h"
 
-
+#include "PackManager.h"
+#include "CLog.h"	
 // CDlgTaskStatus dialog
 
 IMPLEMENT_DYNAMIC(CDlgTaskStatus, CDialog)
@@ -29,9 +31,60 @@ void CDlgTaskStatus::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CDlgTaskStatus, CDialog)
 	ON_BN_CLICKED(IDC_BTN_START, &CDlgTaskStatus::OnBnClickedBtnStart)
+	ON_BN_CLICKED(IDC_BTN_REFRESH, &CDlgTaskStatus::OnBnClickedBtnRefresh)
 END_MESSAGE_MAP()
 
 
+void CDlgTaskStatus::GetStatusStrByCmd(char cmd,char *pdes){
+
+	/*
+	CT_STATUS_READY = 1,   //任务的就绪状态
+	CT_STATUS_FINISHED,		//任务完成状态	
+	CT_STATUS_FAILURE,		//任务解密失败状态
+	CT_STATUS_RUNNING,		//任务正在解密状态
+
+//	CT_STATUS_STOPPED,		//任务停止状态  
+	CT_STATUS_PAUSED,		//任务暂停解密状态
+	CT_STATUS_DELETED,		//将任务设置为删除状态
+	CT_STATUS_MAX
+	*/
+	
+	switch(cmd){
+
+
+		case CT_STATUS_READY:
+			
+			strcpy(pdes,"运行就绪");
+			break;
+		case CT_STATUS_FINISHED:
+
+			strcpy(pdes,"破解完成");
+			break;
+		case CT_STATUS_FAILURE:
+	
+			strcpy(pdes,"破解失败");
+			break;
+		case CT_STATUS_RUNNING:
+
+			strcpy(pdes,"运行中");
+			break;
+		case CT_STATUS_PAUSED:
+			
+			strcpy(pdes,"任务已暂停");
+			break;
+		case CT_STATUS_DELETED:
+			
+			strcpy(pdes,"任务已删除");
+			break;
+		default:
+	
+			strcpy(pdes,"状态未知");
+			break;	
+
+	}
+	return;
+
+}
 // CDlgTaskStatus message handlers
 void CDlgTaskStatus::GenExampleListData(){
 
@@ -157,5 +210,51 @@ BOOL CDlgTaskStatus::AddToTaskList(int nAlgo,int nCharset,int nType,int nIsFile,
 
 void CDlgTaskStatus::OnBnClickedBtnStart()
 {
-	// TODO: 在此添加控件通知处理程序代码
+}
+
+void CDlgTaskStatus::OnBnClickedBtnRefresh()
+{
+	int ret = 0;
+	struct task_status_info *pres = NULL;
+	struct task_status_info *p = NULL;
+	ret = g_packmanager.GenTaskStatusPack(&pres);
+	if (ret < 0){
+
+		CLog::Log(LOG_LEVEL_WARNING,"Gen Task Status Pack Error,Code : %d\n",ret);
+		return ;
+
+	}
+
+	int i = 0;
+	char tmpbuf[128];
+	int count = ret/sizeof(task_status_info);
+
+	//m_tasklist.SetRedraw(FALSE);
+	m_ListStatus.DeleteAllItems();  
+  
+
+
+	for(i = 0;i < count ;i ++ ){
+
+		p = &pres[i];
+		m_ListStatus.InsertItem(i,(LPCTSTR)(p->guid));
+		memset(tmpbuf,0,128);
+		sprintf(tmpbuf,"%f",p->m_progress);
+		m_ListStatus.SetItemText(i,0,"");
+		m_ListStatus.SetItemText(i,1,_T(tmpbuf));
+		memset(tmpbuf,0,128);
+		sprintf(tmpbuf,"%d",p->m_split_number);
+		m_ListStatus.SetItemText(i,2,_T(tmpbuf));
+		memset(tmpbuf,0,128);
+		sprintf(tmpbuf,"%d",p->m_fini_number);
+		m_ListStatus.SetItemText(i,3,_T(tmpbuf));
+
+		memset(tmpbuf,0,128);
+		GetStatusStrByCmd(pres->status,tmpbuf);
+		m_ListStatus.SetItemText(i,4,_T(tmpbuf));
+
+	}
+	
+	//m_tasklist.SetRedraw(TRUE);
+	//	m_tasklist.UpdateData(FALSE);
 }

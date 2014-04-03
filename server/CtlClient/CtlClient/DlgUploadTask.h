@@ -43,4 +43,6 @@ public:
 	afx_msg void OnBnClickedOk();
 	
 	CButton m_btndec;
+	CEdit m_EditLenMin;
+	CEdit m_EditLenMax;
 };

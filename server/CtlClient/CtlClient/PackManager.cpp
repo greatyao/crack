@@ -5,7 +5,15 @@
 
 CPackManager::CPackManager(void)
 {
-	m_sockclient.Init("127.0.0.1",6010);
+	char ip[20]="192.168.18.117";
+	//÷±Ω”∂¡≈‰÷√
+	char ini_file[MAX_PATH]={0};
+	GetModuleFileNameA(NULL,ini_file,MAX_PATH);
+	strcat(ini_file,".ini");
+
+	GetPrivateProfileString("config","ip","127.0.0.1",ip,MAX_PATH-1,ini_file);
+
+	m_sockclient.Init(ip,6010);
 
 }
 
