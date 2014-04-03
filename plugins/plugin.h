@@ -217,6 +217,12 @@ int bfunix_is_special();
 int bfunix_check_valid(struct crack_hash* hash);
 int bfunix_recovery(const struct crack_hash* hash, char* line, int size);
 
+//
+int osx_old_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
+int osx_old_is_special();
+int osx_old_check_valid(struct crack_hash* hash);
+int osx_old_recovery(const struct crack_hash* hash, char* line, int size);
+
 
 //一些常用函数
 //char* strupr(char* ioString);//*******************************mike
