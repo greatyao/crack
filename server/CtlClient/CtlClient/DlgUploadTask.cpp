@@ -135,15 +135,61 @@ VOID CDlgUploadTask::ComboInit(){
 BOOL CDlgUploadTask::OnInitDialog(){
 
 	CDialog::OnInitDialog();
+    m_toolTip.Create(this,TTS_ALWAYSTIP | TTS_BALLOON);
+    m_toolTip.SetMaxTipWidth(200);
+    m_toolTip.AddTool(GetDlgItem(IDC_COMBO_ALG), "选择提交文件的算法类型");
+    m_toolTip.AddTool(GetDlgItem(IDC_COMBO_CHARSET), "选择目标破解的字符集类型");
+    m_toolTip.AddTool(GetDlgItem(IDC_COMBO_TYPE), "选择使用哪种方法破解");
+    m_toolTip.AddTool(GetDlgItem(IDC_RADIO_IS_FILE), "如果上传的文件是加密文件类型，\r\n比如rar文件，word文件，请点选我");
+    m_toolTip.AddTool(GetDlgItem(IDC_RADIO_NO_FILE), "如果上传的文件是保存md5等hash信息的文件，点选我");
+    m_toolTip.AddTool(GetDlgItem(IDC_EDIT_LEN_MIN), "暴力破解密码的最小长度");
+    m_toolTip.AddTool(GetDlgItem(IDC_EDIT_LEN_MAX), "暴力破解密码的最大长度");
+    m_toolTip.AddTool(GetDlgItem(IDC_EDIT_FILE_PATH), "输入文件路径，或者点击后面的选择文件按钮选择文件");
+    m_toolTip.AddTool(GetDlgItem(IDC_BUTTON_SEL_FILE), "选择破解的目标文件(hash文件或者加密文件)");
+    m_toolTip.AddTool(GetDlgItem(IDOK), "上传任务");
 
+	m_pDlgTaskStatus = NULL;
 
 	ComboInit();
 
 	return TRUE;
-
-
 }
 
+void CDlgUploadTask::SetCDlgTaskStatus(CDlgTaskStatus *pSlgTS)
+{
+	m_pDlgTaskStatus = pSlgTS;
+}
+
+BOOL CDlgUploadTask::AddToTaskList(int nAlgo,int nCharset,int nType,int nIsFile,int nLenMin,int nLenMax,char *psFile)
+{
+	return 0;
+}
+
+BOOL CDlgUploadTask::PreTranslateMessage(MSG* pMsg) 
+{
+    if (pMsg->message == WM_MOUSEMOVE)
+    {
+        if( pMsg->hwnd == GetDlgItem(IDC_COMBO_ALG)->m_hWnd || 
+            pMsg->hwnd == GetDlgItem(IDC_COMBO_CHARSET)->m_hWnd  || 
+            pMsg->hwnd == GetDlgItem(IDC_COMBO_TYPE)->m_hWnd  || 
+            pMsg->hwnd == GetDlgItem(IDC_RADIO_IS_FILE)->m_hWnd  || 
+            pMsg->hwnd == GetDlgItem(IDC_RADIO_NO_FILE)->m_hWnd  || 
+            pMsg->hwnd == GetDlgItem(IDC_EDIT_LEN_MIN)->m_hWnd  || 
+            pMsg->hwnd == GetDlgItem(IDC_EDIT_LEN_MAX)->m_hWnd  || 
+            pMsg->hwnd == GetDlgItem(IDC_EDIT_FILE_PATH)->m_hWnd  || 
+            pMsg->hwnd == GetDlgItem(IDC_BUTTON_SEL_FILE)->m_hWnd|| 
+            pMsg->hwnd == GetDlgItem(IDOK)->m_hWnd )
+        {
+            m_toolTip.RelayEvent(pMsg);
+        }
+        else
+        {
+            m_toolTip.Pop();
+        }
+        return TRUE;
+    }
+    return CDialog::PreTranslateMessage(pMsg);
+}
 
 void CDlgUploadTask::OnBnClickedButton1()
 {
@@ -157,7 +203,7 @@ void CDlgUploadTask::OnBnClickedButton1()
 	strAppName = strAppName.Left(nPos + 1);
 
 	// AfxMessageBox(strAppName);
-	UpdateData(TRUE);
+
 
 	// 文件扩展名过滤器
 	//第一个参数变成FALSE，就是保存文件，初始目录是当前工作目录, 初始选择的文件名是file，初始后缀过滤器是 Chart Files (*.xlc)
@@ -165,7 +211,6 @@ void CDlgUploadTask::OnBnClickedButton1()
 
 	//CFileDialog::SetControlText(IDOK,_T("选择"));
 
-	
 	if(dlg.DoModal() == IDOK)
 	{
 		CString strFile = dlg.GetPathName(); // 全路径
@@ -179,9 +224,6 @@ void CDlgUploadTask::OnBnClickedButton1()
 
 void CDlgUploadTask::OnBnClickedOk()
 {
-	// TODO: Add your control notification handler code here
-//	OnOK();
-
 	char *p = NULL;
 	char buf[1024];
 	memset(buf,0,1024);
@@ -313,6 +355,7 @@ void CDlgUploadTask::OnBnClickedOk()
 */
 
 
-
-
+	//测试
+	m_pDlgTaskStatus->AddToTaskList(0,0,0,0,2,4,(char*)newtask.filename,"");
+	
 }

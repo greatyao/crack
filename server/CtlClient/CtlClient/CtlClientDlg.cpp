@@ -126,7 +126,8 @@ BOOL CCtlClientDlg::OnInitDialog()
 
 
 	m_tabmain.SetCurSel(0);
-
+	
+	m_dlgupload.SetCDlgTaskStatus(&m_dlgtask);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }

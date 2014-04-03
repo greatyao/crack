@@ -16,7 +16,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Chinese (P.R.C.) resources
+// 中文(中华人民共和国) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
 #ifdef _WIN32
@@ -81,36 +81,37 @@ IDD_DLG_UPLOAD DIALOGEX 0, 0, 368, 215
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    CONTROL         "是",IDC_RADIO1,"Button",BS_AUTORADIOBUTTON | WS_GROUP,92,95,24,10
-    CONTROL         "否",IDC_RADIO2,"Button",BS_AUTORADIOBUTTON,137,94,38,12
-    DEFPUSHBUTTON   "OK",IDOK,205,194,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,273,194,50,14
-    LTEXT           "解密算法",IDC_STATIC,29,30,33,8
-    LTEXT           "解密字符集",IDC_STATIC,29,50,41,8
-    LTEXT           "文件解密",IDC_STATIC,29,93,33,8
-    LTEXT           "终结长度",IDC_STATIC,29,127,33,8
-    LTEXT           "上传文件",IDC_STATIC,29,149,33,8
-    LTEXT           "解密类型",IDC_STATIC,29,67,33,8
-    LTEXT           "起始长度",IDC_STATIC,31,112,33,8
-    COMBOBOX        IDC_COMBO1,90,29,88,90,CBS_DROPDOWN | CBS_SORT | CBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_COMBO2,90,50,89,95,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_COMBO3,90,69,91,54,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    EDITTEXT        IDC_EDIT1,90,110,72,12,ES_AUTOHSCROLL | ES_NUMBER
-    EDITTEXT        IDC_EDIT2,90,128,69,12,ES_AUTOHSCROLL | ES_NUMBER
-    EDITTEXT        IDC_EDIT3,90,151,183,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "选择文件",IDC_BUTTON1,291,151,50,12
+    CONTROL         "是",IDC_RADIO_IS_FILE,"Button",BS_AUTORADIOBUTTON | WS_GROUP,92,95,24,10
+    CONTROL         "否",IDC_RADIO_NO_FILE,"Button",BS_AUTORADIOBUTTON,135,94,28,12
+    LTEXT           "解密算法",IDC_STATIC,39,27,33,8
+    LTEXT           "解密字符集",IDC_STATIC,31,49,41,8
+    LTEXT           "文件解密",IDC_STATIC,39,93,33,8
+    LTEXT           "终结长度",IDC_STATIC,39,137,33,8
+    LTEXT           "上传文件",IDC_STATIC,39,159,33,8
+    LTEXT           "解密类型",IDC_STATIC,39,71,33,8
+    LTEXT           "起始长度",IDC_STATIC,39,115,33,8
+    COMBOBOX        IDC_COMBO_ALG,90,28,88,90,CBS_DROPDOWNLIST | CBS_SORT | CBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_CHARSET,90,50,88,95,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_TYPE,90,70,88,54,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_EDIT_LEN_MIN,90,115,72,12,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_EDIT_LEN_MAX,90,135,72,12,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_EDIT_FILE_PATH,90,155,193,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "选择文件",IDC_BUTTON_SEL_FILE,291,153,50,16
+    DEFPUSHBUTTON   "OK",IDOK,291,182,50,16
+    GROUPBOX        "",IDC_STATIC,7,7,346,201
 END
 
 IDD_DLG_TASK_STATUS DIALOGEX 0, 0, 390, 230
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    CONTROL         "",IDC_TASK_LIST,"SysListView32",LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,7,15,376,130
-    PUSHBUTTON      "开始破解",IDC_BTN_START,7,163,50,14
-    PUSHBUTTON      "暂停破解",IDC_BTN_PAUSE,70,164,50,14
-    PUSHBUTTON      "删除任务",IDC_BTN_DELETE,134,164,50,14
-    PUSHBUTTON      "停止破解",IDC_BTN_STOP,196,164,50,14
-    PUSHBUTTON      "获得最新状态",IDC_BTN_REFRESH,259,164,50,14
+    CONTROL         "",IDC_TASK_LIST,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,18,19,353,130
+    PUSHBUTTON      "开始破解",IDC_BTN_START,18,162,50,14
+    PUSHBUTTON      "暂停破解",IDC_BTN_PAUSE,81,162,50,14
+    PUSHBUTTON      "删除任务",IDC_BTN_DELETE,144,162,50,14
+    PUSHBUTTON      "停止破解",IDC_BTN_STOP,207,162,50,14
+    PUSHBUTTON      "获得最新状态",IDC_BTN_REFRESH,270,162,50,14
+    GROUPBOX        "",IDC_STATIC,7,7,376,216
 END
 
 IDD_DLG_CLIENT_STATUS DIALOGEX 0, 0, 392, 227
@@ -156,12 +157,12 @@ BEGIN
 END
 #endif    // APSTUDIO_INVOKED
 
-#endif    // Chinese (P.R.C.) resources
+#endif    // 中文(中华人民共和国) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// 英语(美国) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 #ifdef _WIN32
@@ -193,6 +194,33 @@ FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     CONTROL         "",IDC_TABMAIN,"SysTabControl32",0x0,7,7,421,244
 END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 163
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 55
+    END
+
+    IDD_CTLCLIENT_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 428
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 251
+    END
+END
+#endif    // APSTUDIO_INVOKED
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -236,33 +264,6 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
-BEGIN
-    IDD_ABOUTBOX, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 163
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 55
-    END
-
-    IDD_CTLCLIENT_DIALOG, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 428
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 251
-    END
-END
-#endif    // APSTUDIO_INVOKED
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // String Table
 //
 
@@ -272,7 +273,7 @@ BEGIN
     IDP_SOCKETS_INIT_FAILED "Windows sockets initialization failed."
 END
 
-#endif    // English (U.S.) resources
+#endif    // 英语(美国) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
