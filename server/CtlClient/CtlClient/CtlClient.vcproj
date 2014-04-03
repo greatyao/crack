@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=""
+				AdditionalIncludeDirectories="..\..\..\common;..\..\..\common\include;"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -268,10 +268,6 @@
 			</File>
 			<File
 				RelativePath=".\DlgUploadTask.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\..\dissys\all\common\include\err.h"
 				>
 			</File>
 			<File
