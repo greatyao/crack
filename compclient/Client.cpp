@@ -107,10 +107,7 @@ void* Client::MonitorThread(void* p)
 			unsigned char cmd = TOKEN_HEARTBEAT;
 			int n = client->Write(cmd, NULL, 0);
 			if(n == ERR_CONNECTIONLOST) 
-			{
-				client->connected = 0;
 				break;
-			}
 			
 			//后续考虑心跳包里面是否有结束某个workitem的解密工作
 			short status;
@@ -393,7 +390,11 @@ int Client::Write(unsigned char cmd, const void* data, int size)
 	if(!data || size == 0)
 	{
 		if(write(sck, &hdr, sizeof(hdr)) < 0)
+		{	
+			connected = 0;
+			close(sck);
 			return ERR_CONNECTIONLOST;
+		}
 		return 0;
 	}
 	
@@ -410,6 +411,8 @@ int Client::Write(unsigned char cmd, const void* data, int size)
 	
 	if(write(sck, &hdr, sizeof(hdr)) < 0 || write(sck, dest, destLen) < 0)
 	{
+		connected = 0;
+		close(sck);
 		delete []dest;
 		return ERR_CONNECTIONLOST;
 	}
@@ -425,10 +428,7 @@ int Client::ReportStatusToServer(crack_status* status)
 	unsigned char cmd = CMD_WORKITEM_STATUS;
 	int m = Write(cmd, status, sizeof(*status));
 	if(m == ERR_CONNECTIONLOST) 
-	{
-		connected = 0;
 		return m;
-	}
 	
 	short st;
 	char buf[1024];
@@ -443,10 +443,7 @@ int Client::ReportResultToServer(crack_result* result)
 	unsigned char cmd = CMD_WORKITEM_RESULT;
 	int m = Write(cmd, result, sizeof(*result));
 	if(m == ERR_CONNECTIONLOST)
-	{
-		connected = 0;
 		return m;
-	}
 	
 	short status;
 	char buf[1024];
@@ -463,10 +460,7 @@ int Client::GetWorkItemFromServer(crack_block* item)
 	
 	int m = Write(cmd, NULL, 0);
 	if(m < 0) 
-	{
-		if(m == ERR_CONNECTIONLOST) connected = 0;
 		return m;
-	}
 	
 	int n = Read(&cmd, &status, buffer, sizeof(buffer));
 	CLog::Log(LOG_LEVEL_NOMAL, "Client: Read workitem %d %d\n", cmd, n);
@@ -488,13 +482,13 @@ int Client::GetWorkItemFromServer(crack_block* item)
 		{algo_nsldap,	charset_num,	bruteforce,  0, "05", "{SHA}jLIjfQZ5yojbZGTqxg2pY0VROWQ=", 1, 7, 0, 0},
 		{algo_nsldaps,	charset_num,	bruteforce,  0,	"06", "{SSHA}P2oLaAFiExs+MexEjZ5R+KYbtrBhSHhzWnM4VA==", 1, 6, 0, 0},
 		{algo_md4,		charset_num,	bruteforce,  0, "07", "23580e2a459f7ea40f9efa148b63cafb", 1, 6, 0, 0},
-		{algo_md5,		charset_num,	bruteforce,  0, "08", "827ccb0eea8a706c4c34a16891f84e7b", 1, 6, 0, 0},
+		{algo_md5,		charset_num,	bruteforce,  0, "08", "827ccb0eea8a706c4c34a16891f84e7b", 7, 8, 0, 0},
 		{algo_md5md5,	charset_num,	bruteforce,  0, "09", "1f32aa4c9a1d2ea010adcf2348166a04", 1, 6, 0, 0},
-		//{algo_mssql_2000,charset_num,	bruteforce,  0, "9", "0x010077393477CB2764D565692A0DE0D5308C3E19FEE51223EC1ACB2764D565692A0DE0D5308C3E19FEE51223EC1A", 1, 6, 0},
+		{algo_mssql_2000,charset_num,	bruteforce,  0, "9", "0x010077393477CB2764D565692A0DE0D5308C3E19FEE51223EC1ACB2764D565692A0DE0D5308C3E19FEE51223EC1A", 1, 6, 0},
 		{algo_mssql_2005,charset_num,	bruteforce,  0, "A", "0x01004D53456421450CD84AB5AF29A49A90BDBC1AFB0EFBDAF259", 1, 6, 0, 0},
 		{algo_mysql5,	charset_num,	bruteforce,  0, "B", "*00a51f3f48415c7d4e8908980d443c29c69b60c9", 1, 7, 0, 0},
 		{algo_pixmd5,	charset_num,	bruteforce,  0, "C", "u0-pixmd5:UwiM/pkFcM.xYc8s", 1, 7, 0, 0},
-		//{algo_sha512,	charset_num,	bruteforce,  0, "E", "3627909a29c31381a071ec27f7c9ca97726182aed29a7ddd2e54353322cfb30abb9e3a6df2ac2c20fe23436311d678564d0c8d305930575f60e2d3d048184d79", 1, 7, 0}
+		{algo_sha512,	charset_num,	bruteforce,  0, "E", "3627909a29c31381a071ec27f7c9ca97726182aed29a7ddd2e54353322cfb30abb9e3a6df2ac2c20fe23436311d678564d0c8d305930575f60e2d3d048184d79", 1, 7, 0}
 	};
 	static int mm = 0;
 	memcpy(item, &all_items[mm], sizeof(*item));
