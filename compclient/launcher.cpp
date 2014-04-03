@@ -40,7 +40,7 @@ int clauncher::ReportDone(char* guid, bool cracked, const char* passwd)
 	ResourcePool::Get().Lock();
 	
 	if(cracked)
-		CLog::Log(LOG_LEVEL_NOTICE, "clauncher: Crack password %s [guid=%s]\n", passwd, guid);
+		CLog::Log(LOG_LEVEL_SUCCEED, "clauncher: Crack password %s [guid=%s]\n", passwd, guid);
 	else
 		CLog::Log(LOG_LEVEL_ERROR, "clauncher: Crack non password [guid=%s]\n", guid);
 	

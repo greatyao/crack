@@ -18,9 +18,13 @@
 #define hlogstd(...)     fprintf(stderr, __VA_ARGS__)
 #define hlog(_fmt, ...)  hlogstd(HWHERESTR _fmt,  __VA_ARGS__)
 
-#define NWHERESTR  "\033[1;32m[crackctrl]\033[0m "
+#define NWHERESTR  "\033[1;35m[crackctrl]\033[0m "
 #define nlogstd(...)     fprintf(stderr, __VA_ARGS__)
 #define nlog(_fmt, ...)  nlogstd(NWHERESTR _fmt,  __VA_ARGS__)
+
+#define NW2HERESTR  "\033[1;32m[crackctrl]\033[0m "
+#define n2logstd(...)     fprintf(stderr, __VA_ARGS__)
+#define n2log(_fmt, ...)  n2logstd(NW2HERESTR _fmt,  __VA_ARGS__)
 #endif
 
 bool   CLog::m_bInited = false;
@@ -121,8 +125,10 @@ int CLog::Printf(unsigned int uLevel,const char * buffer)
 		wlog("%s", buffer);
 	else if(uLevel == LOG_LEVEL_ERROR)
 		elog("%s", buffer);
-	else
+	else if(uLevel == LOG_LEVEL_NOTICE)
 		nlog("%s", buffer);
+	else
+		n2log("%s", buffer);
 
 #endif
 }

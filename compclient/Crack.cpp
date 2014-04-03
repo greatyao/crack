@@ -159,7 +159,7 @@ int Crack::Kill(const char* guid)
 	}
 
 	close(it->second.read_fd);
-	close(it->second.write_fd)
+	close(it->second.write_fd);
 	running.erase(it);
 	return 0;
 }
