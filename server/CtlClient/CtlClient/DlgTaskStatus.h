@@ -30,6 +30,7 @@ public:
 
     CToolTipCtrl m_toolTip;//提示信息
 	CListCtrl m_ListStatus;
+	afx_msg void OnNMDblclkListTask(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnBnClickedBtnStart();
 	virtual BOOL OnInitDialog();
 	BOOL PreTranslateMessage(MSG* pMsg);

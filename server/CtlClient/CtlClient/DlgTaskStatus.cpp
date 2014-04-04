@@ -31,6 +31,7 @@ void CDlgTaskStatus::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CDlgTaskStatus, CDialog)
 	ON_BN_CLICKED(IDC_BTN_START, &CDlgTaskStatus::OnBnClickedBtnStart)
+	ON_NOTIFY(NM_DBLCLK, IDC_TASK_LIST, &CDlgTaskStatus::OnNMDblclkListTask)
 	ON_BN_CLICKED(IDC_BTN_REFRESH, &CDlgTaskStatus::OnBnClickedBtnRefresh)
 END_MESSAGE_MAP()
 
@@ -192,6 +193,24 @@ BOOL CDlgTaskStatus::PreTranslateMessage(MSG* pMsg)
     return CDialog::PreTranslateMessage(pMsg);
 }
 
+void CDlgTaskStatus::OnNMDblclkListTask(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
+	// TODO: 在此添加控件通知处理程序代码
+	UINT uSel = m_ListStatus.GetSelectionMark();
+	if(uSel==0xffffffff) return;//没有选择
+
+	CString str1 = m_ListStatus.GetItemText(uSel,1);
+	CString str2 = m_ListStatus.GetItemText(uSel,2);
+	CString str3 = m_ListStatus.GetItemText(uSel,3);
+	CString str4 = m_ListStatus.GetItemText(uSel,4);
+
+	char buffer[200];
+	wsprintfA(buffer,"这里显示详细信息：选择条目 %d 内容1 %s",uSel,str1.GetBuffer());
+	AfxMessageBox(buffer);
+
+	*pResult = 0;
+}
 
 BOOL CDlgTaskStatus::AddToTaskList(int nAlgo,int nCharset,int nType,int nIsFile,int nLenMin,int nLenMax,char *psFile,char *guid)
 {

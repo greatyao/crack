@@ -39,12 +39,16 @@ void CDlgUploadTask::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_RADIO_IS_FILE, m_btndec);
 	DDX_Control(pDX, IDC_EDIT_LEN_MIN, m_EditLenMin);
 	DDX_Control(pDX, IDC_EDIT_LEN_MAX, m_EditLenMax);
+	DDX_Control(pDX, IDC_SLIDER_LEN_MIN, m_SlideLenMin);
+	DDX_Control(pDX, IDC_SLIDER2, m_SlideLenMax);
 }
 
 
 BEGIN_MESSAGE_MAP(CDlgUploadTask, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_SEL_FILE, &CDlgUploadTask::OnBnClickedButton1)
 	ON_BN_CLICKED(IDOK, &CDlgUploadTask::OnBnClickedOk)
+	ON_NOTIFY(NM_CUSTOMDRAW, IDC_SLIDER2, &CDlgUploadTask::OnNMCustomdrawSlider2)
+	ON_NOTIFY(NM_CUSTOMDRAW, IDC_SLIDER_LEN_MIN, &CDlgUploadTask::OnNMCustomdrawSliderLenMin)
 END_MESSAGE_MAP()
 
 
@@ -146,6 +150,13 @@ BOOL CDlgUploadTask::OnInitDialog(){
     m_toolTip.AddTool(GetDlgItem(IDC_EDIT_FILE_PATH), "输入文件路径，或者点击后面的选择文件按钮选择文件");
     m_toolTip.AddTool(GetDlgItem(IDC_BUTTON_SEL_FILE), "选择破解的目标文件(hash文件或者加密文件)");
     m_toolTip.AddTool(GetDlgItem(IDOK), "上传任务");
+
+	m_SlideLenMin.SetRange(1,20);
+	m_SlideLenMax.SetRange(1,20);
+	m_SlideLenMin.SetLineSize(1);
+	m_SlideLenMax.SetLineSize(1);
+	m_EditLenMin.SetWindowTextA("1");
+	m_EditLenMax.SetWindowTextA("1");
 
 	m_pDlgTaskStatus = NULL;
 
@@ -403,4 +414,28 @@ void CDlgUploadTask::OnBnClickedOk()
 	//测试
 	//m_pDlgTaskStatus->AddToTaskList(0,0,0,0,2,4,(char*)newtask.filename,"");
 	
+}
+void CDlgUploadTask::OnNMCustomdrawSlider2(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
+	// TODO: 在此添加控件通知处理程序代码
+	char buffer[10];
+	int i = m_SlideLenMax.GetPos();
+	wsprintfA(buffer,"%d",i);
+	m_EditLenMax.SetWindowTextA(buffer);
+
+	*pResult = 0;
+}
+
+void CDlgUploadTask::OnNMCustomdrawSliderLenMin(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
+	// TODO: 在此添加控件通知处理程序代码
+	
+	char buffer[10];
+	int i = m_SlideLenMin.GetPos();
+	wsprintfA(buffer,"%d",i);
+	m_EditLenMin.SetWindowTextA(buffer);
+
+	*pResult = 0;
 }

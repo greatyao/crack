@@ -2,6 +2,7 @@
 #include "afxwin.h"
 #include "SelectFileDialog.h"
 #include "DlgTaskStatus.h"
+#include "afxcmn.h"
 
 
 // CDlgUploadTask dialog
@@ -45,4 +46,8 @@ public:
 	CButton m_btndec;
 	CEdit m_EditLenMin;
 	CEdit m_EditLenMax;
+	afx_msg void OnNMCustomdrawSlider2(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnNMCustomdrawSliderLenMin(NMHDR *pNMHDR, LRESULT *pResult);
+	CSliderCtrl m_SlideLenMin;
+	CSliderCtrl m_SlideLenMax;
 };
