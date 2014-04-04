@@ -164,11 +164,11 @@ BOOL CDlgTaskStatus::OnInitDialog()
 	ListView_SetExtendedListViewStyle(m_ListStatus.m_hWnd, LVS_EX_FULLROWSELECT|LVS_EX_CHECKBOXES );
 
 	m_ListStatus.InsertColumn(0, _T("选择"), LVCFMT_LEFT, 40);
-	m_ListStatus.InsertColumn(1, _T("任务文件名"), LVCFMT_LEFT, 200);
-	m_ListStatus.InsertColumn(2, _T("算法"), LVCFMT_LEFT, 50);
-	m_ListStatus.InsertColumn(3, _T("任务状态"), LVCFMT_LEFT, 100);
-	m_ListStatus.InsertColumn(4, _T("解密完成度"), LVCFMT_LEFT, 80);
-	m_ListStatus.InsertColumn(5, _T("任务编号"), LVCFMT_LEFT, 80);//guid
+	m_ListStatus.InsertColumn(1, _T("任务GUID"), LVCFMT_LEFT, 200);
+	m_ListStatus.InsertColumn(2, _T("进度"), LVCFMT_LEFT, 50);
+	m_ListStatus.InsertColumn(3, _T("切割份数"), LVCFMT_LEFT, 100);
+	m_ListStatus.InsertColumn(4, _T("完成份数"), LVCFMT_LEFT, 80);
+	m_ListStatus.InsertColumn(5, _T("状态"), LVCFMT_LEFT, 80);//guid
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 异常: OCX 属性页应返回 FALSE
@@ -255,38 +255,125 @@ void CDlgTaskStatus::OnBnClickedBtnRefresh()
 	for(i = 0;i < count ;i ++ ){
 
 		p = &pres[i];
-		m_ListStatus.InsertItem(i,(LPCTSTR)(p->guid));
-		memset(tmpbuf,0,128);
+	
+		m_ListStatus.InsertItem(i,"");
+		m_ListStatus.SetItemText(i,1,(char *)p->guid);
 		sprintf(tmpbuf,"%f",p->m_progress);
-		m_ListStatus.SetItemText(i,0,"");
-		m_ListStatus.SetItemText(i,1,_T(tmpbuf));
-		memset(tmpbuf,0,128);
-		sprintf(tmpbuf,"%d",p->m_split_number);
-		m_ListStatus.SetItemText(i,2,_T(tmpbuf));
-		memset(tmpbuf,0,128);
-		sprintf(tmpbuf,"%d",p->m_fini_number);
-		m_ListStatus.SetItemText(i,3,_T(tmpbuf));
-
-		memset(tmpbuf,0,128);
-		GetStatusStrByCmd(pres->status,tmpbuf);
-		m_ListStatus.SetItemText(i,4,_T(tmpbuf));
-
+		m_ListStatus.SetItemText(i,2,tmpbuf);
+		wsprintfA(tmpbuf,"%d",p->m_split_number);
+		m_ListStatus.SetItemText(i,3,tmpbuf);
+		wsprintfA(tmpbuf,"%d",p->m_fini_number);
+		m_ListStatus.SetItemText(i,4,tmpbuf);
+		wsprintfA(tmpbuf,"%d",p->status);
+		m_ListStatus.SetItemText(i,5,tmpbuf);
 	}
 }
 
 //开始破解
 void CDlgTaskStatus::OnBnClickedBtnStart()
 {
+	task_start_req  req={0};
+	task_status_res res={0};
+
+	int n = m_ListStatus.GetItemCount();
+	
+	for(int i = 0; i < n; i++)
+	{
+		int bFlag = m_ListStatus.GetCheck(i);
+		if(bFlag)
+		{
+			//选中的，开始破解
+			char buffer[100]={0};
+			m_ListStatus.GetItemText(i,1,buffer,100);
+			memcpy(req.guid,buffer,40);
+
+			int	ret = g_packmanager.GenTaskStartPack(req,&res);
+			if (ret < 0){
+
+				CLog::Log(LOG_LEVEL_WARNING,"开始任务  %s  失败，错误代码 : %d\n",req.guid,ret);
+			}
+
+		}
+	}
 }
 //暂停
 void CDlgTaskStatus::OnBnClickedBtnPause()
 {
+	task_pause_req  req={0};
+	task_status_res res={0};
+
+	int n = m_ListStatus.GetItemCount();
+	
+	for(int i = 0; i < n; i++)
+	{
+		int bFlag = m_ListStatus.GetCheck(i);
+		if(bFlag)
+		{
+			//选中的，开始破解
+			char buffer[100]={0};
+			m_ListStatus.GetItemText(i,1,buffer,100);
+			memcpy(req.guid,buffer,40);
+
+			int	ret = g_packmanager.GenTaskPausePack(req,&res);
+			if (ret < 0){
+
+				CLog::Log(LOG_LEVEL_WARNING,"开始任务  %s  失败，错误代码 : %d\n",req.guid,ret);
+			}
+
+		}
+	}
 }
 //删除选中
 void CDlgTaskStatus::OnBnClickedBtnDelete()
 {
+	task_delete_req  req={0};
+	task_status_res res={0};
+
+	int n = m_ListStatus.GetItemCount();
+	
+	for(int i = 0; i < n; i++)
+	{
+		int bFlag = m_ListStatus.GetCheck(i);
+		if(bFlag)
+		{
+			//选中的，开始破解
+			char buffer[100]={0};
+			m_ListStatus.GetItemText(i,1,buffer,100);
+			memcpy(req.guid,buffer,40);
+
+			int	ret = g_packmanager.GenTaskDeletePackt(req,&res);
+			if (ret < 0){
+
+				CLog::Log(LOG_LEVEL_WARNING,"开始任务  %s  失败，错误代码 : %d\n",req.guid,ret);
+			}
+
+		}
+	}
 }
 //停止破解
 void CDlgTaskStatus::OnBnClickedBtnStop()
 {
+	task_stop_req  req={0};
+	task_status_res res={0};
+
+	int n = m_ListStatus.GetItemCount();
+	
+	for(int i = 0; i < n; i++)
+	{
+		int bFlag = m_ListStatus.GetCheck(i);
+		if(bFlag)
+		{
+			//选中的，开始破解
+			char buffer[100]={0};
+			m_ListStatus.GetItemText(i,1,buffer,100);
+			memcpy(req.guid,buffer,40);
+
+			int	ret = g_packmanager.GenTaskStopPack(req,&res);
+			if (ret < 0){
+
+				CLog::Log(LOG_LEVEL_WARNING,"开始任务  %s  失败，错误代码 : %d\n",req.guid,ret);
+			}
+
+		}
+	}
 }

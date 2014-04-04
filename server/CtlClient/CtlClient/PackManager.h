@@ -49,6 +49,23 @@ public:
 	CSocketClient m_sockclient;
 
 	//数据发送线程
+	pthread_t m_ThreadSend;	//发送网络数据的线程句柄
+	int m_bThreadSendStop;	//停止线程标记
+	int m_bThreadSendRunning;//线程运行标记
+
+	unsigned char *m_pSend;//发送的数据 
+	int m_bToSend;//有数据发送
+	int m_lenSend;//数据长度
+
+	unsigned char *m_pRecv;//接收到数据的指针
+	int m_bRecved;//接收到数据
+	int m_lenRecv;//
+
+	static void *ThreadSend(void *);	//发送网络数据的线程
+	void StartSend(void);				//启动发送数据的线程
+	void StopSend(void);				//停止发送数据的线程
+
+	void *SendDataViaThread(void *);//发送数据接口
 
 
 	//增加线程，处理心跳包
