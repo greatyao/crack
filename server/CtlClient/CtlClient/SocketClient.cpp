@@ -118,7 +118,7 @@ int CSocketClient::Read(unsigned char *cmd, short* status, void* data, int size,
 	return uncompressLen;
 }
 
-int CSocketClient::mysend(void* buf, int size, int flag)
+static int mysend(void* buf, int size, int flag)
 {
 	int total = 0;
 	int n;

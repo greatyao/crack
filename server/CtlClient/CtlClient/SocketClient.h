@@ -16,7 +16,6 @@ public:
 	//否则必须让seq从1开始递增；最后必须发送一个dataLen为-1的数据，表明数据结束
 	int Write(unsigned char cmd, short status,void *data,int size, unsigned int seq = 0);
 	int WriteNoCompress(unsigned char cmd, short status,void *data,int size, unsigned int seq = 0);
-	int mysend(void* buf, int size, int flag);
 
 	int Finish();
 public:
