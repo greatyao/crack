@@ -3,6 +3,8 @@
 #include "SocketClient.h"
 #include "CLog.h"
 
+CPackManager g_packmanager;
+
 CPackManager::CPackManager(void)
 {
 	CLog::InitLogSystem(LOG_TO_FILE,TRUE,"ControlClient.log");

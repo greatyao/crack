@@ -46,4 +46,4 @@ public:
 
 };
 
-static CPackManager g_packmanager;
+extern CPackManager g_packmanager;
