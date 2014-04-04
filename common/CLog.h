@@ -6,13 +6,14 @@
 * 更新记录 无
 *
 *****************************************************************************/
-#ifndef WIN32_LEAN_AND_MEAN
-#define	WIN32_LEAN_AND_MEAN
-#endif
+#ifndef _CLOG_H_
+#define	_CLOG_H_
+
 #if defined(WIN32) || defined(WIN64) 
 #include <windows.h>
-#endif
+#else
 #include <pthread.h>
+#endif
 #include <stdio.h>
 
 /*****************************************************************************
@@ -45,12 +46,16 @@ class CLog
 private:
 #if defined(WIN32) || defined(WIN64) 
 	static HANDLE m_hOutputConsole;	//标准输出控制台句柄
+	static CRITICAL_SECTION m_cs;
+#else
+	static pthread_mutex_t m_mutex;//临界区
 #endif
 	static FILE*  m_hOutputFile;	//标准输出文件句柄
 	static bool   m_bInited;		//初始化标记
 	static unsigned int   m_uLogType;		//日志类型
-	static bool   m_bLogDate;		//记录日期时间
-	static pthread_mutex_t m_mutex;//临界区
+	static bool   m_bLogDate;		//记录日期时间	
+	static int lastDay, currDay;
+	static char suffix[256];
 	/*****************************************************************************/
 	// 同步互斥锁机制
 	/*****************************************************************************/
@@ -103,3 +108,5 @@ public:
 	/*****************************************************************************/
 	static void Log(unsigned int uLevel, const char* pszFormat, ... );
 };
+
+#endif

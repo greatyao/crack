@@ -1,10 +1,9 @@
 #include "CLog.h"
 #include <stdarg.h>
 #include <string.h>
-#if defined(WIN32) || defined(WIN64)
-#pragma warning (disable:4995)
-#include <Strsafe.h>
-#else
+#include <time.h>
+
+#if defined(__linux__) || defined(__CYGWIN__)
 #define EWHERESTR  "\033[1;31m[crackctrl]\033[0m "
 #define EWHEREARG  __FILE__, __LINE__
 #define elogerr(...)     fprintf(stderr, __VA_ARGS__)
@@ -27,14 +26,34 @@
 #define n2log(_fmt, ...)  n2logstd(NW2HERESTR _fmt,  __VA_ARGS__)
 #endif
 
+#if defined(WIN32) || defined(WIN64) 
+HANDLE CLog::m_hOutputConsole = NULL;
+CRITICAL_SECTION CLog::m_cs;
+#else
+pthread_mutex_t CLog::m_mutex;
+#endif
 bool   CLog::m_bInited = false;
 bool   CLog::m_bLogDate = false;
 unsigned int   CLog::m_uLogType = LOG_TO_SCREEN;
-#if defined(WIN32) || defined(WIN64) 
-HANDLE CLog::m_hOutputConsole = NULL;
-#endif
 FILE* CLog::m_hOutputFile = NULL;
-pthread_mutex_t CLog::m_mutex;
+int CLog::currDay;
+int CLog::lastDay;
+char CLog::suffix[256] = {0};
+
+static int GetDay(char* buffer, int size, bool hms)
+{
+	time_t nowtime;
+	struct tm* ptm;     
+	time(&nowtime);     
+	ptm = localtime(&nowtime);
+	if(buffer)
+	{
+		if(hms)	strftime(buffer, size, "%Y-%m-%d %H:%M:%S ", ptm);	
+		else	strftime(buffer, size, "%Y-%m-%d", ptm);	
+	}
+		
+	return ptm->tm_mday;
+}
 
 /*****************************************************************************/
 // 同步互斥锁机制（内部调用）
@@ -42,17 +61,29 @@ pthread_mutex_t CLog::m_mutex;
 //锁
 void CLog::Lock(void)
 {
+#if defined(WIN32) || defined(WIN64) 
+	EnterCriticalSection(&m_cs);
+#else
 	pthread_mutex_lock(&m_mutex);
+#endif
 }
 //解锁
 void CLog::UnLock(void)
 {
+#if defined(WIN32) || defined(WIN64) 
+	LeaveCriticalSection(&m_cs);
+#else
 	pthread_mutex_unlock(&m_mutex);
+#endif
 }
 //尝试锁
 bool CLog::TryLock(void)
 {
+#if defined(WIN32) || defined(WIN64) 
+	return TryEnterCriticalSection(&m_cs);
+#else
 	return pthread_mutex_trylock(&m_mutex);
+#endif
 }
 
 /*****************************************************************************/
@@ -83,7 +114,15 @@ bool CLog::InitConsole(void)
 /*****************************************************************************/
 bool CLog::InitFileSystem(const char *cFile)
 {
-	m_hOutputFile = fopen(cFile, "w+");
+	char text[64];
+	lastDay = GetDay(text, sizeof(text), false);
+	
+	if(m_hOutputFile)
+		fclose(m_hOutputFile);
+	
+	char logFile[512];
+	sprintf(logFile, "%s-%s.log", suffix, text);
+	m_hOutputFile = fopen(logFile, "a+");
 	if( m_hOutputFile==NULL )
 	{
 		return false;
@@ -95,7 +134,18 @@ bool CLog::InitFileSystem(const char *cFile)
 int CLog::Printf(unsigned int uLevel,const char * buffer)
 {
 	if(m_uLogType==LOG_TO_FILE)
+	{
+		char text[64];
+		currDay = GetDay(text, sizeof(text), true);
+		if(currDay != lastDay)
+		{
+			fprintf(m_hOutputFile, "%sA new day is coming, turn off this log\n", text);
+			InitFileSystem(NULL);
+			fprintf(m_hOutputFile, "%sA new day and a new start\n", text);
+		}
+	
 		return Write(uLevel,buffer);
+	}
 #if defined(WIN32) || defined(WIN64)
 	DWORD cbWritten;
 	//保存控制台属性	
@@ -160,8 +210,9 @@ bool CLog::InitLogSystem(unsigned int uType ,bool bDate ,const char *cFile )
 
 	if(m_uLogType==LOG_TO_FILE)
 	{
+		strncpy(suffix, cFile, sizeof(suffix));
 		if(InitFileSystem(cFile)==false)
-		return false;
+		return false;		
 	}
 	else if(m_uLogType==LOG_TO_SCREEN)
 	{
@@ -173,9 +224,15 @@ bool CLog::InitLogSystem(unsigned int uType ,bool bDate ,const char *cFile )
 		return false;
 	}
 
+#if defined(WIN32) || defined(WIN64) 
+	InitializeCriticalSection(&m_cs);
+#else
 	pthread_mutex_init(&m_mutex, NULL);
+#endif
 	m_bInited = true;
 
+	Log(LOG_LEVEL_NOMAL, "======== System starting now ======\n");
+	
 	return m_bInited;
 }
 	
@@ -190,6 +247,9 @@ bool CLog::ReleaseLogSystem(void)
 	{
 		return true;
 	}
+	
+	Log(LOG_LEVEL_NOMAL, "======== System stopped now ======\n");
+	
 #if defined(WIN32) || defined(WIN64)
 	if(m_hOutputConsole)
 	{
@@ -208,9 +268,11 @@ bool CLog::ReleaseLogSystem(void)
 		fclose(m_hOutputFile);
 		m_hOutputFile = NULL;
 	}
+	DeleteCriticalSection(&m_cs);
+#else
+	pthread_mutex_destroy(&m_mutex);	
 #endif
 	m_bInited = 0;
-	pthread_mutex_destroy(&m_mutex);
 
 	return true;
 }
@@ -233,16 +295,14 @@ void CLog::Log(unsigned int uLevel, const char* pszFormat, ... )
 	if(m_bLogDate)
 	{
 		//写数据到文件(写时间)
-		time_t t;									
-		struct tm *tm1;								
-		time(&t);									
-		tm1 = localtime(&t);						
-		strftime(buffer, 256, "%Y-%m-%d %H:%M:%S ", tm1);
+		GetDay(buffer, sizeof(buffer), true);
 	}
 
 	va_list arglist;
 	va_start (arglist, pszFormat);
 	vsprintf(buffer+strlen(buffer), pszFormat, arglist);
+	if(buffer[strlen(buffer)-1] != '\n')
+		strcat(buffer, "\n");
 
 	Lock();
 	Printf(uLevel, buffer);
