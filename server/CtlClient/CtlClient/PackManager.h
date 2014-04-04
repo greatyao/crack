@@ -48,6 +48,8 @@ public:
 	char m_cur_local_file[256];
 	CSocketClient m_sockclient;
 
+	//数据发送线程
+
 
 	//增加线程，处理心跳包
 	pthread_t m_ThreadHeartBeat;//线程句柄
