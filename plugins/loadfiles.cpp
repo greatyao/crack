@@ -42,7 +42,7 @@ int load_hashes_file(const char *filename,  int algo, struct crack_hash* hashes,
     strcpy(filename_copy, filename);
     
 	//文件类型解密的解析
-	if(*special) *special = plugin->special();
+	if(special) *special = plugin->special();
     if (plugin->special())
     {
 		ret = plugin->parse(NULL, (char *)filename, hashes);
