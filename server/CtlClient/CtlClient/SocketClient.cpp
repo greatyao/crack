@@ -118,12 +118,12 @@ int CSocketClient::Read(unsigned char *cmd, short* status, void* data, int size,
 	return uncompressLen;
 }
 
-static int mysend(void* buf, int size, int flag)
+static int mysend(SOCKET s, void* buf, int size, int flag)
 {
 	int total = 0;
 	int n;
 	do{	
-		if((n=send(m_clientsocket, (char *)buf+total, size-total, flag)) < 0)
+		if((n=send(s, (char *)buf+total, size-total, flag)) < 0)
 			return -1;
 		total += n;
 		if(total == size) break;
@@ -140,7 +140,7 @@ int CSocketClient::Write(unsigned char cmd, short status, void* data, int size, 
 	if(!data || size == 0 || size == -1)
 	{
 		hdr.dataLen = size;
-		if(mysend((char *)&hdr, sizeof(hdr), 0) < 0)
+		if(mysend(m_clientsocket, (char *)&hdr, sizeof(hdr), 0) < 0)
 			return ERR_CONNECTIONLOST;
 		return 0;
 	}
@@ -156,7 +156,7 @@ int CSocketClient::Write(unsigned char cmd, short status, void* data, int size, 
 	hdr.dataLen = size;
 	hdr.compressLen = destLen;
 	
-	if(mysend((char *)&hdr, sizeof(hdr), 0) < 0 || mysend( (char *)dest, destLen, 0) < 0)
+	if(mysend(m_clientsocket, (char *)&hdr, sizeof(hdr), 0) < 0 || mysend(m_clientsocket, (char *)dest, destLen, 0) < 0)
 	{
 		delete []dest;
 		return ERR_CONNECTIONLOST;
@@ -173,7 +173,7 @@ int CSocketClient::WriteNoCompress(unsigned char cmd, short status, void* data, 
 	if(!data || size == 0|| size == -1)
 	{
 		hdr.dataLen = size;
-		if(mysend((char *)&hdr, sizeof(hdr), 0) < 0)
+		if(mysend(m_clientsocket, (char *)&hdr, sizeof(hdr), 0) < 0)
 			return ERR_CONNECTIONLOST;
 		return 0;
 	}
@@ -182,7 +182,7 @@ int CSocketClient::WriteNoCompress(unsigned char cmd, short status, void* data, 
 	hdr.dataLen = size;
 	hdr.compressLen = -1;
 	
-	if(mysend((char *)&hdr, sizeof(hdr), 0) < 0 || mysend( (char *)data, size, 0) < 0)
+	if(mysend(m_clientsocket, (char *)&hdr, sizeof(hdr), 0) < 0 || mysend(m_clientsocket, (char *)data, size, 0) < 0)
 	{
 		return ERR_CONNECTIONLOST;
 	}

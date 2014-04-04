@@ -641,7 +641,8 @@ void *CPackManager::ThreadSend(void *par)
 		if(p->m_bToSend)//有数据发送
 		{
 			//发送
-			p->m_sockclient.mysend(p->m_pSend,p->m_lenSend,0);
+			//p->m_sockclient.mysend(p->m_pSend,p->m_lenSend,0);
+			//mysend不是对外读写的接口
 			free(p->m_pSend); p->m_pSend=0;
 			p->m_bToSend = 0;
 
