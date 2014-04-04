@@ -61,7 +61,7 @@ int CSocketClient::Init(char *ip,int port){
 
 
 
-int CSocketClient::Read(unsigned char *cmd, short* status, void* data, int size)
+int CSocketClient::Read(unsigned char *cmd, short* status, void* data, int size, unsigned int* seq)
 {
 	control_header hdr;
 	if(recv(m_clientsocket, (char*)&hdr, sizeof(hdr), 0) <= 0) 
@@ -74,10 +74,11 @@ int CSocketClient::Read(unsigned char *cmd, short* status, void* data, int size)
 	*status = hdr.response;
 	int totalN = hdr.compressLen;
 	int origN = hdr.dataLen;
+	if(seq)	*seq = hdr.seq;
 	
-	if(origN < 0 || size < origN)
+	if(origN < -1 || size < origN)
 		return ERR_INVALIDDATA;
-	if(origN == 0)
+	if(origN == 0 || origN == -1)
 		return 0;
 	
 	unsigned char* buf = NULL;
@@ -131,12 +132,14 @@ int CSocketClient::mysend(void* buf, int size, int flag)
 	return size;
 }
 
-int CSocketClient::Write(unsigned char cmd, short status, void* data, int size)
+int CSocketClient::Write(unsigned char cmd, short status, void* data, int size, unsigned int seq)
 {
 	struct control_header hdr = INITIALIZE_EMPTY_HEADER(cmd);
 	hdr.response = status;
-	if(!data || size == 0)
+	hdr.seq = seq;
+	if(!data || size == 0 || size == -1)
 	{
+		hdr.dataLen = size;
 		if(mysend((char *)&hdr, sizeof(hdr), 0) < 0)
 			return ERR_CONNECTIONLOST;
 		return 0;
@@ -163,12 +166,13 @@ int CSocketClient::Write(unsigned char cmd, short status, void* data, int size)
 	return destLen;
 }
 
-int CSocketClient::WriteNoCompress(unsigned char cmd, short status, void* data, int size)
+int CSocketClient::WriteNoCompress(unsigned char cmd, short status, void* data, int size, unsigned int seq)
 {
 	struct control_header hdr = INITIALIZE_EMPTY_HEADER(cmd);
 	hdr.response = status;
-	if(!data || size == 0)
+	if(!data || size == 0|| size == -1)
 	{
+		hdr.dataLen = size;
 		if(mysend((char *)&hdr, sizeof(hdr), 0) < 0)
 			return ERR_CONNECTIONLOST;
 		return 0;

@@ -7,12 +7,15 @@ struct control_header
 	unsigned char magic[5];			//G&CPU
 	unsigned char cmd;				//命令字
 	short response;					//回应状态
+	
 	unsigned int dataLen;			//原始数据长度
 	unsigned int compressLen;		//压缩数据后长度
+	unsigned int seq;				//序号（如果存在多个数据包，则序号从1开始，否则序号为0。
+									//判断多个序列数据包结束看dataLen是否为-1）
 };
 
-#define INITIALIZE_HEADER(cmd, resp, len, len2)  {{'G', '&', 'C', 'P', 'U'}, cmd, resp, len, len2}
-#define INITIALIZE_EMPTY_HEADER(cmd)  {{'G', '&', 'C', 'P', 'U'}, cmd, 0, 0, 0}
+#define INITIALIZE_HEADER(cmd, resp, len, len2, seq)  {{'G', '&', 'C', 'P', 'U'}, cmd, resp, len, len2, seq}
+#define INITIALIZE_EMPTY_HEADER(cmd)  {{'G', '&', 'C', 'P', 'U'}, cmd, 0, 0, 0, 0}
 
 // BYTE最大也就256
 enum
