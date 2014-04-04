@@ -19,10 +19,14 @@ CPackManager::CPackManager(void)
 
 	m_sockclient.Init(ip,6010);
 
+	//心跳线程使用
+	m_bThreadHeartBeatRunning = 0;
+	StartHeartBeat();//心跳
 }
 
 CPackManager::~CPackManager(void)
 {
+	StopHeartBeat();//心跳
 	m_sockclient.Finish();
 }
 
@@ -528,3 +532,89 @@ int CPackManager::GenFileUploadStart(file_upload_end_res *res){
 
 }
 
+
+
+
+/*************************************************************************
+心跳包线程处理
+必须初始化 m_bThreadHeartBeatRunning 为 0
+然后可以调用 StartHeartBeat 和 StopHeartBeat 开始和结束线程
+*************************************************************************/
+#pragma comment(lib,"pthreadVC2.lib")
+
+/***********************************************
+心跳包线程
+定义间隔时间60秒
+***********************************************/
+void *CPackManager::ThreadHeartBeat(void *par)
+{	
+	CPackManager *p = (CPackManager*)par;
+	
+	while(p->m_bThreadHeartBeatStop!=TRUE)
+	{
+		p->DoKeeplivePack();
+		Sleep(60*1000);//等120秒
+	}
+	return 0;
+};	
+
+/***********************************************
+启动心跳包线程
+***********************************************/
+void CPackManager::StartHeartBeat(void)
+{	
+	if(m_bThreadHeartBeatRunning==TRUE)
+	{
+		CLog::Log(LOG_LEVEL_WARNING,"线程运行中，不需要再创建\n");
+		return;
+	}
+	
+	m_bThreadHeartBeatStop = FALSE;
+	m_bThreadHeartBeatRunning = TRUE;
+
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+	
+	pthread_mutex_t running_mutex;
+	pthread_cond_t keeprunning_cv;
+	pthread_mutex_init(&running_mutex, NULL);
+	pthread_cond_init(&keeprunning_cv, NULL);
+	
+	int returnValue = pthread_create( &m_ThreadHeartBeat, &attr, ThreadHeartBeat, (void *)this);
+	if( returnValue != 0 )
+	{
+		CLog::Log(LOG_LEVEL_ERROR,"心跳线程失败，错误代码: %d\n", returnValue);
+		m_bThreadHeartBeatStop = TRUE;
+		m_bThreadHeartBeatRunning = FALSE;
+	}
+	else
+	{
+		CLog::Log(LOG_LEVEL_NOMAL,"心跳线程创建成功\n");
+		m_bThreadHeartBeatStop = FALSE;
+		m_bThreadHeartBeatRunning = TRUE;
+	}
+}
+
+/***********************************************
+结束心跳包线程
+***********************************************/
+void CPackManager::StopHeartBeat(void)
+{
+	if(m_bThreadHeartBeatRunning==FALSE)
+	{
+		CLog::Log(LOG_LEVEL_NOMAL,"线程没有在运行\n");
+		return;
+	}
+
+	m_bThreadHeartBeatStop = TRUE;
+	int returnValue = pthread_join(m_ThreadHeartBeat, NULL);
+	if( returnValue != 0 )
+	{
+		CLog::Log(LOG_LEVEL_ERROR,"线程退出失败，错误代码: %d\n", returnValue);
+	}
+	else{
+		CLog::Log(LOG_LEVEL_NOMAL,"线程成功退出\n");
+	}
+	m_bThreadHeartBeatRunning = FALSE;
+}

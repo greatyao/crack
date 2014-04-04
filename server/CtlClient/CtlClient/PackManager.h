@@ -5,6 +5,10 @@
 #include "ResPacket.h"
 #include "SocketClient.h"
 
+//pthread
+#include "pthread.h"
+#include "sched.h"
+#include "semaphore.h"
 
 class CPackManager
 {
@@ -44,6 +48,15 @@ public:
 	char m_cur_local_file[256];
 	CSocketClient m_sockclient;
 
+
+	//增加线程，处理心跳包
+	pthread_t m_ThreadHeartBeat;//线程句柄
+	int m_bThreadHeartBeatStop;	//停止线程标记
+	int m_bThreadHeartBeatRunning;//线程运行标记
+
+	static void *ThreadHeartBeat(void *);	//心跳包
+	void StartHeartBeat(void);				//启动心跳线程
+	void StopHeartBeat(void);				//停止心跳线程
 };
 
 extern CPackManager g_packmanager;

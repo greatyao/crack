@@ -36,4 +36,7 @@ public:
 	BOOL PreTranslateMessage(MSG* pMsg);
 	afx_msg void OnBnClickedBtnRefresh();
 	void GetStatusStrByCmd(char cmd,char *pdes);
+	afx_msg void OnBnClickedBtnPause();
+	afx_msg void OnBnClickedBtnDelete();
+	afx_msg void OnBnClickedBtnStop();
 };

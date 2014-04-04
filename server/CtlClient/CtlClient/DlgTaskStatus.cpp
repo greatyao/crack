@@ -33,6 +33,9 @@ BEGIN_MESSAGE_MAP(CDlgTaskStatus, CDialog)
 	ON_BN_CLICKED(IDC_BTN_START, &CDlgTaskStatus::OnBnClickedBtnStart)
 	ON_NOTIFY(NM_DBLCLK, IDC_TASK_LIST, &CDlgTaskStatus::OnNMDblclkListTask)
 	ON_BN_CLICKED(IDC_BTN_REFRESH, &CDlgTaskStatus::OnBnClickedBtnRefresh)
+	ON_BN_CLICKED(IDC_BTN_PAUSE, &CDlgTaskStatus::OnBnClickedBtnPause)
+	ON_BN_CLICKED(IDC_BTN_DELETE, &CDlgTaskStatus::OnBnClickedBtnDelete)
+	ON_BN_CLICKED(IDC_BTN_STOP, &CDlgTaskStatus::OnBnClickedBtnStop)
 END_MESSAGE_MAP()
 
 
@@ -227,10 +230,6 @@ BOOL CDlgTaskStatus::AddToTaskList(int nAlgo,int nCharset,int nType,int nIsFile,
 	return 0;
 }
 
-void CDlgTaskStatus::OnBnClickedBtnStart()
-{
-}
-
 void CDlgTaskStatus::OnBnClickedBtnRefresh()
 {
 	int ret = 0;
@@ -273,7 +272,21 @@ void CDlgTaskStatus::OnBnClickedBtnRefresh()
 		m_ListStatus.SetItemText(i,4,_T(tmpbuf));
 
 	}
-	
-	//m_tasklist.SetRedraw(TRUE);
-	//	m_tasklist.UpdateData(FALSE);
+}
+
+//开始破解
+void CDlgTaskStatus::OnBnClickedBtnStart()
+{
+}
+//暂停
+void CDlgTaskStatus::OnBnClickedBtnPause()
+{
+}
+//删除选中
+void CDlgTaskStatus::OnBnClickedBtnDelete()
+{
+}
+//停止破解
+void CDlgTaskStatus::OnBnClickedBtnStop()
+{
 }
