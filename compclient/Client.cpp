@@ -314,7 +314,7 @@ int Client::DownloadFile(const char* filename, const char* path)
 	return 0;
 }
 
-int Client::Read(unsigned char *cmd, short* status, void* data, int size)
+int Client::Read(unsigned char *cmd, short* status, void* data, int size, int* seq)
 {
 	if(connected != 2)
 		return ERR_CONNECTIONLOST;
@@ -333,10 +333,11 @@ int Client::Read(unsigned char *cmd, short* status, void* data, int size)
 	*status = hdr.response;
 	int totalN = hdr.compressLen;
 	int origN = hdr.dataLen;
+	if(seq)	*seq = hdr.seq;
 	
-	if(origN < 0 || size < origN)
+	if(origN < -1 || size < origN)
 		return ERR_INVALIDDATA;
-	if(origN == 0)
+	if(origN == 0 || origN == -1)
 		return 0;
 	
 	unsigned char* buf = NULL;
@@ -381,14 +382,16 @@ int Client::Read(unsigned char *cmd, short* status, void* data, int size)
 	return uncompressLen;
 }
 
-int Client::Write(unsigned char cmd, const void* data, int size)
+int Client::Write(unsigned char cmd, const void* data, int size, int seq)
 {
 	if(connected != 2)
 		return ERR_CONNECTIONLOST;
 	
 	struct control_header hdr = INITIALIZE_EMPTY_HEADER(cmd);
-	if(!data || size == 0)
+	hdr.seq = seq;
+	if(!data || size == 0 || size == -1)
 	{
+		hdr.dataLen = size;
 		if(write(sck, &hdr, sizeof(hdr)) < 0)
 		{	
 			connected = 0;
