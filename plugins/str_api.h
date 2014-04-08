@@ -11,5 +11,6 @@ int isEndsWith(char *hashline, char *str);
 size_t countSpecChar(char *hashline, char c);
 int isupperhex(char *hashline);
 std::vector<char*> split(char *hashline, char *str);
+char* atoh(unsigned char *src, size_t size);
 
 #endif

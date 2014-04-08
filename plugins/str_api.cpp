@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include <iostream>
+#include <sstream>
 #include <ctype.h>
 #include "trex/trex.h"
 #include "str_api.h"
@@ -31,16 +31,6 @@ int isAlphaDotSlash(char *hashline)
 
 	return 1;
 }
-//^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$
-
-//#include <regex>
-//int isbase64(char *hashline)
-//{
-//	std::tr1::cmatch res;
-//    std::tr1::regex rx("^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$");
-//    std::tr1::regex_search(hashline, res, rx);
-//	return res.size();
-//}
 
 int isbase64(char *hashline)
 {
@@ -126,4 +116,19 @@ std::vector<char*> split(char *hashline, char *str)
 		c = strtok_r(NULL,str, &p);
 	}
 	return v;
+}
+
+char* atoh(unsigned char *src, size_t size)
+{
+	int i = 0;
+
+	char *dest = (char*)malloc(size);
+	
+	while(i<size)
+	{
+		snprintf(dest+i,2,"%02X",(unsigned int)*(src+i/2));
+		i+=2;
+	}
+	*(dest+size)='\0';
+	return dest;
 }
