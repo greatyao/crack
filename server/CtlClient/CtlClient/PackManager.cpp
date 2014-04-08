@@ -91,7 +91,8 @@ int CPackManager::StartClient(void)
 
 	if( m_sockclient.Init(ip,6010)!=0 )
 	{
-		AfxMessageBox("连接服务器失败");
+		CLog::Log(LOG_LEVEL_ERROR,"连接服务器失败\n");
+		return 0;
 	}
 	m_connected = 1;
 
@@ -776,7 +777,10 @@ HANDLE CPackManager::CreateSleep(void)
 
 void CPackManager::StartSleep(HANDLE hHandle,unsigned long dwMilliseconds)
 {
-	WaitForSingleObject(hHandle, dwMilliseconds);
+	if(WaitForSingleObject(hHandle, dwMilliseconds)==WAIT_OBJECT_0)
+	{
+		ResetEvent(hHandle);
+	}
 }
 
 void CPackManager::StopSleep(HANDLE hHandle)

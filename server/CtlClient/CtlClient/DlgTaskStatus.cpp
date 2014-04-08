@@ -196,6 +196,7 @@ BOOL CDlgTaskStatus::PreTranslateMessage(MSG* pMsg)
     return CDialog::PreTranslateMessage(pMsg);
 }
 
+//双击获取详细信息
 void CDlgTaskStatus::OnNMDblclkListTask(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
@@ -208,9 +209,24 @@ void CDlgTaskStatus::OnNMDblclkListTask(NMHDR *pNMHDR, LRESULT *pResult)
 	CString str3 = m_ListStatus.GetItemText(uSel,3);
 	CString str4 = m_ListStatus.GetItemText(uSel,4);
 
-	char buffer[200];
-	wsprintfA(buffer,"这里显示详细信息：选择条目 %d 内容1 %s",uSel,str1.GetBuffer());
-	AfxMessageBox(buffer);
+	//char buffer[200];
+	//wsprintfA(buffer,"这里显示详细信息：选择条目 %d 内容1 %s",uSel,str1.GetBuffer());
+	//AfxMessageBox(buffer);
+
+	task_result_req req;
+	task_status_res res={0};
+	memcpy(req.guid,str1.GetBuffer(),str1.GetLength()+1);
+	int ret = g_packmanager.GenTaskResultPack(req,&res);
+
+	int count = ret/sizeof(task_status_res);
+	char * p = (char *)&res;
+
+	for(int i=0; i<count; i++)
+	{
+		struct task_status_res *p_res = (task_status_res *)&p[i*sizeof(task_status_res)];
+
+		CLog::Log(LOG_LEVEL_NOMAL,"GUID:%s 状态:%d 密码:%s\n",p_res->guid,p_res->status,p_res->password);
+	}
 
 	*pResult = 0;
 }
