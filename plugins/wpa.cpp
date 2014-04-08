@@ -22,9 +22,6 @@ typedef struct
 	unsigned char keymic[16];
 } hccap_t;
 
-char myfilename[255];
-int vectorsize;
-int erev=0;
 hccap_t hccap;
 
 std::string base64;
@@ -77,7 +74,6 @@ int wpa_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 	}
 
 	fclose(fd);
-	strcpy(myfilename, filename);
 
 	//$WPAPSK$essid#base64
 	base64 = "$WPAPSK$";
