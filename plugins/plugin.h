@@ -229,6 +229,12 @@ int osxlion_is_special();
 int osxlion_check_valid(struct crack_hash* hash);
 int osxlion_recovery(const struct crack_hash* hash, char* line, int size);
 
+//
+int wpa_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
+int wpa_is_special();
+int wpa_check_valid(struct crack_hash* hash);
+int wpa_recovery(const struct crack_hash* hash, char* line, int size);
+
 
 //一些常用函数
 //char* strupr(char* ioString);//*******************************mike
