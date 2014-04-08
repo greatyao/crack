@@ -1,8 +1,8 @@
 ﻿#ifndef ALGORITHM_TYPES_H
 #define ALGORITHM_TYPES_H
 
-#define HASHFILE_MAX_PLAIN_LENGTH 512
-#define HASHFILE_MAX_SALT_LENGTH 128
+#define HASHFILE_MAX_PLAIN_LENGTH 192
+#define HASHFILE_MAX_SALT_LENGTH 32
 #define HASHFILE_MAX_LINE_LENGTH 256	
 
 enum crack_charset
@@ -36,6 +36,9 @@ enum crack_type
 	bruteforce,
 	dict,
 	rule,
+	mask,
+	rainbow,
+	max_value
 };
 
 enum crack_algorithm
@@ -108,7 +111,8 @@ struct crack_block
 	unsigned char algo;		//解密算法
 	unsigned char charset;	//解密字符集
 	unsigned char type;		//解密类型
-	unsigned char special;	//是否是文件解密（pdf+office+rar+zip）
+	unsigned char dict_idx:6;//字典索引
+	unsigned char special:2;//是否是文件解密（pdf+office+rar+zip）
 	char guid[40];			//服务端的workitem的GUID
 	char john[sizeof(struct crack_hash)];		//原始Hash格式：hash值+盐
 	unsigned short start;	//开始长度
@@ -130,7 +134,8 @@ struct crack_task
 	unsigned char algo;		//解密算法
 	unsigned char charset;	//解密字符集
 	unsigned char type;		//解密类型
-	unsigned char special;	//是否是文件解密（pdf+office+rar+zip）
+	unsigned char dict_idx:6;//字典索引
+	unsigned char special:2;//是否是文件解密（pdf+office+rar+zip）
 	unsigned char startLength;//起始长度
 	unsigned char endLength;	//终结长度
 	unsigned char filename[256];	//用户传过来的文件名
