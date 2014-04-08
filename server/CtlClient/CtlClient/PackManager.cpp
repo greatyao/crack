@@ -18,6 +18,7 @@ CPackManager::~CPackManager(void)
 	StopClient();
 }
 
+
 int CPackManager::StartClient(void)
 {
 	if(m_connected)//已经连接服务器
@@ -37,6 +38,8 @@ int CPackManager::StartClient(void)
 	{
 		AfxMessageBox("连接服务器失败");
 	}
+	m_connected = 1;
+
 	//发送登陆包
 	client_login_req req={0};
 	SYSTEM_INFO s_info;
@@ -66,11 +69,11 @@ int CPackManager::StartClient(void)
 
 	//心跳线程使用
 	m_bThreadHeartBeatRunning = 0;
-	m_connected = 1;
 	StartHeartBeat();//心跳
 
 	return 1;
 }
+
 int CPackManager::StopClient(void)
 {
 	if(m_connected==0)//服务器未连接
@@ -95,11 +98,10 @@ int CPackManager::CheckConnect(void)
 	return 1;
 }
 
+
 int CPackManager::DoLoginPack(client_login_req req){
 	
 	CheckConnect();
-
-
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -127,7 +129,6 @@ int CPackManager::DoLoginPack(client_login_req req){
 int CPackManager::DoKeeplivePack(){
 
 	CheckConnect();
-
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -158,7 +159,6 @@ int CPackManager::DoKeeplivePack(){
 int CPackManager::DoTaskUploadPack(crack_task req,task_upload_res *res){
 
 	CheckConnect();
-
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -199,7 +199,6 @@ CMD_TASK_START,		//开始任务
 int CPackManager::GenTaskStartPack(task_start_req req,task_status_res *res){
 
 	CheckConnect();
-
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -235,7 +234,6 @@ int CPackManager::GenTaskStartPack(task_start_req req,task_status_res *res){
 int CPackManager::GenTaskStopPack(task_stop_req req,task_status_res *res){
 
 	CheckConnect();
-
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -299,7 +297,6 @@ int CPackManager::GenTaskPausePack(task_pause_req req,task_status_res *res){
 
 }
 int CPackManager::GenTaskDeletePackt(task_delete_req req,task_status_res *res){
-
 
 	CheckConnect();
 
@@ -373,7 +370,6 @@ CMD_REFRESH_STATUS,	//取得任务的进度和状态等信息
 int CPackManager::GenTaskStatusPack(task_status_info **res){
 
 	CheckConnect();
-
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -463,7 +459,6 @@ int ret = 0;
 int CPackManager::GenFileUploadPack(file_upload_req req,file_upload_res *res){
 
 	CheckConnect();
-
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -499,7 +494,6 @@ int CPackManager::GenFileUploadPack(file_upload_req req,file_upload_res *res){
 int CPackManager::GenFileUploadStart(file_upload_end_res *res){
 
 	CheckConnect();
-
 	FILE *fp = NULL;
 	int ret = 0;
 	unsigned char cmd;
@@ -666,12 +660,15 @@ void CPackManager::StartHeartBeat(void)
 	pthread_mutex_init(&running_mutex, NULL);
 	pthread_cond_init(&keeprunning_cv, NULL);
 	
+	m_hStopSleep = CreateSleep();
+	
 	int returnValue = pthread_create( &m_ThreadHeartBeat, &attr, ThreadHeartBeat, (void *)this);
 	if( returnValue != 0 )
 	{
 		CLog::Log(LOG_LEVEL_ERROR,"心跳线程失败，错误代码: %d\n", returnValue);
 		m_bThreadHeartBeatStop = TRUE;
 		m_bThreadHeartBeatRunning = FALSE;
+		this->StopSleep(m_hStopSleep);
 	}
 	else
 	{
@@ -679,8 +676,6 @@ void CPackManager::StartHeartBeat(void)
 		m_bThreadHeartBeatStop = FALSE;
 		m_bThreadHeartBeatRunning = TRUE;
 	}
-
-	m_hStopSleep = CreateSleep();
 }
 
 /***********************************************
@@ -705,8 +700,8 @@ void CPackManager::StopHeartBeat(void)
 		CLog::Log(LOG_LEVEL_NOMAL,"线程成功退出\n");
 	}
 	m_bThreadHeartBeatRunning = FALSE;
-<<<<<<< .mine
 }
+
 
 /***********************************************
 可中断sleep
@@ -733,134 +728,6 @@ void CPackManager::StopSleep(HANDLE hHandle)
 	SetEvent(hHandle);
 	CloseHandle(hHandle);
 }
-
-
-
-/*************************************************************************
-网络数据收发线程
-必须初始化 m_bThreadSendRunning 为 0
-然后可以调用 StartSend 和 StopSend 开始和结束线程
-*************************************************************************/
-
-
-/***********************************************
-收发数据线程
-***********************************************/
-void *CPackManager::ThreadSend(void *par)
-{	
-	CPackManager *p = (CPackManager*)par;
-	
-	while(p->m_bThreadSendStop!=TRUE)
-	{
-		if(p->m_bToSend)//有数据发送
-		{
-			//发送
-			p->m_sockclient.mysend(p->m_pSend,p->m_lenSend,0);
-			free(p->m_pSend); p->m_pSend=0;
-			p->m_bToSend = 0;
-
-			//接收
-			//unsigned char *m_pRecv;//接收到数据的指针
-			//int m_bRecved;//接收到数据
-			//int m_lenRecv;//
-
-		}
-
-		Sleep(111);
-	}
-	return 0;
-};	
-
-/***********************************************
-启动心跳包线程
-***********************************************/
-void CPackManager::StartSend(void)
-{	
-	if(m_bThreadSendRunning==TRUE)
-	{
-		CLog::Log(LOG_LEVEL_WARNING,"线程运行中，不需要再创建\n");
-		return;
-	}
-
-	m_pSend  = 0;
-	m_bToSend= 0;
-	m_lenSend= 0;
-
-	m_pRecv  = 0;
-	m_bRecved= 0;
-	m_lenRecv= 0;
-	
-	m_bThreadSendStop = FALSE;
-	m_bThreadSendRunning = TRUE;
-
-	pthread_attr_t attr;
-	pthread_attr_init(&attr);
-	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-	
-	pthread_mutex_t running_mutex;
-	pthread_cond_t keeprunning_cv;
-	pthread_mutex_init(&running_mutex, NULL);
-	pthread_cond_init(&keeprunning_cv, NULL);
-	
-	int returnValue = pthread_create( &m_ThreadSend, &attr, ThreadSend, (void *)this);
-	if( returnValue != 0 )
-	{
-		CLog::Log(LOG_LEVEL_ERROR,"网络线程失败，错误代码: %d\n", returnValue);
-		m_bThreadSendStop = TRUE;
-		m_bThreadSendRunning = FALSE;
-	}
-	else
-	{
-		CLog::Log(LOG_LEVEL_NOMAL,"线程创建成功\n");
-		m_bThreadSendStop = FALSE;
-		m_bThreadSendRunning = TRUE;
-	}
-}
-
-/***********************************************
-结束网络数据收发线程
-***********************************************/
-void CPackManager::StopSend(void)
-{
-	if(m_bThreadSendRunning==FALSE)
-	{
-		CLog::Log(LOG_LEVEL_NOMAL,"线程没有在运行\n");
-		return;
-	}
-
-	m_bThreadSendStop = TRUE;
-	int returnValue = pthread_join(m_ThreadSend, NULL);
-	if( returnValue != 0 )
-	{
-		CLog::Log(LOG_LEVEL_ERROR,"线程退出失败，错误代码: %d\n", returnValue);
-	}
-	else{
-		CLog::Log(LOG_LEVEL_NOMAL,"线程成功退出\n");
-	}
-	m_bThreadSendRunning = FALSE;
-
-	if(m_pSend)
-	{
-		free(m_pSend);
-	}
-	if(m_pRecv)
-	{
-		free(m_pRecv);
-	}
-}
-
-/***********************************************
-网络收发数据外部接口
-***********************************************/
-void *CPackManager::SendDataViaThread(void *)
-{
-	return 0;
-}
-
-=======
-}
-
-
 
 
 /*************************************************************************
@@ -985,4 +852,3 @@ void *CPackManager::SendDataViaThread(void *)
 	return 0;
 }
 
->>>>>>> .r320
