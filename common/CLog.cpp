@@ -117,17 +117,23 @@ bool CLog::InitFileSystem(const char *cFile)
 	char text[64];
 	lastDay = GetDay(text, sizeof(text), false);
 	
-	if(m_hOutputFile)
-		fclose(m_hOutputFile);
+	FILE* f = m_hOutputFile;
 	
 	char logFile[512];
 	sprintf(logFile, "%s-%s.log", suffix, text);
 	m_hOutputFile = fopen(logFile, "a+");
 	if( m_hOutputFile==NULL )
 	{
-		return false;
+		if(f) fprintf(f, "==Canot create logfile %s==\n", logFile);
+		m_hOutputFile = f;
 	}
-	return true;
+	else
+	{
+		if(f)	fclose(f);
+	}
+
+
+	return m_hOutputFile;
 }
 	
 //打印输出函数(内部调用)
@@ -210,7 +216,28 @@ bool CLog::InitLogSystem(unsigned int uType ,bool bDate ,const char *cFile )
 
 	if(m_uLogType==LOG_TO_FILE)
 	{
+#if defined(WIN32) || defined(WIN64) 
+		char temp[MAX_PATH];
+		GetModuleFileNameA(NULL, temp, sizeof(temp));
+		int i;
+		for(i = strlen(temp)-1; i>=0; i--)
+		{	if(temp[i] == '\\' || temp[i] == '/')
+			{
+				temp[i+1] = 0;
+				break;
+			}
+		}
+		strncpy(suffix, temp, sizeof(suffix));
+
+		for(i = strlen(cFile)-1; i>=0; i--)
+		{
+			if(cFile[i] == '\\' || cFile[i] == '/')
+				break;
+		}
+		strncat(suffix, cFile+i+1, sizeof(suffix));
+#else
 		strncpy(suffix, cFile, sizeof(suffix));
+#endif
 		if(InitFileSystem(cFile)==false)
 		return false;		
 	}
