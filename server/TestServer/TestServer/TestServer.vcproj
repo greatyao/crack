@@ -376,7 +376,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\plugins\bfunix.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\plugins\desunix.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\django256.cpp"
 				>
 			</File>
 			<File
@@ -448,7 +456,23 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\plugins\oracle11g.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\oracle_old.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\plugins\oscommerce.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\osx_old.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\osxlion.cpp"
 				>
 			</File>
 			<File

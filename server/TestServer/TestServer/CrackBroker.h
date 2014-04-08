@@ -44,6 +44,8 @@
 
 #define TASK_SPLIT_ERR	STANDARD_ERR+92
 
+#define NOT_READY_WORKITEM STANDARD_ERR+91
+
 struct MapLessCompare{
 	
 	bool operator()(const char * str1,const char *str2) const
@@ -87,7 +89,7 @@ public:
 	int DeleteTask(struct task_delete_req *pReq);
 
 	int PauseTask(struct task_pause_req *pReq);
-	int GetTaskResult(struct task_result_req *pReq,struct task_status_res **pRes);
+	int GetTaskResult(struct task_result_req *pReq,struct task_result_info **pRes,int *resNum);
 
 	int GetTasksStatus(struct task_status_info **pRes,unsigned int *resNum);
 	int GetClientList(struct compute_node_info **pRes,unsigned int *resNum);
@@ -101,6 +103,7 @@ public:
 	int GetWIResult(struct crack_result *pReq);
 
 	
+	int DoClientQuit(char *ip,int port);
 
 	void *Alloc(int size);
 	void Free(void *p);
@@ -109,7 +112,9 @@ private:
 	int GetComputeNodesNum();
 	int removeFromQueue(unsigned char *guid);
 
-	int getResultFromTask(CCrackTask *pCT,struct task_status_res *pRes);
+	int getResultFromTask(CCrackTask *pCT,struct task_status_res *pRes);	//返回单个结果
+	int	getResultFromTaskNew(CCrackTask *pCT,struct task_result_info *pRes); //返回多个结果
+
 	
 	int getStatusFromTask(CCrackTask *pCT,struct task_status_info *pRes);
 
@@ -124,10 +129,6 @@ public :
 	CT_MAP m_cracktask_map;
 
 	//循环队列，方便任务调度
-	//CT_DEQUE m_cracktask_deque;	
-
-	CT_DEQUE m_cracktask_queue; 
-
 	CT_DEQUE m_cracktask_ready_queue;
 
 	CCriticalSection m_client_cs;
@@ -140,3 +141,4 @@ public :
 
 };
 
+static CCrackBroker g_CrackBroker;

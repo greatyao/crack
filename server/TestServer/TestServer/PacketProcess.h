@@ -174,6 +174,7 @@ typedef std::map<BYTE,recv_data> FUNC_MAP;
 
 INT doRecvData(LPVOID pclient, LPBYTE pdata, UINT len,BYTE cmd);
 
+#define CMD_CLIENT_QUIT 251
 
 #endif
 

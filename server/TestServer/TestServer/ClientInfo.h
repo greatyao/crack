@@ -19,6 +19,7 @@ public:
 	unsigned char m_guid[40]; //节点guid
 	
 	unsigned int m_clientsock;
+	int m_port;
 
 	time_t m_keeplivetime;		//最近一次心跳时间
 	

@@ -5,7 +5,7 @@
 #include <vector>
 #include "algorithm_types.h"
 #include "CrackBlock.h"
-
+#include "CrackHash.h"
 
 #define CRACK_TASK_ERR -2000
 #define NOT_SUPPORT_CT_STATUS CRACK_TASK_ERR+ 100
@@ -19,9 +19,15 @@
 
 #define NOT_CONVERT_TO_FINISHED CRACK_TASK_ERR+ 105
 
+#define NOT_CONVERT_TO_FAIL CRACK_TASK_ERR+106
+
 #define CH_LEN sizeof(crack_hash)
 
 #define HASH_NUM_IN_TASK 100
+
+
+//HASH运行状态
+
 
 struct CBMapLessCompare{
 	
@@ -35,6 +41,7 @@ struct CBMapLessCompare{
 };
 
 typedef std::map<char *, CCrackBlock *,CBMapLessCompare> CB_MAP;
+typedef std::vector<CCrackHash *> CRACK_HASH_LIST;
 
 
 class CCrackTask : public crack_task
@@ -50,10 +57,11 @@ public:
 	
 	int SetStatus(char status);
 
-
 	CCrackBlock *GetAReadyWorkItem();
 	
-	int updateStatusToFinish(struct crack_result *result);
+	int updateStatusToFinish(struct crack_result *result,int hash_index);
+
+	void calcProgressByBlock();
 
 	void * Alloc(int size);
 	void Free(void *p);
@@ -67,10 +75,14 @@ private:
 	int updateStatusToPause();
 	
 	int updateStatusToFail();
-int setCrackBlockStatus(char status);
+	int setCrackBlockStatus(char status,int hash_index);
+
+	int setFinishByHash();
+
+	void setCrackBlockUncrack(int hash_index);
+
+	int checkBlockOfHash(int hash_index);
 	
-
-
 public:
 
 	//带解密工作项列表
@@ -80,6 +92,9 @@ public:
 
 	CCriticalSection m_crackblock_cs;
 
+
+
+	CRACK_HASH_LIST m_crackhash_list;
 
 
 	//任务的动态状态信息
@@ -108,6 +123,7 @@ public:
 
 	//任务workitem 是否都已经启动过
 	unsigned int m_runing_num;
+
 
 
 	//文件句柄

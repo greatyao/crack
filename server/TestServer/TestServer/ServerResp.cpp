@@ -80,7 +80,7 @@ static int mysend(int sck, void* buf, int size, int flag)
 	return size;
 }
 
-int Write(int sck, unsigned char cmd, short status, const void* data, int size)
+int Write(int sck, unsigned char cmd, short status, const void* data, int size,bool bCompress)
 {
 	struct control_header hdr = INITIALIZE_EMPTY_HEADER(cmd);
 	hdr.response = status;
@@ -93,16 +93,32 @@ int Write(int sck, unsigned char cmd, short status, const void* data, int size)
 	
 	unsigned long destLen = 1.1*size+8;	
 	unsigned char* dest = new unsigned char[destLen];
-	int ret = compress(dest, &destLen, (const Bytef*)data, size);
-	if(ret != 0)
-	{
-		delete []dest;
-		return ERR_COMPRESS;
+	unsigned char *pBuf = NULL;
+	int ret = 0;
+
+	if (bCompress){
+		ret = compress(dest, &destLen, (const Bytef*)data, size);
+		if(ret != 0)
+		{
+			delete []dest;
+			return ERR_COMPRESS;
+		}
+
+		pBuf = dest;
+		
+		hdr.compressLen = destLen;
+	}else {
+
+		
+		hdr.compressLen = -1;
+		destLen = size;
+		pBuf =(unsigned char *)data;
+		
 	}
-	hdr.dataLen = size;
-	hdr.compressLen = destLen;
 	
-	if(mysend(sck, (char *)&hdr, sizeof(hdr), 0) < 0 || mysend(sck, (char *)dest, destLen, 0) < 0)
+	hdr.dataLen = size;
+	
+	if(mysend(sck, (char *)&hdr, sizeof(hdr), 0) < 0 || mysend(sck, (char *)pBuf, destLen, 0) < 0)
 	{
 		delete []dest;
 		return ERR_CONNECTIONLOST;

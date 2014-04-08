@@ -9,6 +9,7 @@ CClientInfo::CClientInfo(void)
 	memset(m_ip,0,20);
 	memset(m_hostname,0,50);
 	memset(m_guid,0,40);
+	m_port = 0;
 	m_type = -1;
 
 }

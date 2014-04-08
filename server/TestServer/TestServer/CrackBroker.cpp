@@ -24,8 +24,10 @@ int CCrackBroker::ClientLogin(client_login_req *pReq){
 	pCI->m_clientsock = pReq->m_clientsock;
 	pCI->m_type = pReq->m_type;
 	//memcpy(pCI->m_guid,pReq->m_guid,40);
-	memcpy(pCI->m_ip,pReq->m_ip,20);
+	memcpy(pCI->m_ip,pReq->m_ip,16);
 	memcpy(pCI->m_osinfo,pReq->m_osinfo,16);
+	memcpy(pCI->m_hostname,pReq->m_hostinfo,16);
+	pCI->m_port = pReq->m_port;
 	time(&tempTm);
 	pCI->m_logintime = tempTm;
 
@@ -99,6 +101,7 @@ int	CCrackBroker::CreateTask(struct crack_task *pReq,unsigned char *pguid){
 	CT_MAP::iterator temp_iter;
 
 
+	memcpy(pguid,pReq->guid,sizeof(pReq->guid));
 	pTask = new CCrackTask;
 	ret = pTask->Init(pReq);
 	if (ret < 0 ){
@@ -112,9 +115,6 @@ int	CCrackBroker::CreateTask(struct crack_task *pReq,unsigned char *pguid){
 	m_cracktask_map.insert(CT_MAP::value_type(pTask->guid,pTask));
 
 	m_total_crackblock_map.insert(pTask->m_crackblock_map.begin(),pTask->m_crackblock_map.end());
-	
-	memcpy(pguid,pTask->guid,40);
-
 
 	for(temp_iter = m_cracktask_map.begin(); temp_iter != m_cracktask_map.end();temp_iter ++ ){
 		
@@ -124,6 +124,8 @@ int	CCrackBroker::CreateTask(struct crack_task *pReq,unsigned char *pguid){
 		
 
 	}
+
+	
 
 //	m_cracktask_cs.Unlock();
 	return ret;
@@ -189,8 +191,7 @@ int	CCrackBroker::StartTask(struct task_start_req *pReq){
 		ret = pCT->SetStatus(CT_STATUS_RUNNING);
 
 	}
-	m_cracktask_queue.push_back(pCT->guid);  //任务被放入循环队列队尾，等待调度
-
+	//任务被放入循环队列队尾，等待调度
 	m_cracktask_ready_queue.push_back(pCT->guid);
 
 	CLog::Log(LOG_LEVEL_WARNING,"CrackTask :%d %d %s %d %s %d %d\n",pCT->algo,pCT->charset,pCT->filename,pCT->type,pCT->guid,pCT->startLength,pCT->endLength);
@@ -282,7 +283,7 @@ int CCrackBroker::PauseTask(struct task_pause_req *pReq){
 	if (!pReq){
 
 		CLog::Log(LOG_LEVEL_WARNING,"Pause Task Req NULL Error\n");
-		return DEL_TASK_ERR;
+		return PAUSE_TASK_ERR;
 
 	}
 	
@@ -310,15 +311,17 @@ int CCrackBroker::PauseTask(struct task_pause_req *pReq){
 	return ret;
 
 }
-int CCrackBroker::GetTaskResult(struct task_result_req *pReq,struct task_status_res **pRes){
+int CCrackBroker::GetTaskResult(struct task_result_req *pReq,struct task_result_info **pRes,int *resNum){
 
 	int ret = 0;
 	CT_MAP::iterator iter_task;
-	
+	int hashnum = 0;
 	CCrackTask *pCT = NULL;
-	struct task_status_res *pres = NULL;
+	struct task_result_info *pres = NULL;
 
-	pres = (struct task_status_res *)Alloc(sizeof(struct task_status_res));
+
+/*
+	pres = (struct task_result_info *)Alloc(sizeof(struct task_result_info));
 	if (!pres){
 		
 			
@@ -326,7 +329,8 @@ int CCrackBroker::GetTaskResult(struct task_result_req *pReq,struct task_status_
 		return ALLOC_TASK_RESULT_ERR;
 
 	}
-	
+	*/
+
 //	m_cracktask_cs.Lock();
 	
 	iter_task = m_cracktask_map.find((char *)pReq->guid);
@@ -339,10 +343,24 @@ int CCrackBroker::GetTaskResult(struct task_result_req *pReq,struct task_status_
 		
 		pCT = iter_task->second;
 
+		hashnum = pCT->count;
+
+		pres = (struct task_result_info *)Alloc(sizeof(struct task_result_info)*hashnum);
+		if (!pres){
+			
+				
+			CLog::Log(LOG_LEVEL_WARNING,"Alloc Get Task %s Result Error\n",pReq->guid);
+			return ALLOC_TASK_RESULT_ERR;
+
+		}
+
 		//得到计算结果
-		getResultFromTask(pCT,pres);
+	//	getResultFromTask(pCT,pres);
+
+		ret = getResultFromTaskNew(pCT,pres);
 
 		*pRes = pres;
+		*resNum = ret;
 		ret = 0;
 
 	}
@@ -360,17 +378,15 @@ int CCrackBroker::GetTasksStatus(struct task_status_info **pRes,unsigned int *re
 	int ret = 0;
 	int task_num = 0;
 	CT_MAP::iterator iter_task;
-	CT_DEQUE::iterator iter_deque;
 	struct task_status_info *pres = NULL;
 	CCrackTask *pCT = NULL;
-	char *pCh = NULL;
-	int i = 0;
 	int j = 0;
 
 	//m_cracktask_cs.Lock();
 
-	task_num = m_cracktask_queue.size();
-	
+	//task_num = m_cracktask_queue.size();
+	task_num = m_cracktask_map.size();
+
 	pres = (struct task_status_info *)Alloc(sizeof(struct task_status_info)*task_num);
 	if (!pres)
 	{	
@@ -379,32 +395,14 @@ int CCrackBroker::GetTasksStatus(struct task_status_info **pRes,unsigned int *re
 		return ALLOC_TASK_STATUS_ERR;
 	}
 	
-	for(i=0 ;i < task_num ;i ++){
-
+	for(iter_task = m_cracktask_map.begin();iter_task != m_cracktask_map.end();iter_task++){
 		
-		pCh = m_cracktask_queue[i];
-
-		iter_task = m_cracktask_map.find((char *)pCh);
-		if (iter_task == m_cracktask_map.end()){
-
-			CLog::Log(LOG_LEVEL_WARNING,"Can't find Task With GUID %s\n",pCh);
-			Free(pres);
-	//		m_cracktask_cs.Unlock();
-			return NOT_FIND_GUID_TASK;
-			
-		}
-		
-
 		pCT = iter_task->second;
-
-		//从CCrackTask 得到 Status info
 		getStatusFromTask(pCT,&pres[j]);
 		j++;
 
 	}
 
-
-	
 	*pRes = pres;
 	*resNum = j;
 	//m_cracktask_cs.Unlock();
@@ -493,11 +491,12 @@ int CCrackBroker::GetAWorkItem(struct crack_block **pRes){
 	
 //	m_cracktask_cs.Lock();
 	
+	memset(pres,0,sizeof(struct crack_block));
 	
 	size = m_cracktask_ready_queue.size();
 	if (size < 1){
 		
-		CLog::Log(LOG_LEVEL_WARNING,"There isnot a Task Ready\n");
+		CLog::Log(LOG_LEVEL_WARNING,"There is no a Task Ready\n");
 	//	m_cracktask_cs.Unlock();
 		return ALLOC_CRACK_BLOCK_ERR;
 	}
@@ -525,6 +524,12 @@ int CCrackBroker::GetAWorkItem(struct crack_block **pRes){
 	pCT = iter_task->second;
 	
 	pCB = pCT->GetAReadyWorkItem();
+	if (pCB == NULL){
+		
+		CLog::Log(LOG_LEVEL_WARNING,"Can't find A Ready WorkItem from Task %s \n",pguid);
+		return NOT_READY_WORKITEM;
+
+	}
 	
 	if (pCT->m_split_num == pCT->m_runing_num){
 
@@ -569,6 +574,7 @@ int CCrackBroker::GetWIStatus(struct crack_status *pReq){
 	pCB->m_progress = pReq->progress;
 	pCB->m_speed = pReq->speed;
 	pCB->m_remaintime = pReq->remainTime;
+
 	return ret;
 
 }
@@ -597,32 +603,38 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 	}
 	
 	pCB = iter_block->second;
-	
+	int index = pCB->hash_idx;
 	switch(pReq->status){
 
 		case WORK_ITEM_LOCK:
 			
-
+			pCB->m_status = WI_STATUS_RUNNING;
 			break;
 		case WORK_ITEM_UNLOCK:
 			
 			pCB->m_status = WI_STATUS_READY;
+			((CCrackTask *)(pCB->task))->m_runing_num -=1;
 
 			break;
 		case WORK_ITEM_WORKING:
 
-
+			pCB->m_status = WI_STATUS_RUNNING;
 			break;
 		case WORK_ITEM_CRACKED:
 
 			pCB->m_status = WI_STATUS_FINISHED;
 			pCT =(CCrackTask *)pCB->task;
+			
 		//	m_cracktask_cs.Lock();
 			
 		//	removeFromQueue((unsigned char *)pCT->guid);
 			
 
-		//	pCT->updateStatusToFinish(pReq);
+			ret = pCT->updateStatusToFinish(pReq,index);
+			if (ret == 1){
+
+				removeFromQueue((unsigned char *)pCT->guid);
+			}
 
 		//	m_cracktask_cs.Unlock();
 			break;
@@ -632,7 +644,7 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 			pCT = (CCrackTask *)pCB->task;
 		//	m_cracktask_cs.Lock();
 
-			ret = pCT->updateStatusToFinish(pReq);
+			ret = pCT->updateStatusToFinish(pReq,index);
 
 			if (ret == 1){
 
@@ -682,7 +694,7 @@ int CCrackBroker::removeFromQueue(unsigned char *guid){
 	CT_DEQUE::iterator iter_queue;
 
 	//从调度队列中移除
-	for(iter_queue = m_cracktask_queue.begin();iter_queue != m_cracktask_queue.end(); iter_queue ++ ){
+/*	for(iter_queue = m_cracktask_queue.begin();iter_queue != m_cracktask_queue.end(); iter_queue ++ ){
 	
 		if (strncmp(*iter_queue,(char *)guid,40) == 0 ){
 			
@@ -696,10 +708,9 @@ int CCrackBroker::removeFromQueue(unsigned char *guid){
 			m_cracktask_queue.erase(iter_queue);
 	}
 
-
+*/
 
 	//从ready 队列中移除
-
 	for(iter_queue = m_cracktask_ready_queue.begin();iter_queue != m_cracktask_ready_queue.end(); iter_queue ++ ){
 	
 		if (strncmp(*iter_queue,(char *)guid,40) == 0 ){
@@ -718,6 +729,7 @@ int CCrackBroker::removeFromQueue(unsigned char *guid){
 }
 
 
+//老的任务结果返回处理
 int CCrackBroker::getResultFromTask(CCrackTask *pCT,struct task_status_res *pRes){
 	
 	int ret =0;
@@ -728,6 +740,33 @@ int CCrackBroker::getResultFromTask(CCrackTask *pCT,struct task_status_res *pRes
 
 	return ret;
 }
+
+
+//新的任务结果返回处理
+int CCrackBroker::getResultFromTaskNew(CCrackTask *pCT,struct task_result_info *pRes){
+
+	int i = 0;
+    int ret = 0;
+	CB_MAP::iterator iter_block;
+	struct task_result_info *presinfo = NULL;
+	CRACK_HASH_LIST tmplist = pCT->m_crackhash_list;
+	CCrackHash *pCCH = NULL;
+	
+	for (i = 0 ;i < tmplist.size();i ++){
+		
+		presinfo = &pRes[i];
+		pCCH = tmplist[i];
+
+		presinfo->status = pCCH->m_status;
+		memcpy(presinfo->password,pCCH->m_result,sizeof(pCCH->m_result));
+		memcpy(presinfo->john,pCCH->m_john,sizeof(pCCH->m_john));
+			
+
+	}
+	ret = i;
+
+	return ret;  //返回结果数目
+}
 	
 int CCrackBroker::getStatusFromTask(CCrackTask *pCT,struct task_status_info *pRes){
 
@@ -735,6 +774,9 @@ int CCrackBroker::getStatusFromTask(CCrackTask *pCT,struct task_status_info *pRe
 
 	pRes->m_fini_number = pCT->m_finish_num;
 	pRes->m_split_number = pCT->m_split_num;
+
+	//get the current block progress 
+	pCT->calcProgressByBlock();
 	pRes->m_progress = pCT->m_progress;
 	pRes->status = pCT->m_status;
 	memcpy(pRes->guid,pCT->guid,40);
@@ -759,6 +801,35 @@ int CCrackBroker::getBlockFromCrackBlock(CCrackBlock *pCB,struct crack_block *pR
 	pRes->task = pCB->task;
 
 	
+	return ret;
+}
+
+
+
+int CCrackBroker::DoClientQuit(char *ip,int port){
+	
+	int ret = 0;
+	int i = 0;
+	CI_VECTOR::iterator iter_client;
+	int client_num = m_client_list.size();
+
+	for(i =0;i < client_num;i ++ ){
+		
+		if ((strcmp(m_client_list[i]->m_ip,ip) == 0) && (m_client_list[i]->m_port == port)){
+			
+			break;
+		}	
+
+	}
+	
+	if (i < client_num){
+		iter_client = m_client_list.begin()+i;
+		m_client_list.erase(iter_client);
+		
+	}else{
+
+		ret = -1;
+	}
 	return ret;
 }
 

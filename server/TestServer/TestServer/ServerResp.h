@@ -9,6 +9,6 @@ int SendDataToPeer(void *pclient, unsigned char * pdata, unsigned int len);
 int RecvDataFromPeer(void *pclient, unsigned char * pdata, unsigned int len);
 
 int Read(int sck, unsigned char *cmd, short* status, void* data, int size);
-int Write(int sck, unsigned char cmd, short status, const void* data, int size);
+int Write(int sck, unsigned char cmd, short status, const void* data, int size,bool bCompress);
 
 #endif
