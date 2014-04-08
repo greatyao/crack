@@ -41,7 +41,6 @@ public:
 	int GenFileUploadStart(file_upload_end_res *res);
 
 public:
-
 	char m_cur_upload_guid[40];
 	void * m_cur_server_file;
 	unsigned int m_cur_upload_file_len;
@@ -69,6 +68,11 @@ public:
 
 
 	//增加线程，处理心跳包
+	HANDLE m_hStopSleep;
+	HANDLE CreateSleep(void);
+	void StartSleep(HANDLE hHandle,unsigned long dwMilliseconds);
+	void StopSleep(HANDLE hHandle);
+
 	pthread_t m_ThreadHeartBeat;//线程句柄
 	int m_bThreadHeartBeatStop;	//停止线程标记
 	int m_bThreadHeartBeatRunning;//线程运行标记
@@ -76,6 +80,12 @@ public:
 	static void *ThreadHeartBeat(void *);	//心跳包
 	void StartHeartBeat(void);				//启动心跳线程
 	void StopHeartBeat(void);				//停止心跳线程
+
+	//处理和服务器端的连接	
+	int m_connected;
+	int StartClient(void);
+	int StopClient(void);
+	int CheckConnect(void);
 };
 
 extern CPackManager g_packmanager;

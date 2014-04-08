@@ -9,6 +9,22 @@ CPackManager::CPackManager(void)
 {
 	CLog::InitLogSystem(LOG_TO_FILE,TRUE,"ControlClient.log");
 
+	m_connected = 0;
+	StartClient();
+}
+
+CPackManager::~CPackManager(void)
+{
+	StopClient();
+}
+
+int CPackManager::StartClient(void)
+{
+	if(m_connected)//已经连接服务器
+	{
+		return 0;
+	}	
+
 	char ip[20]="192.168.18.117";
 	//直接读配置
 	char ini_file[MAX_PATH]={0};
@@ -17,23 +33,73 @@ CPackManager::CPackManager(void)
 
 	GetPrivateProfileString("config","ip","127.0.0.1",ip,MAX_PATH-1,ini_file);
 
-	m_sockclient.Init(ip,6010);
+	if( m_sockclient.Init(ip,6010)!=0 )
+	{
+		AfxMessageBox("连接服务器失败");
+	}
+	//发送登陆包
+	client_login_req req={0};
+	SYSTEM_INFO s_info;
+	GetSystemInfo(&s_info);
+
+
+	struct sockaddr_in addr;
+	socklen_t len2 = sizeof(addr);
+	getsockname(m_sockclient.m_clientsocket, (sockaddr *)&addr, &len2);
+	strncpy(req.m_ip, inet_ntoa(addr.sin_addr), sizeof(req.m_ip));//ip
+	req.m_port = ntohs(addr.sin_port);//port
+	//操作系统信息
+	OSVERSIONINFOA ov_ver_info={0};
+	ov_ver_info.dwOSVersionInfoSize = sizeof(ov_ver_info);
+	GetVersionExA(&ov_ver_info);
+	wsprintfA(req.m_osinfo,"%d.%d.%d %s",ov_ver_info.dwMajorVersion,ov_ver_info.dwMinorVersion,ov_ver_info.dwBuildNumber,ov_ver_info.szCSDVersion);
+	
+	// 主机名
+	gethostname(req.m_hostinfo, sizeof(req.m_hostinfo));
+	//char m_hostinfo[64];	//机器名
+	req.m_type = CONTROL_TYPE_CLIENT;			//客户端类型,control , compute
+	req.m_gputhreads = -1;		//GPU数目
+	req.m_cputhreads = s_info.dwNumberOfProcessors;
+	req.m_clientsock = -1;
+
+	DoLoginPack(req);
 
 	//心跳线程使用
 	m_bThreadHeartBeatRunning = 0;
+	m_connected = 1;
 	StartHeartBeat();//心跳
-}
 
-CPackManager::~CPackManager(void)
+	return 1;
+}
+int CPackManager::StopClient(void)
 {
+	if(m_connected==0)//服务器未连接
+	{
+		return 0;
+	}
+
 	StopHeartBeat();//心跳
 	m_sockclient.Finish();
+	m_connected = 0;
+	return 1;
 }
 
+int CPackManager::CheckConnect(void)
+{
+	if(m_connected==0)
+	{
+		//尝试连接
+		return StartClient();
+	}
 
+	return 1;
+}
 
 int CPackManager::DoLoginPack(client_login_req req){
 	
+	CheckConnect();
+
+
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -59,6 +125,8 @@ int CPackManager::DoLoginPack(client_login_req req){
 	return status;
 }
 int CPackManager::DoKeeplivePack(){
+
+	CheckConnect();
 
 	int ret = 0;
 	unsigned char cmd;
@@ -88,6 +156,8 @@ int CPackManager::DoKeeplivePack(){
 }
 	
 int CPackManager::DoTaskUploadPack(crack_task req,task_upload_res *res){
+
+	CheckConnect();
 
 	int ret = 0;
 	unsigned char cmd;
@@ -128,6 +198,8 @@ CMD_TASK_START,		//开始任务
 
 int CPackManager::GenTaskStartPack(task_start_req req,task_status_res *res){
 
+	CheckConnect();
+
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -162,6 +234,8 @@ int CPackManager::GenTaskStartPack(task_start_req req,task_status_res *res){
 
 int CPackManager::GenTaskStopPack(task_stop_req req,task_status_res *res){
 
+	CheckConnect();
+
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -193,6 +267,7 @@ int CPackManager::GenTaskStopPack(task_stop_req req,task_status_res *res){
 }
 int CPackManager::GenTaskPausePack(task_pause_req req,task_status_res *res){
 
+	CheckConnect();
 
 	int ret = 0;
 	unsigned char cmd;
@@ -226,6 +301,8 @@ int CPackManager::GenTaskPausePack(task_pause_req req,task_status_res *res){
 int CPackManager::GenTaskDeletePackt(task_delete_req req,task_status_res *res){
 
 
+	CheckConnect();
+
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -258,6 +335,7 @@ int CPackManager::GenTaskDeletePackt(task_delete_req req,task_status_res *res){
 
 int CPackManager::GenTaskResultPack(task_result_req req,task_status_res *res){
 
+	CheckConnect();
 
 	int ret = 0;
 	unsigned char cmd;
@@ -293,6 +371,8 @@ CMD_REFRESH_STATUS,	//取得任务的进度和状态等信息
 	CMD_GET_CLIENT_LIST,//返回在线计算机信息的列表
 	*/
 int CPackManager::GenTaskStatusPack(task_status_info **res){
+
+	CheckConnect();
 
 	int ret = 0;
 	unsigned char cmd;
@@ -336,6 +416,7 @@ int CPackManager::GenTaskStatusPack(task_status_info **res){
 }
 int CPackManager::GenClientStatusPack(compute_node_info **res){
 
+	CheckConnect();
 int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -381,6 +462,8 @@ int ret = 0;
 
 int CPackManager::GenFileUploadPack(file_upload_req req,file_upload_res *res){
 
+	CheckConnect();
+
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -414,6 +497,8 @@ int CPackManager::GenFileUploadPack(file_upload_req req,file_upload_res *res){
 
 }
 int CPackManager::GenFileUploadStart(file_upload_end_res *res){
+
+	CheckConnect();
 
 	FILE *fp = NULL;
 	int ret = 0;
@@ -553,7 +638,7 @@ void *CPackManager::ThreadHeartBeat(void *par)
 	while(p->m_bThreadHeartBeatStop!=TRUE)
 	{
 		p->DoKeeplivePack();
-		Sleep(60*1000);//等120秒
+		p->StartSleep(p->m_hStopSleep,120*1000);//等120秒
 	}
 	return 0;
 };	
@@ -594,6 +679,8 @@ void CPackManager::StartHeartBeat(void)
 		m_bThreadHeartBeatStop = FALSE;
 		m_bThreadHeartBeatRunning = TRUE;
 	}
+
+	m_hStopSleep = CreateSleep();
 }
 
 /***********************************************
@@ -608,6 +695,7 @@ void CPackManager::StopHeartBeat(void)
 	}
 
 	m_bThreadHeartBeatStop = TRUE;
+	this->StopSleep(m_hStopSleep);
 	int returnValue = pthread_join(m_ThreadHeartBeat, NULL);
 	if( returnValue != 0 )
 	{
@@ -617,6 +705,159 @@ void CPackManager::StopHeartBeat(void)
 		CLog::Log(LOG_LEVEL_NOMAL,"线程成功退出\n");
 	}
 	m_bThreadHeartBeatRunning = FALSE;
+<<<<<<< .mine
+}
+
+/***********************************************
+可中断sleep
+***********************************************/
+#pragma comment(lib,"Rpcrt4.lib")
+HANDLE CPackManager::CreateSleep(void)
+{
+	char eventName[MAX_PATH]={0};
+	UUID uuid;
+	UuidCreate(&uuid);
+	UuidToStringA(&uuid,(RPC_CSTR*)&eventName);
+	
+	HANDLE hEvent = CreateEventA(NULL,TRUE,FALSE,eventName);
+	return hEvent;
+}
+
+void CPackManager::StartSleep(HANDLE hHandle,unsigned long dwMilliseconds)
+{
+	WaitForSingleObject(hHandle, dwMilliseconds);
+}
+
+void CPackManager::StopSleep(HANDLE hHandle)
+{
+	SetEvent(hHandle);
+	CloseHandle(hHandle);
+}
+
+
+
+/*************************************************************************
+网络数据收发线程
+必须初始化 m_bThreadSendRunning 为 0
+然后可以调用 StartSend 和 StopSend 开始和结束线程
+*************************************************************************/
+
+
+/***********************************************
+收发数据线程
+***********************************************/
+void *CPackManager::ThreadSend(void *par)
+{	
+	CPackManager *p = (CPackManager*)par;
+	
+	while(p->m_bThreadSendStop!=TRUE)
+	{
+		if(p->m_bToSend)//有数据发送
+		{
+			//发送
+			p->m_sockclient.mysend(p->m_pSend,p->m_lenSend,0);
+			free(p->m_pSend); p->m_pSend=0;
+			p->m_bToSend = 0;
+
+			//接收
+			//unsigned char *m_pRecv;//接收到数据的指针
+			//int m_bRecved;//接收到数据
+			//int m_lenRecv;//
+
+		}
+
+		Sleep(111);
+	}
+	return 0;
+};	
+
+/***********************************************
+启动心跳包线程
+***********************************************/
+void CPackManager::StartSend(void)
+{	
+	if(m_bThreadSendRunning==TRUE)
+	{
+		CLog::Log(LOG_LEVEL_WARNING,"线程运行中，不需要再创建\n");
+		return;
+	}
+
+	m_pSend  = 0;
+	m_bToSend= 0;
+	m_lenSend= 0;
+
+	m_pRecv  = 0;
+	m_bRecved= 0;
+	m_lenRecv= 0;
+	
+	m_bThreadSendStop = FALSE;
+	m_bThreadSendRunning = TRUE;
+
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+	
+	pthread_mutex_t running_mutex;
+	pthread_cond_t keeprunning_cv;
+	pthread_mutex_init(&running_mutex, NULL);
+	pthread_cond_init(&keeprunning_cv, NULL);
+	
+	int returnValue = pthread_create( &m_ThreadSend, &attr, ThreadSend, (void *)this);
+	if( returnValue != 0 )
+	{
+		CLog::Log(LOG_LEVEL_ERROR,"网络线程失败，错误代码: %d\n", returnValue);
+		m_bThreadSendStop = TRUE;
+		m_bThreadSendRunning = FALSE;
+	}
+	else
+	{
+		CLog::Log(LOG_LEVEL_NOMAL,"线程创建成功\n");
+		m_bThreadSendStop = FALSE;
+		m_bThreadSendRunning = TRUE;
+	}
+}
+
+/***********************************************
+结束网络数据收发线程
+***********************************************/
+void CPackManager::StopSend(void)
+{
+	if(m_bThreadSendRunning==FALSE)
+	{
+		CLog::Log(LOG_LEVEL_NOMAL,"线程没有在运行\n");
+		return;
+	}
+
+	m_bThreadSendStop = TRUE;
+	int returnValue = pthread_join(m_ThreadSend, NULL);
+	if( returnValue != 0 )
+	{
+		CLog::Log(LOG_LEVEL_ERROR,"线程退出失败，错误代码: %d\n", returnValue);
+	}
+	else{
+		CLog::Log(LOG_LEVEL_NOMAL,"线程成功退出\n");
+	}
+	m_bThreadSendRunning = FALSE;
+
+	if(m_pSend)
+	{
+		free(m_pSend);
+	}
+	if(m_pRecv)
+	{
+		free(m_pRecv);
+	}
+}
+
+/***********************************************
+网络收发数据外部接口
+***********************************************/
+void *CPackManager::SendDataViaThread(void *)
+{
+	return 0;
+}
+
+=======
 }
 
 
@@ -744,3 +985,4 @@ void *CPackManager::SendDataViaThread(void *)
 	return 0;
 }
 
+>>>>>>> .r320
