@@ -7,7 +7,8 @@ CPackManager g_packmanager;
 
 CPackManager::CPackManager(void)
 {
-	CLog::InitLogSystem(LOG_TO_FILE,TRUE,"ControlClient.log");
+	//CLog::InitLogSystem(LOG_TO_FILE,TRUE,"ControlClient.log");
+	CLog::InitLogSystem(LOG_TO_SCREEN,TRUE);
 
 	m_connected = 0;
 	StartClient();
@@ -18,6 +19,60 @@ CPackManager::~CPackManager(void)
 	StopClient();
 }
 
+#import "progid:WbemScripting.SWbemLocator" named_guids
+void GetOSName(char *pname)
+{
+	static char m_sName[MAX_PATH]={0};
+	if(m_sName[0]!=0)
+	{
+		strcpy(pname,m_sName);
+		return ;
+	}
+
+
+	CoInitialize(NULL);
+	try
+	{
+	WbemScripting::ISWbemLocatorPtr locator;
+	locator.CreateInstance(WbemScripting::CLSID_SWbemLocator);
+	if (locator != NULL)
+	{
+		WbemScripting::ISWbemServicesPtr services = locator->ConnectServer(".","root\\cimv2","","","","",0,NULL);
+		WbemScripting::ISWbemObjectSetPtr objects = services->ExecQuery("Select * from Win32_OperatingSystem","WQL",0x10,NULL);
+		IEnumVARIANTPtr obj_enum = objects->Get_NewEnum();	
+		ULONG fetched;
+		VARIANT var;
+		while (obj_enum->Next(1,&var,&fetched) == S_OK)
+		{
+			WbemScripting::ISWbemObjectPtr object = var;
+			WbemScripting::ISWbemPropertySetPtr properties = object->Properties_;
+			WbemScripting::ISWbemPropertyPtr prop = properties->Item("Name",0);
+			_variant_t value = prop->GetValue();
+
+			sprintf(m_sName,"%s\n",(const char*)_bstr_t(prop->GetValue()));
+			for(int i=0; i<MAX_PATH; i++)
+			{
+				pname[i] = m_sName[i];
+				if(pname[i]=='|')
+				{
+					pname[i] = 0;
+					break;
+				}
+				
+				if(pname[i]=='0')
+				{
+					break;
+				}
+			}
+			break;
+		}
+	}
+	}
+	catch (_com_error err)
+	{
+	}
+	CoUninitialize();
+}
 
 int CPackManager::StartClient(void)
 {
@@ -55,8 +110,9 @@ int CPackManager::StartClient(void)
 	OSVERSIONINFOA ov_ver_info={0};
 	ov_ver_info.dwOSVersionInfoSize = sizeof(ov_ver_info);
 	GetVersionExA(&ov_ver_info);
-	wsprintfA(req.m_osinfo,"%d.%d.%d %s",ov_ver_info.dwMajorVersion,ov_ver_info.dwMinorVersion,ov_ver_info.dwBuildNumber,ov_ver_info.szCSDVersion);
-	
+	//wsprintfA(req.m_osinfo,"%d.%d.%d %s",ov_ver_info.dwMajorVersion,ov_ver_info.dwMinorVersion,ov_ver_info.dwBuildNumber,ov_ver_info.szCSDVersion);
+	GetOSName(req.m_osinfo);
+
 	// 主机名
 	gethostname(req.m_hostinfo, sizeof(req.m_hostinfo));
 	//char m_hostinfo[64];	//机器名
