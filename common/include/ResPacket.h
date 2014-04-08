@@ -3,6 +3,7 @@
 #ifndef _RES_PACKET_H_
 #define _RES_PACKET_H_
 
+#include "algorithm_types.h"
 
 struct task_upload_res {
 
@@ -10,10 +11,21 @@ struct task_upload_res {
 };
 
 
+
+//deprecate response
 struct task_status_res{
 
 	unsigned char guid[40];
 	unsigned int status;
+	unsigned char password[32];
+};
+
+//new get a task result response
+struct task_result_info{
+
+	unsigned char john[sizeof(struct crack_hash)];
+	unsigned char status;
+
 	unsigned char password[32];
 };
 
@@ -39,7 +51,6 @@ struct compute_node_info{
 	unsigned char os[48];
 		
 };
-
 
 
 //////upload file start 
@@ -71,7 +82,6 @@ struct file_upload_end_res {
 	unsigned int offset;
 
 };
-
 
 
 #endif
