@@ -32,10 +32,6 @@ static int keybits;
 unsigned int saltsize;
 unsigned int type=0;
 
-/* Office 2010/2013 */
-static const unsigned char encryptedVerifierHashInputBlockKey[] = { 0xfe, 0xa7, 0xd2, 0x76, 0x3b, 0x4b, 0x9e, 0x79 };
-static const unsigned char encryptedVerifierHashValueBlockKey[] = { 0xd7, 0xaa, 0x0f, 0x6d, 0x30, 0x61, 0x34, 0x4e };
-
 /* Get buffer+offset for sector */
 char* get_buf_offset(int sector)
 {
