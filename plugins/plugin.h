@@ -235,6 +235,11 @@ int wpa_is_special();
 int wpa_check_valid(struct crack_hash* hash);
 int wpa_recovery(const struct crack_hash* hash, char* line, int size);
 
+//
+int msoffice_old_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
+int msoffice_old_is_special();
+int msoffice_old_check_valid(struct crack_hash* hash);
+int msoffice_old_recovery(const struct crack_hash* hash, char* line, int size);
 
 //一些常用函数
 //char* strupr(char* ioString);//*******************************mike
