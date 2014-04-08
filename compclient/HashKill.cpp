@@ -22,7 +22,7 @@ using std::string;
 
 struct hash_parameter{
 	crack_algorithm algo;
-	const char* params; 
+	const char* params[max_value]; 		//暴力破解
 };
 
 static const char* charsets[] = {
@@ -39,56 +39,56 @@ static const char* charsets[] = {
 
 static struct hash_parameter all_support_hashes[] = 
 {
-	{algo_md4,			"-p md4 -b%d:%d:%s %s %s"},
-	{algo_md5,			"-p md5 -b%d:%d:%s %s %s"},
-	{algo_md5md5,		"-p md5md5 -b%d:%d:%s %s %s"},
-	{algo_md5unix,		"-p md5unix -r brute -a %d:%d:%s %s %s"},
-	{algo_mediawiki,	"-p mediawiki -b%d:%d:%s %s %s"},
-	{algo_oscommerce,	"-p oscommerce -b%d:%d:%s %s %s"},
-	{algo_ipb2,			"-p ipb2 -b%d:%d:%s %s %s"},
-	{algo_joomla,		"-p joomla -b%d:%d:%s %s %s"},
-	{algo_vbulletin,    "-p vbulletin -b%d:%d:%s %s %s"},
-	{algo_desunix,      "-p desunix -b%d:%d:%s %s %s"},
-	{algo_sha1,         "-p sha1 -b%d:%d:%s %s %s"},
-	{algo_sha1sha1,     "-p sha1sha1 -b%d:%d:%s %s %s"},
-	{algo_sha256,       "-p sha256 -b%d:%d:%s %s %s"},
-	{algo_sha256unix,   "-p sha256unix -b%d:%d:%s %s %s"},
-	{algo_sha512,       "-p sha512 -b%d:%d:%s %s %s"},
-	{algo_sha512unix,   "-p sha512unix -b%d:%d:%s %s %s"},
-	{algo_msoffice_old, "-p msoffice-old -b%d:%d:%s %s %s"},
-	{algo_msoffice,     "-p msoffice -b%d:%d:%s %s %s"},
-	{algo_django256,    "-p django256 -r brute -a %d:%d:%s: %s %s"},
-	{algo_zip,          "-p zip -b%d:%d:%s %s %s"},
-	{algo_rar,          "-p rar -b%d:%d:%s %s %s"},
-	{algo_apr1,         "-p apr1 -r brute -a %d:%d:%s: %s %s"},
-	{algo_bfunix,       "-p bfunix -b%d:%d:%s %s %s"},
-	{algo_dmg,          "-p dmg -b%d:%d:%s %s %s"},
-	{algo_drupal7,      "-p drupa17 -b%d:%d:%s %s %s"},
-	{algo_lm,           "-p lm -b%d:%d:%s %s %s"},
-	{algo_luks,         "-p luks -b%d:%d:%s %s %s"},
-	{algo_mscash,       "-p mscash -b%d:%d:%s %s %s"},
-	{algo_mscash2,      "-p mscash2 -b%d:%d:%s %s %s"},
-	{algo_mssql_2000,   "-p mssql-2000 -b%d:%d:%s %s %s"},
-	{algo_mssql_2005,   "-p mssql-2005 -b%d:%d:%s %s %s"},
-	{algo_mssql_2012,   "-p mssql-2012 -b%d:%d:%s %s %s"},
-	{algo_mysql5,       "-p mysql5 -b%d:%d:%s %s %s"},
-	{algo_nsldap,       "-p nsldap -b%d:%d:%s %s %s"},
-	{algo_nsldaps,      "-p nsldaps -b%d:%d:%s %s %s"},
-	{algo_ntlm,         "-p ntlm -b%d:%d:%s %s %s"},
-	{algo_o5logon,      "-p o5logon -b%d:%d:%s %s %s"},
-	{algo_oracle_old,   "-p oracle-old -b%d:%d:%s %s %s"},
-	{algo_oracle11g,    "-p oracle11g -r brute -a %d:%d:%s %s %s"},
-	{algo_osx_old,      "-p osx-old -b%d:%d:%s %s %s"},
-	{algo_osxlion,      "-p osxlion -b%d:%d:%s %s %s"},
-	{algo_phpbb3,       "-p phpbb3 -r brute -a %d:%d:%s %s %s"},
-	{algo_pixmd5,       "-p pixmd5 -b%d:%d:%s %s %s"},
-	{algo_privkey,      "-p privkey -b%d:%d:%s %s %s"},
-	{algo_ripemd160,    "-p ripemd160 -b%d:%d:%s %s %s"},
-	{algo_sapg,         "-p sapg -b%d:%d:%s %s %s"},
-	{algo_sl3,          "-p sl3 -b%d:%d:%s %s %s"},
-	{algo_smf,          "-p smf -b%d:%d:%s %s %s"},
-	{algo_wordpress,    "-p wordpress -r brute -a %d:%d:%s %s %s"},
-	{algo_wpa,          "-p wpa -b%d:%d:%s %s %s"},
+	{algo_md4,			{"-p md4 -b%d:%d:%s %s %s", "-p md4 -r %s %s %s"}},
+	{algo_md5,			{"-p md5 -b%d:%d:%s %s %s", "-p md5 -r %s %s %s"}},
+	{algo_md5md5,		{"-p md5md5 -b%d:%d:%s %s %s", "-p md5md5 -r %s %s %s"}},
+	{algo_md5unix,		{"-p md5unix -r brute -a %d:%d:%s %s %s", "-p md5unix -r %s %s %s"}},
+	{algo_mediawiki,	{"-p mediawiki -b%d:%d:%s %s %s", "-p mediawiki -r %s %s %s"}},
+	{algo_oscommerce,	{"-p oscommerce -b%d:%d:%s %s %s", "-p oscommerce -r %s %s %s"}},
+	{algo_ipb2,			{"-p ipb2 -b%d:%d:%s %s %s", "-p ipb2 -r %s %s %s"}},
+	{algo_joomla,		{"-p joomla -b%d:%d:%s %s %s", "-p joomla -r %s %s %s"}},
+	{algo_vbulletin,    {"-p vbulletin -b%d:%d:%s %s %s", "-p vbulletin -r %s %s %s"}},
+	{algo_desunix,      {"-p desunix -b%d:%d:%s %s %s", "-p desunix -r %s %s %s"}},
+	{algo_sha1,         {"-p sha1 -b%d:%d:%s %s %s", "-p sha1 -r %s %s %s"}},
+	{algo_sha1sha1,     {"-p sha1sha1 -b%d:%d:%s %s %s", "-p sha1sha1 -r %s %s %s"}},
+	{algo_sha256,       {"-p sha256 -b%d:%d:%s %s %s", "-p sha256 -r %s %s %s"}},
+	{algo_sha256unix,   {"-p sha256unix -b%d:%d:%s %s %s", "-p sha256unix -r %s %s %s"}},
+	{algo_sha512,       {"-p sha512 -b%d:%d:%s %s %s", "-p sha512 -r %s %s %s"}},
+	{algo_sha512unix,   {"-p sha512unix -b%d:%d:%s %s %s", "-p sha512unix -r %s %s %s"}},
+	{algo_msoffice_old, {"-p msoffice-old -b%d:%d:%s %s %s", "-p msoffice-old -r %s %s %s"}},
+	{algo_msoffice,     {"-p msoffice -b%d:%d:%s %s %s", "-p msoffice -r %s %s %s"}},
+	{algo_django256,    {"-p django256 -r brute -a %d:%d:%s: %s %s", "-p django256 -r %s %s %s"}},
+	{algo_zip,          {"-p zip -b%d:%d:%s %s %s", "-p zip -r %s %s %s"}},
+	{algo_rar,          {"-p rar -b%d:%d:%s %s %s", "-p rar -r %s %s %s"}},
+	{algo_apr1,         {"-p apr1 -r brute -a %d:%d:%s: %s %s", "-p apr1 -r %s %s %s"}},
+	{algo_bfunix,       {"-p bfunix -b%d:%d:%s %s %s", "-p bfunix -r %s %s %s"}},
+	{algo_dmg,          {"-p dmg -b%d:%d:%s %s %s", "-p dmg -r %s %s %s"}},
+	{algo_drupal7,      {"-p drupa17 -b%d:%d:%s %s %s", "-p drupa17 -r %s %s %s"}},
+	{algo_lm,           {"-p lm -b%d:%d:%s %s %s", "-p lm -r %s %s %s"}},
+	{algo_luks,         {"-p luks -b%d:%d:%s %s %s", "-p luks -r %s %s %s"}},
+	{algo_mscash,       {"-p mscash -b%d:%d:%s %s %s", "-p mscash -r %s %s %s"}},
+	{algo_mscash2,      {"-p mscash2 -b%d:%d:%s %s %s", "-p mscash2 -r %s %s %s"}},
+	{algo_mssql_2000,   {"-p mssql-2000 -b%d:%d:%s %s %s", "-p mssql-2000 -r %s %s %s"}},
+	{algo_mssql_2005,   {"-p mssql-2005 -b%d:%d:%s %s %s", "-p mssql-2005 -r %s %s %s"}},
+	{algo_mssql_2012,   {"-p mssql-2012 -b%d:%d:%s %s %s", "-p mssql-2012 -r %s %s %s"}},
+	{algo_mysql5,       {"-p mysql5 -b%d:%d:%s %s %s", "-p mysql5 -r %s %s %s"}},
+	{algo_nsldap,       {"-p nsldap -b%d:%d:%s %s %s", "-p nsldap -r %s %s %s"}},
+	{algo_nsldaps,      {"-p nsldaps -b%d:%d:%s %s %s", "-p nsldaps -r %s %s %s"}},
+	{algo_ntlm,         {"-p ntlm -b%d:%d:%s %s %s", "-p ntlm -r %s %s %s"}},
+	{algo_o5logon,      {"-p o5logon -b%d:%d:%s %s %s", "-p o5logon -r %s %s %s"}},
+	{algo_oracle_old,   {"-p oracle-old -b%d:%d:%s %s %s", "-p oracle-old -r %s %s %s"}},
+	{algo_oracle11g,    {"-p oracle11g -r brute -a %d:%d:%s %s %s", "-p oracle11g -r %s %s %s"}},
+	{algo_osx_old,      {"-p osx-old -b%d:%d:%s %s %s", "-p osx-old -r %s %s %s"}},
+	{algo_osxlion,      {"-p osxlion -b%d:%d:%s %s %s", "-p osxlion -r %s %s %s"}},
+	{algo_phpbb3,       {"-p phpbb3 -r brute -a %d:%d:%s %s %s", "-p phpbb3 -r %s %s %s"}},
+	{algo_pixmd5,       {"-p pixmd5 -b%d:%d:%s %s %s", "-p pixmd5 -r %s %s %s"}},
+	{algo_privkey,      {"-p privkey -b%d:%d:%s %s %s", "-p privkey -r %s %s %s"}},
+	{algo_ripemd160,    {"-p ripemd160 -b%d:%d:%s %s %s", "-p ripemd160 -r %s %s %s"}},
+	{algo_sapg,         {"-p sapg -b%d:%d:%s %s %s", "-p sapg -r %s %s %s"}},
+	{algo_sl3,          {"-p sl3 -b%d:%d:%s %s %s", "-p sl3 -r %s %s %s"}},
+	{algo_smf,          {"-p smf -b%d:%d:%s %s %s", "-p smf -r %s %s %s"}},
+	{algo_wordpress,    {"-p wordpress -r brute -a %d:%d:%s %s %s", "-p wordpress -r %s %s %s"}},
+	{algo_wpa,          {"-p wpa -b%d:%d:%s %s %s", "-p wpa -r %s %s %s"}},
 };
 
 #define SUPPORT_HASH_NUM sizeof(all_support_hashes)/sizeof(all_support_hashes[0])
@@ -112,15 +112,16 @@ int HashKill::Launcher(const crack_block* item, bool gpu, unsigned short* device
 	unsigned char charset = item->charset;
 	unsigned short start = item->start;
 	unsigned short end = item->end;
+	unsigned char type = item->type;
 	const char* hash = item->john;
 	const char* fmt;
-	int i;
+	int i, j;
 
 	for(i = 0; i < SUPPORT_HASH_NUM; i++)
 	{
-		if(algo == all_support_hashes[i].algo)
+		if(algo == all_support_hashes[i].algo && type < max_value && type >= 0)
 		{
-			fmt = all_support_hashes[i].params;
+			fmt = all_support_hashes[i].params[type];
 			break;
 		}
 	}
@@ -143,8 +144,8 @@ int HashKill::Launcher(const crack_block* item, bool gpu, unsigned short* device
 	
 	unsigned short platformId = deviceIds[0] >> 8;
 	unsigned short ids[16] = {0};
-	for(i = 0; i < ndevices; i++)
-		ids[i] = deviceIds[i] & 0xff;
+	for(j = 0; j < ndevices; j++)
+		ids[j] = deviceIds[j] & 0xff;
 
 	char cmd[4096];
 	char others[128];
@@ -155,9 +156,9 @@ int HashKill::Launcher(const crack_block* item, bool gpu, unsigned short* device
 	else 
 	{
 		sprintf(others, "-t %d -A ", platformId);
-		for(i = 0; i < ndevices-1; i++)
-			sprintf(others, "%s%d,", others, ids[i]);
-		sprintf(others, "%s%d", others, ids[i]);
+		for(j = 0; j < ndevices-1; j++)
+			sprintf(others, "%s%d,", others, ids[j]);
+		sprintf(others, "%s%d", others, ids[j]);
 	}
 
 	string john = item->john;
@@ -174,7 +175,10 @@ int HashKill::Launcher(const crack_block* item, bool gpu, unsigned short* device
 			john = string("B:") + john.substr(id+1, john.length()-id-1) + ":" + john.substr(0, id);
 	}
 	
-	sprintf(cmd, fmt, start, end, charsets[charset], others, john.c_str());
+	if(type == bruteforce)
+		sprintf(cmd, fmt, start, end, charsets[charset], others, john.c_str());
+	else if(type == dict)
+		sprintf(cmd, fmt, "", others, john.c_str());
 	
 	int pid = this->Exec(item->guid, path, cmd, MonitorThread, true, true, false);
 	
@@ -203,7 +207,7 @@ int HashKill::Launcher(const crack_block* item, bool gpu, unsigned short deviceI
 	{
 		if(algo == all_support_hashes[i].algo)
 		{
-			fmt = all_support_hashes[i].params;
+			fmt = all_support_hashes[i].params[0];
 			break;
 		}
 	}
