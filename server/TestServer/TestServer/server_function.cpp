@@ -13,9 +13,13 @@
 #include "ServerResp.h"
 #include "err.h"
 #include "ServerResp.h"
+#include "CrackBroker.h"
 
 #pragma comment(lib,"zlib.lib")
 
+
+
+//extern CCrackBroker g_CrackBroker;
 
 VOID ProcessClientData1(LPVOID lpParameter){
 
@@ -28,11 +32,12 @@ VOID ProcessClientData1(LPVOID lpParameter){
 	INT cmdheader = sizeof(control_header);
 	unsigned char cmd;
 	short status;
-
+	
 	struct sockaddr_in addr;
 	int len2 = sizeof(addr);
 	getpeername(cliSocket, (sockaddr *)&addr, &len2);
 	char ip[16];
+	memset(ip,0,16);
 	strcpy(ip, inet_ntoa(addr.sin_addr));
 	int port = ntohs(addr.sin_port);
 
@@ -40,17 +45,29 @@ VOID ProcessClientData1(LPVOID lpParameter){
 	{
 		int m = Read(cliSocket, &cmd, &status, recvBuf, sizeof(recvBuf));
 	
-		if(m == ERR_CONNECTIONLOST) break;//推出了
-		else if(m == ERR_INVALIDDATA || m == ERR_UNCOMPRESS)
+		if(m == ERR_CONNECTIONLOST) {
+	//		g_CrackBroker.DoClientQuit(ip,port);
+			cmd = CMD_CLIENT_QUIT;
+			memset(recvBuf,0,36000);
+			memcpy(recvBuf,ip,strlen(ip));
+			m = port;
+			doRecvData(lpParameter,recvBuf,m,cmd);
+			break;//推出了
+		}else if(m == ERR_INVALIDDATA || m == ERR_UNCOMPRESS)
 			continue;
 		
 		CLog::Log(LOG_LEVEL_WARNING, "%s:%d recv cmd %d status %d body %d\n",ip, port, cmd, status, m);
 
 
+		nRet = doRecvData(lpParameter, recvBuf, m, cmd);
 		doRecvData(lpParameter, recvBuf, m, cmd);
 	}
 
 	delete lpParameter;
-	CLog::Log(LOG_LEVEL_WARNING, "Quit %s %d\n", __FUNCTION__, cliSocket);
+	CLog::Log(LOG_LEVEL_WARNING, "Client [%s:%d] Quit!\n",ip,port);
+
+	
+
+	
 
 }
