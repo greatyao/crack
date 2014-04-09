@@ -35,9 +35,15 @@ struct task_status_info{
 	unsigned char guid[40];
 	float m_progress;
 	
+	
 	unsigned m_split_number;
 	unsigned m_fini_number;
 	unsigned int status;
+
+	unsigned int m_running_time;  //unit seconds
+	unsigned int m_remain_time;   //unit seconds
+	
+	unsigned char m_algo;		  //Ëã·¨
 	
 };
 
