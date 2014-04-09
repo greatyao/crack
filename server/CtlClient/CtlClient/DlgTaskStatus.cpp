@@ -164,11 +164,14 @@ BOOL CDlgTaskStatus::OnInitDialog()
 	ListView_SetExtendedListViewStyle(m_ListStatus.m_hWnd, LVS_EX_FULLROWSELECT|LVS_EX_CHECKBOXES );
 
 	m_ListStatus.InsertColumn(0, _T("选择"), LVCFMT_LEFT, 40);
-	m_ListStatus.InsertColumn(1, _T("任务GUID"), LVCFMT_LEFT, 200);
-	m_ListStatus.InsertColumn(2, _T("进度"), LVCFMT_LEFT, 50);
-	m_ListStatus.InsertColumn(3, _T("切割份数"), LVCFMT_LEFT, 100);
-	m_ListStatus.InsertColumn(4, _T("完成份数"), LVCFMT_LEFT, 80);
-	m_ListStatus.InsertColumn(5, _T("状态"), LVCFMT_LEFT, 80);//guid
+	m_ListStatus.InsertColumn(1, _T("任务GUID"), LVCFMT_LEFT, 180);
+	m_ListStatus.InsertColumn(2, _T("算法"), LVCFMT_LEFT, 50);
+	m_ListStatus.InsertColumn(3, _T("已用时间"), LVCFMT_LEFT, 70);
+	m_ListStatus.InsertColumn(4, _T("剩余时间"), LVCFMT_LEFT, 70);
+	m_ListStatus.InsertColumn(5, _T("进度"), LVCFMT_LEFT, 50);
+	m_ListStatus.InsertColumn(6, _T("切割份数"), LVCFMT_LEFT, 100);
+	m_ListStatus.InsertColumn(7, _T("完成份数"), LVCFMT_LEFT, 80);
+	m_ListStatus.InsertColumn(8, _T("状态"), LVCFMT_LEFT, 80);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 异常: OCX 属性页应返回 FALSE
