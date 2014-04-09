@@ -10,7 +10,6 @@
 #include "algorithm_types.h"
 #include "err.h"
 #include "CLog.h"
-#include "plugin.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -95,20 +94,6 @@ void Crack::RegisterCallback(ProcessDone done, ProgressStatus status)
 
 int Crack::StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short deviceId)
 {
-	//首先需要验证数据的有效性
-	struct hash_support_plugins* plugin = locate_by_algorithm(item->algo);
-	if(plugin){
-		struct crack_hash hash;
-		if(plugin->special() == 0)
-		{
-			if(plugin->parse((char*)item->john, NULL, &hash) != 0)
-			{
-				CLog::Log(LOG_LEVEL_WARNING, "check: Invalid hash format %s\n", item->john);
-				return ERR_INVALID_PARAM;
-			}
-		}
-	}
-
 	int pid = this->Launcher(item, gpu, deviceId);
 	if(pid <= 0) return ERR_LAUCH_TASK;
 
@@ -117,19 +102,6 @@ int Crack::StartCrack(const crack_block* item, const char* guid, bool gpu, unsig
 
 int Crack::StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short deviceIds[], int ndevices)
 {
-	struct hash_support_plugins* plugin = locate_by_algorithm(item->algo);
-	if(plugin){
-		struct crack_hash hash;
-		if(plugin->special() == 0)
-		{
-			if(plugin->parse((char*)item->john, NULL, &hash) != 0)
-			{
-				CLog::Log(LOG_LEVEL_WARNING, "check: Invalid hash format %s\n", item->john);
-				return ERR_INVALID_PARAM;
-			}
-		}
-	}
-
 	int pid = this->Launcher(item, gpu, deviceIds, ndevices);
 	if(pid <= 0) return ERR_LAUCH_TASK;
 

@@ -26,6 +26,9 @@ public:
 	int StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short* deviceIds, int ndevices);
 	int StopCrack(const char* guid);
 	
+	//检验workitem的参数
+	int CheckParameters(crack_block* item);
+	
 	//获取解密文件名路径
 	void GetFilename(const char* guid, char* filename, int size)const;
 	

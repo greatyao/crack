@@ -61,7 +61,16 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 				goto next;
 			ret = Client::Get().GetWorkItemFromServer(&item);
 			if(ret != sizeof(item))	goto next;
+			
 			CLog::Log(LOG_LEVEL_NOMAL, "ccoordinator: Fetch workitem [guid=%s]\n", item.guid);
+			if(CrackManager::Get().CheckParameters(&item))
+			{
+				crack_result result;
+				strcpy(result.guid, item.guid);
+				result.status = WORK_ITEM_UNLOCK;
+				Client::Get().ReportResultToServer(&result);
+				goto next;
+			}
 		
 			//从服务器申请任务，并且将资源状态设置为RS_STATUS_AVAILABLE
 			CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator: Lock one compute unit\n");

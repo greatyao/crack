@@ -15,6 +15,7 @@
 #include "algorithm_types.h"
 #include "Client.h"
 #include "err.h"
+#include "plugin.h"
 
 #include <ctype.h>
 #include <algorithm>
@@ -174,6 +175,30 @@ bool CrackManager::UsingCPU()const
 	return using_cpu;
 }
 
+int CrackManager::CheckParameters(crack_block* item)
+{
+	//首先需要验证数据的有效性
+	struct hash_support_plugins* plugin = locate_by_algorithm(item->algo);
+	if(plugin){
+		struct crack_hash hash;
+		if(plugin->special() == 0)
+		{
+			if(plugin->parse((char*)item->john, NULL, &hash) != 0)
+			{
+				CLog::Log(LOG_LEVEL_WARNING, "CrackManager: Invalid hash format %s\n", item->john);
+				return ERR_INVALID_PARAM;
+			}
+		}
+	}
+	
+	char file[512];
+	GetFilename(item->guid, file, sizeof(file));
+	if(item->special != 0)
+		strcpy(item->john, file);
+	
+	return 0;
+}
+
 bool CrackManager::CouldCrack()const
 {
 	if(!tools || !tools[toolPriority])
@@ -191,10 +216,7 @@ int CrackManager::StartCrack(const crack_block* item, const char* guid, bool gpu
 	if(!tools || !tools[toolPriority])
 		return ERR_NOENTRY;
 	
-	char file[512];
-	GetFilename(item->guid, file, sizeof(file));
-	
-	if(item->special !=0 && access(file, 0) != 0)
+	if(item->special !=0 && access(item->john, 0) != 0)
 		Client::Get().DownloadFile(item->guid, filedb_path.c_str());
 		
 	if(tools[toolPriority]->RunningTasks() != 0 && 
@@ -209,10 +231,7 @@ int CrackManager::StartCrack(const crack_block* item, const char* guid, bool gpu
 	if(!tools || !tools[toolPriority])
 		return ERR_NOENTRY;
 	
-	char file[512];
-	GetFilename(item->guid, file, sizeof(file));
-	
-	if(item->special !=0 && access(file, 0) != 0)
+	if(item->special !=0 && access(item->john, 0) != 0)
 		Client::Get().DownloadFile(item->guid, filedb_path.c_str());
 	
 	if(tools[toolPriority]->RunningTasks() != 0 && 
