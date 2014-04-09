@@ -199,6 +199,7 @@ int	CCrackBroker::StartTask(struct task_start_req *pReq){
 		
 		//Task status --> Running , the block status --> ready
 		ret = pCT->SetStatus(CT_STATUS_RUNNING);
+	
 
 	}
 	//任务被放入循环队列队尾，等待调度
@@ -273,8 +274,12 @@ int CCrackBroker::DeleteTask(struct task_delete_req *pReq){
 		pCT = iter_task->second;
 		
 		//Task status --> Running , the block status --> ready
-		ret = pCT->SetStatus(CT_STATUS_DELETED);
+		//保守的删除方法，给wi 状态留有余地
+	//	ret = pCT->SetStatus(CT_STATUS_DELETED);
 
+		//暴力删除,直接删除相关任务，及其hash 和crackblock
+		this->deleteTask((char *)pReq->guid);
+		
 	}
 
 	//从调度队列中移除
@@ -583,12 +588,18 @@ int CCrackBroker::GetWIStatus(struct crack_status *pReq){
 
 
 	}
-	
+
+		
 	pCB = iter_block->second;
 
 	pCB->m_progress = pReq->progress;
 	pCB->m_speed = pReq->speed;
 	pCB->m_remaintime = pReq->remainTime;
+
+	if (pCB->m_remaintime >((CCrackTask*)(pCB->task))->m_remain_time){
+			
+		((CCrackTask*)(pCB->task))->m_remain_time = pCB->m_remaintime;
+	}
 
 	return ret;
 
@@ -783,13 +794,26 @@ int CCrackBroker::getResultFromTaskNew(CCrackTask *pCT,struct task_result_info *
 	return ret;  //返回结果数目
 }
 	
-int CCrackBroker::getStatusFromTask(CCrackTask *pCT,struct task_status_info *pRes){
+int CCrackBroker::getStatusFromTask(CCrackTask *pCT,task_status_info *pRes){
 
 	int ret = 0;
+	time_t mytime;
+	mytime = time(NULL);
 
 	pRes->m_fini_number = pCT->m_finish_num;
 	pRes->m_split_number = pCT->m_split_num;
 
+	/*
+	unsigned int m_running_time;  //unit seconds
+	unsigned int m_remain_time;   //unit seconds
+	
+	unsigned char m_algo;		  //算法
+	*/
+
+
+	pRes->m_remain_time = pCT->m_remain_time;
+	pRes->m_running_time = mytime-pCT->m_start_time;
+	pRes->m_algo = pCT->algo;
 	//get the current block progress 
 	pCT->calcProgressByBlock();
 	pRes->m_progress = pCT->m_progress;
@@ -848,6 +872,92 @@ int CCrackBroker::DoClientQuit(char *ip,int port){
 	return ret;
 }
 
+
+int CCrackBroker::deleteTask(char *guid){
+
+	int ret = 0;
+	CCrackTask *pCT = NULL;
+	CCrackHash *pCH = NULL;
+	CCrackBlock *pCB = NULL;
+	CRACK_HASH_LIST::iterator iter_hash;
+	CB_MAP::iterator iter_block;
+	CB_MAP::iterator iter_total_block;
+	CB_MAP::iterator total_block_end;
+	CB_MAP tmp_cb_map;
+
+	
+
+	total_block_end = m_total_crackblock_map.end();
+
+	CT_MAP::iterator iter_task = m_cracktask_map.find(guid);
+	if (iter_task == m_cracktask_map.end()){
+			
+
+		CLog::Log(LOG_LEVEL_WARNING,"Delete Task ,Can't find Crack Task With GUID %s\n",guid);
+		ret =  NOT_FIND_GUID_TASK;
+		return ret;
+
+
+	}
+
+	pCT=iter_task->second;
+	//删除hash 中的内容
+	if (pCT->m_crackhash_list.size() > 0){
+
+		iter_hash = pCT->m_crackhash_list.begin();
+		
+		pCH = *iter_hash;
+
+		delete []pCH;
+		pCT->m_crackhash_list.clear();
+
+/*
+		for (iter_hash = pCT->m_crackhash_list.begin();iter_hash != pCT->m_crackhash_list.end();iter_hash++){
+
+			pCH = *iter_hash;
+			pCT->m_crackhash_list.erase(iter_hash);
+			delete []pCH;
+
+		}
+		*/
+
+		pCT->m_crackhash_list.clear();
+	}
+
+	//删除crackblock 内容
+	if (pCT->m_crackblock_map.size() > 0){
+
+		
+		tmp_cb_map = pCT->m_crackblock_map;
+
+		for(iter_block = tmp_cb_map.begin();iter_block!=tmp_cb_map.end();iter_block++){
+
+			pCB = iter_block->second;
+
+			iter_total_block = m_total_crackblock_map.find(pCB->guid);
+			if (iter_total_block != total_block_end){
+
+				m_total_crackblock_map.erase(iter_total_block);
+			}
+			
+		}
+		
+		pCB = tmp_cb_map.begin()->second;
+		tmp_cb_map.clear();
+
+		delete [] pCB;
+
+
+	}
+
+
+
+	m_cracktask_map.erase(iter_task);
+	delete pCT;
+	
+
+	return ret;
+}
 
 void *CCrackBroker::Alloc(int size){
 	

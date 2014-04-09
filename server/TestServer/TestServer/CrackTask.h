@@ -21,6 +21,10 @@
 
 #define NOT_CONVERT_TO_FAIL CRACK_TASK_ERR+106
 
+
+#define LOAD_FILE_ERR -300
+#define SPLIT_HASH_ERR -301
+
 #define CH_LEN sizeof(crack_hash)
 
 #define HASH_NUM_IN_TASK 100
@@ -125,6 +129,11 @@ public:
 	unsigned int m_runing_num;
 
 
+	unsigned int m_start_time;
+
+//	unsigned int m_running_time;  //已经运行时间
+
+	unsigned int m_remain_time;   //还剩时间
 
 	//文件句柄
 	void *m_file;

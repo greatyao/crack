@@ -105,6 +105,10 @@ public:
 	
 	int DoClientQuit(char *ip,int port);
 
+
+	int deleteTask(char *guid);	//由于切分任务失败，删除刚创建的任务
+
+
 	void *Alloc(int size);
 	void Free(void *p);
 
@@ -119,6 +123,9 @@ private:
 	int getStatusFromTask(CCrackTask *pCT,struct task_status_info *pRes);
 
 	int getBlockFromCrackBlock(CCrackBlock *pCB,struct crack_block *pRes);
+
+
+	
 
 
 public :

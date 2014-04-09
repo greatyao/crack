@@ -883,6 +883,7 @@ int cc_task_upload_file_end(void *pclient,unsigned char *pdata,UINT len){
 
 	CLog::Log(LOG_LEVEL_WARNING,"this is file upload End \n");
 	int ret = 0;
+	int nRet = 0;
 	FILE *pfile = NULL;
 	unsigned int resLen = 0;
 	file_upload_end_req *preq = NULL;
@@ -926,6 +927,38 @@ int cc_task_upload_file_end(void *pclient,unsigned char *pdata,UINT len){
 	uploadres.len = preq->len;
 	uploadres.offset = preq->offset;
 
+	//修改流程，首先切分，如果出错，在返回切分错误原因
+	if (ret == 0){
+		
+		//通过任务guid 进行查找，并且分任务
+
+		//处理业务逻辑
+		//ret == -300 load file error 
+		//ret == -301 split hash error
+		ret = g_CrackBroker.SplitTask((char *)uploadres.guid);
+		if (ret < 0){
+			CLog::Log(LOG_LEVEL_WARNING,"Broker Split ErrorCode : %d\n",ret);
+			
+			//删除新创建任务
+			nRet = g_CrackBroker.deleteTask((char *)uploadres.guid);
+			if (nRet < 0 ){
+
+				CLog::Log(LOG_LEVEL_WARNING,"Delete Task %s ,Error : %d,Split ErrorCode : %d\n",(char *)uploadres.guid,nRet,ret);
+				ret = -100;  //删除任务错误
+
+			}
+			
+
+		
+		}else{
+			CLog::Log(LOG_LEVEL_WARNING,"Broker Get Clients ,number is %d OK\n",ret);
+		}
+		
+
+	}
+
+	
+	//
 
 
 	//产生应答报文，并发送
@@ -933,12 +966,12 @@ int cc_task_upload_file_end(void *pclient,unsigned char *pdata,UINT len){
 	if (m < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get Task File Upload End:Send Response Error %d \n",ip,port,m);
 	}else
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client Get Task File Upload End OK\n",ip,port);
+		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client Get Task File Upload End .ret %d OK\n",ip,port,ret);
 
 
 
 	//split task 
-	if (ret == 0){
+/*	if (ret == 0){
 		
 		//通过任务guid 进行查找，并且分任务
 
@@ -953,6 +986,7 @@ int cc_task_upload_file_end(void *pclient,unsigned char *pdata,UINT len){
 		
 
 	}
+	*/
 	return ret;
 }
 

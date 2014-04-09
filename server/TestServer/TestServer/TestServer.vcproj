@@ -388,6 +388,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\plugins\trex\history.txt"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\plugins\ipb2.cpp"
 				>
 			</File>
@@ -425,10 +429,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\plugins\mediawiki.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\plugins\msoffice_old.cpp"
 				>
 			</File>
 			<File
@@ -488,6 +488,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\plugins\trex\readme.txt"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\plugins\sha1.cpp"
 				>
 			</File>
@@ -537,10 +541,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\plugins\wordpress.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\plugins\wpa.cpp"
 				>
 			</File>
 		</Filter>

@@ -51,6 +51,11 @@ int CCrackTask::Init(crack_task *pCrackTask)
 
 	m_file = NULL;
 
+	m_start_time = 0;
+
+	//m_running_time = 0;
+	m_remain_time = 0;
+
 	return 0;
 }
 
@@ -88,10 +93,10 @@ int CCrackTask::SplitTaskFile(char *pguid){
 	
 	//ret = load_hashes_file((char *)filename,algo,(struct crack_hash*)p,mcount);
 	ret = load_hashes_file2((char *)filename,this);
-	if (ret < 0 ){
+	if (ret <= 0 ){
 		CLog::Log(LOG_LEVEL_WARNING,"load the hash Info Error\n");
-		Free(p);
-		return -2;
+	//	Free(p);
+		return LOAD_FILE_ERR;
 	}
 	
 	
@@ -113,8 +118,9 @@ int CCrackTask::SplitTaskFile(char *pguid){
 	pCrackBlock = split.split_easy(this,splitnum);
 	if (!pCrackBlock){
 		CLog::Log(LOG_LEVEL_WARNING,"split default Error\n");
-		Free(p);
-		return -3;
+		release_hashes_from_load(this);
+		//Free(p);
+		return SPLIT_HASH_ERR;
 	}
 	
 	//根据crack_block 创建 CCrackBlock 对象
@@ -290,6 +296,8 @@ int CCrackTask::updateStatusToRunning(){
 	CB_MAP::iterator iter_block;
 	CCrackBlock *pCb = NULL;
 	CCrackHash *pCCH = NULL;
+	time_t time_last;  
+    time_last = time(NULL);  
 
 	if ((m_status != CT_STATUS_READY) && (m_status != CT_STATUS_PAUSED)){
 		
@@ -299,6 +307,7 @@ int CCrackTask::updateStatusToRunning(){
 	}
 	
 	m_status = CT_STATUS_RUNNING;
+	m_start_time = time_last;
 
 	//设置每个HASH为运行状态
 	for(int i = 0;i < count ;i ++ ){
