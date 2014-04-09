@@ -21,6 +21,14 @@ int load_hashes_file2(const char *filename, struct crack_task* task)
 	task->hashes = (struct crack_hash*)malloc(sizeof(struct crack_hash)*n);
 	memcpy(task->hashes, hashes, sizeof(struct crack_hash)*n);
 	task->special = special;
+
+
+	struct hash_support_plugins* plugin = locate_by_algorithm(task->algo);
+	if(plugin)
+	{
+		for(int i = 0; i < n; i++)
+			plugin->recovery(&hashes[i], (char *)(&task->hashes[i]), sizeof(task->hashes[i]));
+	}
 	return n;
 }
 
