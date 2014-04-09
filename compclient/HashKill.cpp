@@ -113,6 +113,7 @@ int HashKill::Launcher(const crack_block* item, bool gpu, unsigned short* device
 	unsigned short start = item->start;
 	unsigned short end = item->end;
 	unsigned char type = item->type;
+	unsigned char special = item->special;
 	const char* hash = item->john;
 	const char* fmt;
 	int i, j;
@@ -162,6 +163,9 @@ int HashKill::Launcher(const crack_block* item, bool gpu, unsigned short* device
 	}
 
 	string john = item->john;
+	if(special != 0)
+		john = "-f " + john;
+	
 	if(item->algo == algo_mscash)
 	{
 		int id = john.find(":");
