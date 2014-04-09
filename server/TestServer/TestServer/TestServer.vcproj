@@ -130,12 +130,12 @@
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="..\..\..\common\include;..\..\..\common;..\..\..\wang\split;..\..\..\plugins\trex;..\..\..\plugins"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNING"
-				MinimalRebuild="true"
+				MinimalRebuild="false"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				DebugInformationFormat="1"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -388,10 +388,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\plugins\trex\history.txt"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\plugins\ipb2.cpp"
 				>
 			</File>
@@ -429,6 +425,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\plugins\mediawiki.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\msoffice_old.cpp"
 				>
 			</File>
 			<File
@@ -488,10 +488,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\plugins\trex\readme.txt"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\plugins\sha1.cpp"
 				>
 			</File>
@@ -541,6 +537,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\plugins\wordpress.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\wpa.cpp"
 				>
 			</File>
 		</Filter>
