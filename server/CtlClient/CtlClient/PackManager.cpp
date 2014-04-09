@@ -453,7 +453,7 @@ int CPackManager::GenTaskResultPack(task_result_req req,task_result_info **res){
 	CLog::Log(LOG_LEVEL_WARNING,"Recv Get Task Result Res OK\n");
 	if (status == 0){
 		//memcpy(res,recbuf,sizeof(task_status_res));
-		pres = (task_result_info *)malloc(ret);
+		pres = (task_result_info *)_malloc(ret);
 		if (!pres){
 
 			CLog::Log(LOG_LEVEL_WARNING,"Malloc Get Task Result Res Error\n");
@@ -506,7 +506,7 @@ int CPackManager::GenTaskStatusPack(task_status_info **res){
 	CLog::Log(LOG_LEVEL_WARNING,"Recv Tasks Status Res OK\n");
 	if ((status == 0 ) && (ret > 0)){
 
-		pres = malloc(ret);
+		pres = _malloc(ret);
 		if (!pres){
 			
 			return -1;

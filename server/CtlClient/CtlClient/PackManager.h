@@ -112,6 +112,10 @@ public:
 	int StartClient(void);
 	int StopClient(void);
 	int CheckConnect(void);
+
+	//ÄÚ´æ·ÖÅäº¯Êý
+	void * _malloc(size_t size){return malloc(size);}
+	void _free(void *mem){free(mem);}
 };
 
 extern CPackManager g_packmanager;

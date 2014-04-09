@@ -209,25 +209,10 @@ void CDlgTaskStatus::OnNMDblclkListTask(NMHDR *pNMHDR, LRESULT *pResult)
 	CString str3 = m_ListStatus.GetItemText(uSel,3);
 	CString str4 = m_ListStatus.GetItemText(uSel,4);
 
-	char buffer[200];
+	char buffer[200]={0};
 	//wsprintfA(buffer,"这里显示详细信息：选择条目 %d 内容1 %s",uSel,str1.GetBuffer());
 	//AfxMessageBox(buffer);
-/*
-	task_result_req req;
-	task_status_res res={0};
-	memcpy(req.guid,str1.GetBuffer(),str1.GetLength()+1);
-	int ret = g_packmanager.GenTaskResultPack(req,&res);
 
-	int count = ret/sizeof(task_status_res);
-	char * p = (char *)&res;
-
-	for(int i=0; i<count; i++)
-	{
-		struct task_status_res *p_res = (task_status_res *)&p[i*sizeof(task_status_res)];
-
-		CLog::Log(LOG_LEVEL_NOMAL,"GUID:%s 状态:%d 密码:%s\n",p_res->guid,p_res->status,p_res->password);
-	}
-*/
 
 	//添加获得相关结果的请求
 	int ret = 0;
@@ -257,16 +242,20 @@ void CDlgTaskStatus::OnNMDblclkListTask(NMHDR *pNMHDR, LRESULT *pResult)
 		p = &pres[i];
 		CLog::Log(LOG_LEVEL_WARNING,"Get Task Result : %s ,%d,%s\n",p->john,p->status,p->password);
 		
-		sprintf(temp,"Hash : %s, status :%d ,password : %s",p->john,p->status,p->password);
+		sprintf(temp,"Hash : %s, status :%d ,password : %s\n",p->john,p->status,p->password);
 
 		strcat(buffer,temp);
-		strcat(buffer,"\n");
+		//strcat(buffer,"\n");5
 		
 	}
 	
+	g_packmanager._free(pres);
 
 //	char buffer[200];
 //	wsprintfA(buffer,"这里显示详细信息：选择条目 %d 内容1 %s",uSel,str1.GetBuffer());
+	if(p->password[0]==0)
+	AfxMessageBox("没有解密结果");
+	else
 	AfxMessageBox(buffer);
 
 	*pResult = 0;
@@ -324,10 +313,9 @@ void CDlgTaskStatus::OnBnClickedBtnRefresh()
 		memset(tmpbuf,0,128);
 		GetStatusStrByCmd(p->status,tmpbuf);
 		m_ListStatus.SetItemText(i,5,tmpbuf);
-	/*	wsprintfA(tmpbuf,"%d",p->status);
-		m_ListStatus.SetItemText(i,5,tmpbuf);
-		*/
 	}
+
+	g_packmanager._free(pres);
 }
 
 //开始破解
