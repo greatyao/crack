@@ -61,7 +61,7 @@ static struct hash_parameter all_support_hashes[] =
 	{algo_zip,          {"-p zip -b%d:%d:%s %s %s", "-p zip -r %s %s %s"}},
 	{algo_rar,          {"-p rar -b%d:%d:%s %s %s", "-p rar -r %s %s %s"}},
 	{algo_apr1,         {"-p apr1 -r brute -a %d:%d:%s: %s %s", "-p apr1 -r %s %s %s"}},
-	{algo_bfunix,       {"-p bfunix -b%d:%d:%s %s %s", "-p bfunix -r %s %s %s"}},
+	{algo_bfunix,       {"-p bfunix -r brute -a %d:%d:%s %s %s", "-p bfunix -r %s %s %s"}},
 	{algo_dmg,          {"-p dmg -b%d:%d:%s %s %s", "-p dmg -r %s %s %s"}},
 	{algo_drupal7,      {"-p drupa17 -b%d:%d:%s %s %s", "-p drupa17 -r %s %s %s"}},
 	{algo_lm,           {"-p lm -b%d:%d:%s %s %s", "-p lm -r %s %s %s"}},
