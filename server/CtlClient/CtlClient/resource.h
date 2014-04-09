@@ -41,6 +41,7 @@
 #define IDC_SLIDER1                     1018
 #define IDC_SLIDER_LEN_MIN              1018
 #define IDC_SLIDER2                     1019
+#define IDC_SCROLLBAR1                  1020
 
 // Next default values for new objects
 // 
@@ -48,7 +49,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        133
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1020
+#define _APS_NEXT_CONTROL_VALUE         1021
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -158,6 +158,10 @@ BOOL CDlgUploadTask::OnInitDialog(){
 	m_EditLenMin.SetWindowTextA("1");
 	m_EditLenMax.SetWindowTextA("1");
 
+	m_SlideLenMin.SetPageSize(1);
+	m_SlideLenMax.SetPageSize(1);
+
+
 	m_pDlgTaskStatus = NULL;
 
 	ComboInit();
@@ -452,6 +456,8 @@ void CDlgUploadTask::OnBnClickedOk()
 	//m_pDlgTaskStatus->AddToTaskList(0,0,0,0,2,4,(char*)newtask.filename,"");
 	
 }
+
+//最大长度
 void CDlgUploadTask::OnNMCustomdrawSlider2(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
@@ -461,9 +467,15 @@ void CDlgUploadTask::OnNMCustomdrawSlider2(NMHDR *pNMHDR, LRESULT *pResult)
 	wsprintfA(buffer,"%d",i);
 	m_EditLenMax.SetWindowTextA(buffer);
 
+	if(i<m_SlideLenMin.GetPos())
+	{
+		m_SlideLenMin.SetPos(i);
+		m_EditLenMin.SetWindowTextA(buffer);
+	}
 	*pResult = 0;
 }
 
+//最小长度
 void CDlgUploadTask::OnNMCustomdrawSliderLenMin(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
@@ -474,5 +486,10 @@ void CDlgUploadTask::OnNMCustomdrawSliderLenMin(NMHDR *pNMHDR, LRESULT *pResult)
 	wsprintfA(buffer,"%d",i);
 	m_EditLenMin.SetWindowTextA(buffer);
 
+	if(i>m_SlideLenMax.GetPos())
+	{
+		m_SlideLenMax.SetPos(i);
+		m_EditLenMax.SetWindowTextA(buffer);
+	}
 	*pResult = 0;
 }

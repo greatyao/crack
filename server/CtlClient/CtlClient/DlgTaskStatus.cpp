@@ -161,7 +161,7 @@ BOOL CDlgTaskStatus::OnInitDialog()
     m_toolTip.AddTool(GetDlgItem(IDC_BTN_REFRESH), "刷新列表中任务的进度信息");
 
 	//初始化CListCtrl
-	ListView_SetExtendedListViewStyle(m_ListStatus.m_hWnd, LVS_EX_FULLROWSELECT|LVS_EX_CHECKBOXES );
+	ListView_SetExtendedListViewStyle(m_ListStatus.m_hWnd, LVSCW_AUTOSIZE|LVS_EX_FULLROWSELECT|LVS_EX_CHECKBOXES );
 
 	m_ListStatus.InsertColumn(0, _T("选择"), LVCFMT_LEFT, 40);
 	m_ListStatus.InsertColumn(1, _T("任务GUID"), LVCFMT_LEFT, 180);
@@ -304,20 +304,32 @@ void CDlgTaskStatus::OnBnClickedBtnRefresh()
 	for(i = 0;i < count ;i ++ ){
 
 		p = &pres[i];
-	
+
+
 		m_ListStatus.InsertItem(i,"");
 		m_ListStatus.SetItemText(i,1,(char *)p->guid);
-		sprintf(tmpbuf,"%f",p->m_progress);
+
+		//
+		sprintf(tmpbuf,"%d",p->m_algo);
 		m_ListStatus.SetItemText(i,2,tmpbuf);
-		wsprintfA(tmpbuf,"%d",p->m_split_number);
+		sprintf(tmpbuf,"%ds",p->m_running_time);
 		m_ListStatus.SetItemText(i,3,tmpbuf);
-		wsprintfA(tmpbuf,"%d",p->m_fini_number);
+		sprintf(tmpbuf,"%ds",p->m_remain_time);
 		m_ListStatus.SetItemText(i,4,tmpbuf);
+
+		sprintf(tmpbuf,"%f",p->m_progress);
+		m_ListStatus.SetItemText(i,5,tmpbuf);
+		
+		wsprintfA(tmpbuf,"%d",p->m_split_number);
+		m_ListStatus.SetItemText(i,6,tmpbuf);
+		
+		wsprintfA(tmpbuf,"%d",p->m_fini_number);
+		m_ListStatus.SetItemText(i,7,tmpbuf);
+		
 		memset(tmpbuf,0,128);
 		GetStatusStrByCmd(p->status,tmpbuf);
-		m_ListStatus.SetItemText(i,5,tmpbuf);
+		m_ListStatus.SetItemText(i,8,tmpbuf);
 	}
-
 	g_packmanager._free(pres);
 }
 
