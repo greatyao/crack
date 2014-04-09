@@ -635,8 +635,8 @@ int msoffice_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 	free(stream);
 	free(buf);
 
-	strcpy(hash->hash, atoh(verifierhashvalue,sizeof(verifierhashvalue)));
-	strcpy(hash->salt, atoh(docsalt,sizeof(docsalt)));
+	strcpy(hash->hash, atoh(verifierhashvalue,64));
+	strcpy(hash->salt, atoh(docsalt,32));
 	strcpy(hash->salt2, "");
 
 	return 0;
@@ -647,7 +647,7 @@ int msoffice_check_valid(struct crack_hash* hash)
 	if(!hash)
 		return ERR_INVALID_PARAM;
 
-	if(ishex(hash->hash) && strlen(hash->hash)==72 && ishex(hash->salt) && strlen(hash->salt)==32)
+	if(ishex(hash->hash) && strlen(hash->hash)==64 && ishex(hash->salt) && strlen(hash->salt)==32)
 		return 1;
 	else
 		return 0;
