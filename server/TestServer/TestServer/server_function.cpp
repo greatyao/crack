@@ -13,13 +13,10 @@
 #include "ServerResp.h"
 #include "err.h"
 #include "ServerResp.h"
-#include "CrackBroker.h"
 
 #pragma comment(lib,"zlib.lib")
 
 
-
-//extern CCrackBroker g_CrackBroker;
 
 VOID ProcessClientData1(LPVOID lpParameter){
 
@@ -59,7 +56,6 @@ VOID ProcessClientData1(LPVOID lpParameter){
 		CLog::Log(LOG_LEVEL_WARNING, "%s:%d recv cmd %d status %d body %d\n",ip, port, cmd, status, m);
 
 
-		nRet = doRecvData(lpParameter, recvBuf, m, cmd);
 		doRecvData(lpParameter, recvBuf, m, cmd);
 	}
 

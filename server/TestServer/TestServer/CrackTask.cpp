@@ -102,10 +102,13 @@ int CCrackTask::SplitTaskFile(char *pguid){
 	for (i = 0 ;i < ret ;i ++ ){
 
 		pCCH[i].Init((unsigned char *)this->hashes[i].hash);
+
+		m_crackhash_list.push_back(&pCCH[i]);
+
 		CLog::Log(LOG_LEVEL_WARNING,"Crack Hash is %s,%s,%s\n",hashes[i].hash,hashes[i].salt,hashes[i].salt2);
 	}
 	
-	count = ret;
+
 	//出始化相关工作项
 	pCrackBlock = split.split_easy(this,splitnum);
 	if (!pCrackBlock){
@@ -120,6 +123,7 @@ int CCrackTask::SplitTaskFile(char *pguid){
 		
 		pCb[i].Init(&pCrackBlock[i]);
 		pCb[i].task = this;
+		
 		m_crackblock_map.insert(CB_MAP::value_type(pCb[i].guid,&pCb[i]));
 		CLog::Log(LOG_LEVEL_WARNING,"Crack Block is %s,%s,%d,%d,%d,%d\n",pCb[i].john,pCb[i].guid,pCb[i].start,pCb[i].end,pCb[i].start2,pCb[i].end2);
 		
@@ -134,6 +138,7 @@ int CCrackTask::SplitTaskFile(char *pguid){
 	//Free(p);
 	this->m_split_num = splitnum;
 	this->m_finish_num = 0;
+	count = ret;
 
 	return ret;
 

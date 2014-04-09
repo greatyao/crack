@@ -114,7 +114,7 @@ int	CCrackBroker::CreateTask(struct crack_task *pReq,unsigned char *pguid){
 	
 	m_cracktask_map.insert(CT_MAP::value_type(pTask->guid,pTask));
 
-	m_total_crackblock_map.insert(pTask->m_crackblock_map.begin(),pTask->m_crackblock_map.end());
+	
 
 	for(temp_iter = m_cracktask_map.begin(); temp_iter != m_cracktask_map.end();temp_iter ++ ){
 		
@@ -158,6 +158,8 @@ int CCrackBroker::SplitTask(char *pguid){
 	}
 
 
+	m_total_crackblock_map.insert(pCT->m_crackblock_map.begin(),pCT->m_crackblock_map.end());
+
 	return ret;
 }
 
@@ -193,6 +195,8 @@ int	CCrackBroker::StartTask(struct task_start_req *pReq){
 	}
 	//任务被放入循环队列队尾，等待调度
 	m_cracktask_ready_queue.push_back(pCT->guid);
+
+	
 
 	CLog::Log(LOG_LEVEL_WARNING,"CrackTask :%d %d %s %d %s %d %d\n",pCT->algo,pCT->charset,pCT->filename,pCT->type,pCT->guid,pCT->startLength,pCT->endLength);
 //	m_cracktask_cs.Unlock();
@@ -343,7 +347,8 @@ int CCrackBroker::GetTaskResult(struct task_result_req *pReq,struct task_result_
 		
 		pCT = iter_task->second;
 
-		hashnum = pCT->count;
+	//	hashnum = pCT->count;
+		hashnum = pCT->m_crackhash_list.size();
 
 		pres = (struct task_result_info *)Alloc(sizeof(struct task_result_info)*hashnum);
 		if (!pres){

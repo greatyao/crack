@@ -23,8 +23,7 @@
 
 //#define FILE_DIR ".\\"
 
-
-//extern CCrackBroker g_CrackBroker;
+CCrackBroker g_CrackBroker;
 
 int getClientIPInfo(void *pclient,char *pip,int *port){
 	
@@ -482,6 +481,8 @@ int cc_task_upload(void *pclient, unsigned char * pdata, UINT len){
 		resLen = sizeof(struct task_upload_res);
 	}
 	
+	memcpy(task_upload.guid,pCrackTask->guid,40);
+
 	m = Write(*(SOCKET*)pclient, CMD_TASK_UPLOAD, nRet, &task_upload,resLen,true);
 	if (m < 0){
 		
@@ -1246,7 +1247,8 @@ int cc_task_upload_file_end(void *pclient,unsigned char *pdata,UINT len){
 		pfile = NULL;
 		resLen = sizeof(struct file_upload_end_res);
 
-		CLog::Log(LOG_LEVEL_WARNING,"file upload end  req guid %s,Close File %p\n",preq->guid,pfile);
+		CLog::Log(LOG_LEVEL_WARNING,"file upload end  req guid %s,Close File %p\n",preq->guid,uploadres.f);
+		
 	}
 
 	memcpy(uploadres.guid,preq->guid,40);

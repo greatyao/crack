@@ -33,7 +33,9 @@ void CCrackBlock::Init(struct crack_block *pCrackBlock){
 	end2 = pCrackBlock->end2;
 		
 	task = NULL;
-	this->hash_idx = -1;
+	//this->hash_idx = -1;
+
+	hash_idx = pCrackBlock->hash_idx;
 
 	m_status = WI_STATUS_WAITING;
 

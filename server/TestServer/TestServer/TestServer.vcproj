@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\common\include;.\;"
+				AdditionalIncludeDirectories="..\..\..\common\include;..\..\..\common;..\..\..\wang\split;..\..\..\plugins\trex;..\..\..\plugins"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -128,7 +128,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\..\common\include;.\;..\..\..\plugins;..\..\..\wang\split;..\..\..\common;"
+				AdditionalIncludeDirectories="..\..\..\common\include;..\..\..\common;..\..\..\wang\split;..\..\..\plugins\trex;..\..\..\plugins"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNING"
 				MinimalRebuild="true"
 				RuntimeLibrary="2"
@@ -213,6 +213,10 @@
 			</File>
 			<File
 				RelativePath=".\CrackBroker.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CrackHash.cpp"
 				>
 			</File>
 			<File
@@ -302,6 +306,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\CrackHash.h"
+				>
+			</File>
+			<File
 				RelativePath=".\CrackTask.h"
 				>
 			</File>
@@ -310,15 +318,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ReqPacket.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Resource.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ResPacket.h"
 				>
 			</File>
 			<File

@@ -141,4 +141,4 @@ public :
 
 };
 
-static CCrackBroker g_CrackBroker;
+
