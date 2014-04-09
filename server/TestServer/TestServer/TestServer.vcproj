@@ -200,7 +200,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\CLog.cpp"
+				RelativePath="..\..\..\common\CLog.cpp"
 				>
 			</File>
 			<File
@@ -286,7 +286,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\CLog.h"
+				RelativePath="..\..\..\common\CLog.h"
 				>
 			</File>
 			<File
@@ -428,6 +428,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\plugins\msoffice_old.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\plugins\mssql_2000.cpp"
 				>
 			</File>
@@ -533,6 +537,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\plugins\wordpress.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\wpa.cpp"
 				>
 			</File>
 		</Filter>
