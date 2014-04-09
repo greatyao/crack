@@ -279,26 +279,8 @@ void CDlgUploadTask::OnBnClickedOk()
 
 	char buf[1024];
 	memset(buf,0,1024);
-/*
-	struct crack_task
-{
-	unsigned char algo;		//解密算法
-	unsigned char charset;	//解密字符集
-	unsigned char type;		//解密类型
-	unsigned char special;	//是否是文件解密（pdf+office+rar+zip）
-	unsigned char startLength;//起始长度
-	unsigned char endLength;	//终结长度
-	unsigned char filename[256];	//用户传过来的文件名
-	char guid[40];			//用户端的任务的GUID
-	int count;				//需要解密的Hash个数（如果是文件=1）
-	struct crack_hash hashes[0];			//这里需要动态申请
-	
-};
-*/
 	
 	crack_task newtask={0};
-
-
 
 	newtask.algo = m_comboalgo.GetCurSel()+1;
 	newtask.charset = m_combocharset.GetCurSel();
@@ -314,8 +296,85 @@ void CDlgUploadTask::OnBnClickedOk()
 
 	sprintf((char *)newtask.filename,"%s",m_filename);
 
-	
+	memcpy(g_packmanager.m_cur_local_file,newtask.filename,256);
 
+	struct task_upload_res ures={0};
+	
+	int ret =0;
+	
+	ret = g_packmanager.DoTaskUploadPack(newtask,&ures);
+	if (ret < 0){
+
+		CString tmpStr("Upload Task Error");
+
+		AfxMessageBox(tmpStr);
+		return ;
+
+	}
+
+	file_upload_req uploadreq;
+	memset(&uploadreq,0,sizeof(file_upload_req));
+	memcpy(uploadreq.guid,ures.guid,sizeof(ures.guid));
+	memset(g_packmanager.m_cur_upload_guid,0,40);
+	memcpy(g_packmanager.m_cur_upload_guid,ures.guid,40);
+
+	file_upload_res uploadres;
+	memset(&uploadres,0,sizeof(file_upload_res));
+	
+	//上传文件
+	ret = g_packmanager.GenNewFileUploadPack(uploadreq,&uploadres);
+	if (ret < 0){
+
+		CString tmpStr("Upload File Error");
+
+		AfxMessageBox(tmpStr);
+		return ;
+
+	}
+	
+//上传文件开始
+	file_upload_start_res uploadstartres={0};
+	ret = g_packmanager.GenNewFileUploadStartPack(&uploadstartres);
+	if (ret < 0){
+
+		CString tmpStr("Upload Start File Error");
+
+		AfxMessageBox(tmpStr);
+		return ;
+
+	}
+
+//上传文件
+	ret = g_packmanager.GenNewFileUploadingPack();
+	if (ret < 0){
+
+		CString tmpStr("Upload File ...... Error");
+
+		AfxMessageBox(tmpStr);
+		return ;
+
+
+	}
+
+//上传文件结束
+
+	file_upload_end_res uploadendres={0};
+
+	ret = g_packmanager.GenNewFileUploadEndPack(&uploadendres);
+	if (ret < 0){
+
+		CString tmpStr("Upload File ...... Error");
+
+		AfxMessageBox(tmpStr);
+		return ;
+
+	}
+	
+	CString tmpStr1("Upload File End OK");
+
+	AfxMessageBox(tmpStr1);
+	
+/*
 	struct task_upload_res res;
 
 	int ret =0;
@@ -384,31 +443,9 @@ void CDlgUploadTask::OnBnClickedOk()
 
 	}
 
-
-
-
-/*
-	TRACE(m_filename);
-	sprintf((char *)newtask.filename,"%s",m_filename);
-
-
-
-	char *p = (LPSTR)(LPCTSTR)m_startlength.GetBuffer();
-	TRACE(m_startlength);
-
-	newtask.startLength =strtoul(p,NULL,10);
-	
-	char *p1 = (LPSTR)(LPCTSTR)m_endlength.GetBuffer();
-	newtask.endLength = strtoul(p1,NULL,10);
-	TRACE(m_endlength);
-
-	sprintf(buf,"%d %d %d %d %s %d %d",newtask.algo,newtask.charset,newtask.type,
-		newtask.special,newtask.filename,newtask.startLength,newtask.endLength);
-	CString tmpStr(buf);
-	UpdateData(TRUE);
-
-	AfxMessageBox(tmpStr);
 */
+
+
 
 
 	//测试

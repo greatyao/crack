@@ -30,21 +30,47 @@ public:
 
 	int GenTaskDeletePackt(task_delete_req req,task_status_res *res);
 
-	int GenTaskResultPack(task_result_req req,task_status_res *res);
+//	int GenTaskResultPack(task_result_req req,task_status_res *res);
 
 	int GenTaskStatusPack(task_status_info **res);
 
 	int GenClientStatusPack(compute_node_info **res);
 
+	
+	/*
 	int GenFileUploadPack(file_upload_req req,file_upload_res *res);
 
 	int GenFileUploadStart(file_upload_end_res *res);
+	*/
+
+	//修改获得任务结果的协议
+	int GenTaskResultPack(task_result_req req,task_result_info **res);
+
+
+	//添加新的文件上传协议处理接口
+
+	//处理文件上传
+	int GenNewFileUploadPack(file_upload_req req,file_upload_res *res);
+
+	//处理文件上传开始
+	int GenNewFileUploadStartPack(file_upload_start_res *res);
+
+	//文件传输
+	int GenNewFileUploadingPack();
+
+	//处理文件上传结束
+	int GenNewFileUploadEndPack(file_upload_end_res *res);
+
+
+
+
 
 public:
 	char m_cur_upload_guid[40];
 	void * m_cur_server_file;
 	unsigned int m_cur_upload_file_len;
 	char m_cur_local_file[256];
+	void * m_file_desc;
 	CSocketClient m_sockclient;
 
 	//数据发送线程

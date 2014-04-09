@@ -209,10 +209,10 @@ void CDlgTaskStatus::OnNMDblclkListTask(NMHDR *pNMHDR, LRESULT *pResult)
 	CString str3 = m_ListStatus.GetItemText(uSel,3);
 	CString str4 = m_ListStatus.GetItemText(uSel,4);
 
-	//char buffer[200];
+	char buffer[200];
 	//wsprintfA(buffer,"这里显示详细信息：选择条目 %d 内容1 %s",uSel,str1.GetBuffer());
 	//AfxMessageBox(buffer);
-
+/*
 	task_result_req req;
 	task_status_res res={0};
 	memcpy(req.guid,str1.GetBuffer(),str1.GetLength()+1);
@@ -227,6 +227,47 @@ void CDlgTaskStatus::OnNMDblclkListTask(NMHDR *pNMHDR, LRESULT *pResult)
 
 		CLog::Log(LOG_LEVEL_NOMAL,"GUID:%s 状态:%d 密码:%s\n",p_res->guid,p_res->status,p_res->password);
 	}
+*/
+
+	//添加获得相关结果的请求
+	int ret = 0;
+	task_result_req req={0};
+	task_result_info *pres = NULL;
+	task_result_info *p= NULL;
+
+	memcpy(req.guid,(char *)str1.GetBuffer(),strlen((char*)str1.GetBuffer()));
+
+	ret = g_packmanager.GenTaskResultPack(req,&pres);
+	if (ret < 0){
+
+		CLog::Log(LOG_LEVEL_WARNING,"Gen Task Result Pack Error,Code : %d\n",ret);
+		return;
+
+	}
+
+	int num = ret/sizeof(task_result_info);
+	int i = 0;
+
+	char temp[128];
+
+	memset(buffer,0,200);
+	for(i=0;i < num;i ++ ){
+
+		memset(temp,0,128);
+		p = &pres[i];
+		CLog::Log(LOG_LEVEL_WARNING,"Get Task Result : %s ,%d,%s\n",p->john,p->status,p->password);
+		
+		sprintf(temp,"Hash : %s, status :%d ,password : %s",p->john,p->status,p->password);
+
+		strcat(buffer,temp);
+		strcat(buffer,"\n");
+		
+	}
+	
+
+//	char buffer[200];
+//	wsprintfA(buffer,"这里显示详细信息：选择条目 %d 内容1 %s",uSel,str1.GetBuffer());
+	AfxMessageBox(buffer);
 
 	*pResult = 0;
 }
@@ -280,8 +321,12 @@ void CDlgTaskStatus::OnBnClickedBtnRefresh()
 		m_ListStatus.SetItemText(i,3,tmpbuf);
 		wsprintfA(tmpbuf,"%d",p->m_fini_number);
 		m_ListStatus.SetItemText(i,4,tmpbuf);
-		wsprintfA(tmpbuf,"%d",p->status);
+		memset(tmpbuf,0,128);
+		GetStatusStrByCmd(p->status,tmpbuf);
 		m_ListStatus.SetItemText(i,5,tmpbuf);
+	/*	wsprintfA(tmpbuf,"%d",p->status);
+		m_ListStatus.SetItemText(i,5,tmpbuf);
+		*/
 	}
 }
 

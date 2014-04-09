@@ -168,7 +168,7 @@ int CPackManager::DoLoginPack(client_login_req req){
 
 	CLog::Log(LOG_LEVEL_WARNING,"Send TOKEN LOGIN ...\n");
 	ret = m_sockclient.Write(TOKEN_LOGIN,0,&req,sizeof(client_login_req));
-	if (ret != 0){
+	if (ret < 0){
 
 		CLog::Log(LOG_LEVEL_WARNING,"Send TOKEN LOGIN Error\n");
 		return ret;
@@ -195,7 +195,7 @@ int CPackManager::DoKeeplivePack(){
 
 	CLog::Log(LOG_LEVEL_WARNING,"Send HeartBeat Req...\n");
 	ret = m_sockclient.Write(TOKEN_HEARTBEAT,0,NULL,0);
-	if (ret != 0){
+	if (ret < 0){
 
 		CLog::Log(LOG_LEVEL_WARNING,"Send Heartbeat Req Error\n");
 		return ret;
@@ -387,6 +387,7 @@ int CPackManager::GenTaskDeletePackt(task_delete_req req,task_status_res *res){
 
 }
 
+/*
 int CPackManager::GenTaskResultPack(task_result_req req,task_status_res *res){
 
 	CheckConnect();
@@ -420,6 +421,59 @@ int CPackManager::GenTaskResultPack(task_result_req req,task_status_res *res){
 	return ret;
 
 }
+*/
+
+
+int CPackManager::GenTaskResultPack(task_result_req req,task_result_info **res){
+
+	CheckConnect();
+
+	int ret = 0;
+	unsigned char cmd;
+	short status;
+	unsigned char recbuf[1024*4];
+	struct task_result_info *pres = NULL;
+
+	memset(recbuf,0,1024*4);
+
+	CLog::Log(LOG_LEVEL_WARNING,"Send Get Task Result Req ...\n");
+	ret = m_sockclient.Write(CMD_TASK_RESULT,0,&req,sizeof(task_result_req));
+	if (ret < 0){
+
+		CLog::Log(LOG_LEVEL_WARNING,"Send Get Task Result Req Error\n");
+		return ret;
+	}
+	
+	ret = m_sockclient.Read(&cmd,&status,recbuf,1024*4);
+	if (ret < 0){
+		CLog::Log(LOG_LEVEL_WARNING,"Recv Get Task Result Res Error\n");
+		return ret;
+
+	}
+	CLog::Log(LOG_LEVEL_WARNING,"Recv Get Task Result Res OK\n");
+	if (status == 0){
+		//memcpy(res,recbuf,sizeof(task_status_res));
+		pres = (task_result_info *)malloc(ret);
+		if (!pres){
+
+			CLog::Log(LOG_LEVEL_WARNING,"Malloc Get Task Result Res Error\n");
+			ret = -1;
+			
+		}else{
+
+
+
+			memset(pres,0,ret);
+			memcpy(pres,recbuf,ret);
+
+			*res = pres;
+
+		}
+
+	}
+	return ret;
+}
+
 /*
 CMD_REFRESH_STATUS,	//取得任务的进度和状态等信息
 	CMD_GET_CLIENT_LIST,//返回在线计算机信息的列表
@@ -512,6 +566,7 @@ int ret = 0;
 
 }
 
+/*
 
 int CPackManager::GenFileUploadPack(file_upload_req req,file_upload_res *res){
 
@@ -666,6 +721,186 @@ int CPackManager::GenFileUploadStart(file_upload_end_res *res){
 	}
 	return ret;
 
+}
+*/
+
+//修改了文件上传协议,相关过程如下
+// client------->server : upload request
+// server------->client : upload response
+// client------->server : upload start request
+// server------->client : upload start response
+// client------->server : upload file infomation
+//  ......
+// client------->server : upload end request
+// server------->client : upload end response
+
+
+
+//处理文件上传
+int CPackManager::GenNewFileUploadPack(file_upload_req req,file_upload_res *res){
+		
+	CheckConnect();
+	int ret = 0;
+	unsigned char cmd;
+	short status;
+	unsigned char recbuf[1024*4];
+
+	memset(recbuf,0,1024*4);
+
+	CLog::Log(LOG_LEVEL_WARNING,"Send File Upload Req ...\n");
+	ret = m_sockclient.Write(CMD_UPLOAD_FILE,0,&req,sizeof(file_upload_req));
+	if (ret < 0){
+
+		CLog::Log(LOG_LEVEL_WARNING,"Send File Upload Req Error\n");
+		return ret;
+	}
+	
+	ret = m_sockclient.Read(&cmd,&status,recbuf,1024*4);
+	if (ret < 0){
+		CLog::Log(LOG_LEVEL_WARNING,"Recv File Upload Res Error\n");
+		return ret;
+
+	}
+	CLog::Log(LOG_LEVEL_WARNING,"Recv File Upload Res OK\n");
+	if (status == 0){
+
+		memcpy(res,recbuf,sizeof(file_upload_res));
+		memset(m_cur_upload_guid,0,40);
+		memcpy(m_cur_upload_guid,res->guid,40);
+		this->m_cur_server_file = res->f;
+	}
+	return ret;
+}
+
+
+	//处理文件上传开始
+int CPackManager::GenNewFileUploadStartPack(file_upload_start_res *res){
+	
+	CheckConnect();
+	int ret = 0;
+	unsigned char cmd;
+	short status;
+	unsigned char recbuf[1024*4];
+	file_upload_start_req req;
+	int filelen = 0;
+	FILE *fp = NULL;
+
+	fp = fopen((char *)m_cur_local_file,"rb");
+	if (!fp){
+		
+
+		CLog::Log(LOG_LEVEL_WARNING,"fopen file %s Error\n",m_cur_local_file);
+		return -1;
+
+	}
+
+	fseek(fp,0L,SEEK_END);
+
+	filelen = ftell(fp);
+
+	fseek(fp,0L,SEEK_SET);
+
+	m_cur_upload_file_len = filelen;
+	//this->m_cur_local_file = fp;
+	this->m_file_desc = fp;
+
+	
+	memset(&req,0,sizeof(file_upload_start_req));
+	req.f = this->m_cur_server_file;
+	memcpy(req.guid,this->m_cur_upload_guid,40);
+	req.len = filelen;
+
+	CLog::Log(LOG_LEVEL_WARNING,"Send File Upload Start Req ...\n");
+	ret = m_sockclient.Write(CMD_START_UPLOAD,0,&req,sizeof(file_upload_start_req));
+	if (ret < 0){
+
+		CLog::Log(LOG_LEVEL_WARNING,"Send File Upload Start Req Error\n");
+		return ret;
+	}
+	
+	return ret;
+}
+
+	//文件传输
+int CPackManager::GenNewFileUploadingPack(){
+
+	int ret = 0;
+
+	unsigned char cmd;
+	short status;
+	unsigned int readLen = 0;
+	unsigned char sendbuf[1024*4];
+	FILE *fp = NULL;
+
+	//file read 
+	
+	fp = (FILE *)this->m_file_desc;
+	while(!feof(fp)){
+		memset(sendbuf,0,1024*4);
+		readLen = fread(sendbuf,1,1024,fp);
+		if (readLen < 0 ){
+			CLog::Log(LOG_LEVEL_WARNING,"read file Error\n");
+			return -1;
+		}
+
+	//	memcpy(sendbuf,(unsigned char *)&clthdr,sizeof(control_header));
+
+		//send file buffer 
+		ret = m_sockclient.WriteNoCompress(CMD_START_UPLOAD,0,sendbuf,readLen);
+		if(ret < 0 ){
+
+			printf("Send file buffer error\n");
+			break;
+		}
+
+		printf("Send file buffer %d vs %d ok\n",ret,m_cur_upload_file_len);
+		//
+	}
+
+	fclose(fp);
+}
+
+	//处理文件上传结束
+int CPackManager::GenNewFileUploadEndPack(file_upload_end_res *res){
+
+	CheckConnect();
+	int ret = 0;
+	unsigned char cmd;
+	short status;
+	unsigned char recbuf[1024*4];
+	file_upload_end_req req;
+
+	memset(recbuf,0,1024*4);
+
+	memset(&req,0,sizeof(file_upload_end_req));
+	req.f = this->m_cur_server_file;
+	memcpy(req.guid,this->m_cur_upload_guid,40);
+	req.len = this->m_cur_upload_file_len;
+	req.offset = 0;
+
+	CLog::Log(LOG_LEVEL_WARNING,"Send File Upload End Req ...\n");
+	ret = m_sockclient.Write(CMD_END_UPLOAD,0,&req,sizeof(file_upload_end_req));
+	if (ret < 0){
+
+		CLog::Log(LOG_LEVEL_WARNING,"Send File Upload End Req Error\n");
+		return ret;
+	}
+	
+	ret = m_sockclient.Read(&cmd,&status,recbuf,1024*4);
+	if (ret < 0){
+		CLog::Log(LOG_LEVEL_WARNING,"Recv File Upload End Res Error\n");
+		return ret;
+
+	}
+	CLog::Log(LOG_LEVEL_WARNING,"Recv File Upload End Res OK\n");
+	if (status == 0){
+
+		memcpy(res,recbuf,sizeof(file_upload_end_res));
+		memset(m_cur_upload_guid,0,40);
+		memcpy(m_cur_upload_guid,res->guid,40);
+		this->m_cur_server_file = res->f;
+	}
+	return ret;
 }
 
 

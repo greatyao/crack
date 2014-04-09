@@ -24,4 +24,5 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	CListCtrl m_clientlist;
+	afx_msg void OnBnClickedBtnClient();
 };
