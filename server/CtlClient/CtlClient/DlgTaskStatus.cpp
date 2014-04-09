@@ -245,21 +245,21 @@ void CDlgTaskStatus::OnNMDblclkListTask(NMHDR *pNMHDR, LRESULT *pResult)
 		p = &pres[i];
 		CLog::Log(LOG_LEVEL_WARNING,"Get Task Result : %s ,%d,%s\n",p->john,p->status,p->password);
 		
-		sprintf(temp,"Hash : %s, status :%d ,password : %s\n",p->john,p->status,p->password);
-
-		strcat(buffer,temp);
+		if(p->password[0])
+		{
+			sprintf(temp,"Hash : %s, status :%d ,password : %s\n",p->john,p->status,p->password);
+			strcat(buffer,temp);
+		}
 		//strcat(buffer,"\n");5
 		
 	}
 	
 	g_packmanager._free(pres);
 
-//	char buffer[200];
-//	wsprintfA(buffer,"这里显示详细信息：选择条目 %d 内容1 %s",uSel,str1.GetBuffer());
-	if(p->password[0]==0)
-	AfxMessageBox("没有解密结果");
+	if(buffer[0]==0)
+		AfxMessageBox("没有解密结果");
 	else
-	AfxMessageBox(buffer);
+		AfxMessageBox(buffer);
 
 	*pResult = 0;
 }
