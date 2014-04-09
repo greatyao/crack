@@ -74,6 +74,26 @@ void GetOSName(char *pname)
 	CoUninitialize();
 }
 
+
+void CPackManager::GetErrMsg(short status,char *msg){
+
+	switch(status){
+
+		case LOAD_FILE_ERROR:
+			
+			strcpy(msg,"文件格式不匹配");
+			break;
+		case SPLIT_BLOCK_ERROR:
+
+			strcpy(msg,"切分HASH出错");
+			break;
+		default:
+			strcpy(msg,"未知错误");
+			break;
+
+	}
+}
+
 int CPackManager::StartClient(void)
 {
 	if(m_connected)//已经连接服务器

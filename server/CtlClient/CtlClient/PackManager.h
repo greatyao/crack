@@ -10,6 +10,9 @@
 #include "sched.h"
 #include "semaphore.h"
 
+#define LOAD_FILE_ERROR -300
+#define SPLIT_BLOCK_ERROR -301
+
 class CPackManager
 {
 public:
@@ -63,7 +66,7 @@ public:
 
 
 
-
+	void GetErrMsg(short status,char *msg);
 
 public:
 	char m_cur_upload_guid[40];
