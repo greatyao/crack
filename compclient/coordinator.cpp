@@ -63,7 +63,7 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 			if(ret != sizeof(item))	goto next;
 			
 			CLog::Log(LOG_LEVEL_NOMAL, "ccoordinator: Fetch workitem [guid=%s]\n", item.guid);
-			if(CrackManager::Get().CheckParameters(&item))
+			if(CrackManager::Get().CheckParameters(&item) != 0)
 			{
 				crack_result result;
 				strcpy(result.guid, item.guid);

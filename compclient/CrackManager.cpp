@@ -216,8 +216,17 @@ int CrackManager::StartCrack(const crack_block* item, const char* guid, bool gpu
 	if(!tools || !tools[toolPriority])
 		return ERR_NOENTRY;
 	
+	bool download = true;
 	if(item->special !=0 && access(item->john, 0) != 0)
-		Client::Get().DownloadFile(item->guid, filedb_path.c_str());
+	{
+		int ntry = 0;
+		while(1)
+		{
+			download = (Client::Get().DownloadFile(item->guid, filedb_path.c_str()) == 0);
+			if(++ntry >= 3 || download == true)	break;
+		}
+	}
+	if(!download) return ERR_DOWNLOADFILE;
 		
 	if(tools[toolPriority]->RunningTasks() != 0 && 
 		tools[toolPriority]->SupportMultiTasks() == 0)
@@ -231,8 +240,18 @@ int CrackManager::StartCrack(const crack_block* item, const char* guid, bool gpu
 	if(!tools || !tools[toolPriority])
 		return ERR_NOENTRY;
 	
+	bool download = true;
 	if(item->special !=0 && access(item->john, 0) != 0)
-		Client::Get().DownloadFile(item->guid, filedb_path.c_str());
+	{
+		int ntry = 0;
+		while(1)
+		{
+			download = (Client::Get().DownloadFile(item->guid, filedb_path.c_str()) == 0);
+			if(++ntry >= 3 || download == true)	break;
+		}
+	}
+
+	if(!download) return ERR_DOWNLOADFILE;
 	
 	if(tools[toolPriority]->RunningTasks() != 0 && 
 		tools[toolPriority]->SupportMultiTasks() == 0)
