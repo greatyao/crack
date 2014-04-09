@@ -57,14 +57,14 @@ int main(int argc, char *argv[])
 		CLog::InitLogSystem(LOG_TO_FILE, true, value.c_str());
 	}
 
+	//资源池初始化
+	ResourcePool::Get().Init();
+	
 	//连接服务端
 	string addr, port;
 	Config::Get().GetValue("server_addr", addr);
 	Config::Get().GetValue("server_port", port);
 	Client::Get().Connect(addr.c_str(), atoi(port.c_str()));
-
-	//资源池初始化
-	ResourcePool::Get().Init();
 	
 	//解密算法初始化
 	CrackManager::Get().Init();
