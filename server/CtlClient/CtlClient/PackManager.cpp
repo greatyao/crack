@@ -79,6 +79,10 @@ void CPackManager::GetErrMsg(short status,char *msg){
 
 	switch(status){
 
+		case DELET_TASK_ERROR:
+
+			strcpy(msg,"删除错误任务失败");
+			break;
 		case LOAD_FILE_ERROR:
 			
 			strcpy(msg,"文件格式不匹配");
@@ -919,6 +923,13 @@ int CPackManager::GenNewFileUploadEndPack(file_upload_end_res *res){
 		memset(m_cur_upload_guid,0,40);
 		memcpy(m_cur_upload_guid,res->guid,40);
 		this->m_cur_server_file = res->f;
+		ret = 0;
+	}else{
+		
+		res->offset = status;
+
+		ret = -20;
+
 	}
 	return ret;
 }

@@ -12,6 +12,7 @@
 
 #define LOAD_FILE_ERROR -300
 #define SPLIT_BLOCK_ERROR -301
+#define DELET_TASK_ERROR -100
 
 class CPackManager
 {
