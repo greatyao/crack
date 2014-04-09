@@ -371,7 +371,9 @@ struct crack_block *csplit::split_easy(struct crack_task *pct,unsigned &nsplits)
 	//根据密码长度范围简单估算
 	const int k_pos = 10;
 	if( (loc_p_ct->startLength == loc_p_ct->endLength)||( loc_p_ct->endLength<=k_pos ))
+	{
 		nsplits = 1;
+	}
 	else if(loc_p_ct->startLength<=10)
 	{
 		nsplits =  1+loc_p_ct->endLength-10;
@@ -408,6 +410,9 @@ struct crack_block *csplit::split_easy(struct crack_task *pct,unsigned &nsplits)
 			//p_crack_block[i].start2 = 0;
 			p_crack_block[i].start2 = -1;
 		}
+		if(k_pos>loc_p_ct->endLength)
+			p_crack_block[i].end = loc_p_ct->endLength;
+		else
 		p_crack_block[i].end = k_pos+i;
 
 		//索引2
