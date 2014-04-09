@@ -10,12 +10,12 @@ public:
 
 public:
 	
-	char m_osinfo[16];	//操作系统信息
+	char m_osinfo[64];	//操作系统信息
 	char m_ip[20];		//IP地址信息
 
 	char m_type;		//客户端类型,control , compute
 	
-	char m_hostname[50];//主机名称
+	char m_hostname[64];//主机名称
 	unsigned char m_guid[40]; //节点guid
 	
 	unsigned int m_clientsock;

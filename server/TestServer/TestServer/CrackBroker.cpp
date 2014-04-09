@@ -25,8 +25,8 @@ int CCrackBroker::ClientLogin(client_login_req *pReq){
 	pCI->m_type = pReq->m_type;
 	//memcpy(pCI->m_guid,pReq->m_guid,40);
 	memcpy(pCI->m_ip,pReq->m_ip,16);
-	memcpy(pCI->m_osinfo,pReq->m_osinfo,16);
-	memcpy(pCI->m_hostname,pReq->m_hostinfo,16);
+	memcpy(pCI->m_osinfo,pReq->m_osinfo,sizeof(pCI->m_osinfo));
+	memcpy(pCI->m_hostname,pReq->m_hostinfo, sizeof(pCI->m_hostname));
 	pCI->m_port = pReq->m_port;
 	time(&tempTm);
 	pCI->m_logintime = tempTm;
@@ -453,14 +453,15 @@ int CCrackBroker::GetClientList(struct compute_node_info **pRes,unsigned int *re
 		//´ÓCClientInfo µÃµ½ computer_node_info 
 		
 		memcpy(pres[j].guid,pCI->m_guid,40);
-		memcpy(pres[j].hostname,pCI->m_hostname,50);
+		memcpy(pres[j].hostname,pCI->m_hostname,sizeof(pres[j].hostname));
 		memcpy(pres[j].ip,pCI->m_ip,20);
-		memcpy(pres[j].os,pCI->m_osinfo,16);
+		memcpy(pres[j].os,pCI->m_osinfo,sizeof(pres[j].os));
 
 		
 		pres[j].gputhreads = ((CCompClient *)pCI)->m_gputhreads;
 		pres[j].cputhreads = ((CCompClient *)pCI)->m_cputhreads;
 
+		CLog::Log(LOG_LEVEL_WARNING,"Computer Client %d: %s %s\n", j, pres[j].os, pres[j].hostname);
 	
 		j++;
 	}
