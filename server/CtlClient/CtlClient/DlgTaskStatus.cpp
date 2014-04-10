@@ -20,6 +20,7 @@ CDlgTaskStatus::CDlgTaskStatus(CWnd* pParent /*=NULL*/)
 
 CDlgTaskStatus::~CDlgTaskStatus()
 {
+	StopRefresh();
 }
 
 void CDlgTaskStatus::DoDataExchange(CDataExchange* pDX)
@@ -36,6 +37,7 @@ BEGIN_MESSAGE_MAP(CDlgTaskStatus, CDialog)
 	ON_BN_CLICKED(IDC_BTN_PAUSE, &CDlgTaskStatus::OnBnClickedBtnPause)
 	ON_BN_CLICKED(IDC_BTN_DELETE, &CDlgTaskStatus::OnBnClickedBtnDelete)
 	ON_BN_CLICKED(IDC_BTN_STOP, &CDlgTaskStatus::OnBnClickedBtnStop)
+	ON_WM_CLOSE()
 END_MESSAGE_MAP()
 
 
@@ -90,58 +92,8 @@ void CDlgTaskStatus::GetStatusStrByCmd(char cmd,char *pdes){
 
 }
 // CDlgTaskStatus message handlers
-void CDlgTaskStatus::GenExampleListData(){
-
-	
-	//update the list control
-	/*
-	unsigned char guid[40];
-	unsigned int cputhreads;
-	unsigned int gputhreads;
-	unsigned char hostname[50];
-	unsigned char ip[20];
-	unsigned char os[48];
-	*/
-
-/*
-	 LONG lStyle; 
-       lStyle = GetWindowLong(m_clientlist.m_hWnd, GWL_STYLE);// 获取当前窗口style 
-       lStyle &= ~LVS_TYPEMASK; // 清除显示方式位 
-       lStyle |= LVS_REPORT; // 设置style 
-       SetWindowLong(m_clientlist.m_hWnd, GWL_STYLE, lStyle);
-
-	DWORD dwStyle = m_clientlist.GetExtendedStyle();
-      dwStyle |= LVS_EX_FULLROWSELECT;//选中某行使整行高亮（只适用与report风格的listctrl）
-      dwStyle |= LVS_EX_GRIDLINES;//网格线（只适用与report风格的listctrl）
-    //  dwStyle |= LVS_EX_CHECKBOXES;//item前生成checkbox控件
-      m_clientlist.SetExtendedStyle(dwStyle); //设置扩展风格
-
-	m_clientlist.InsertColumn( 0, _T("GUID"), LVCFMT_CENTER, 100 ); 
-	m_clientlist.InsertColumn( 1, _T("CPU_NUM"), LVCFMT_CENTER, 100 ); 
-	m_clientlist.InsertColumn( 2, _T("GPU_NUM"), LVCFMT_CENTER, 100 ); 
-	m_clientlist.InsertColumn( 3, _T("HOSTNAME"), LVCFMT_LEFT, 100 ); 
-	m_clientlist.InsertColumn( 4, _T("IPADDRESS"), LVCFMT_LEFT, 100 ); 
-	m_clientlist.InsertColumn( 5, _T("OS"), LVCFMT_LEFT, 100 ); 
-
-	int nRow = m_clientlist.InsertItem(0,_T("0000001"));
-
-	m_clientlist.SetItemText(0,1,_T("4"));
-	m_clientlist.SetItemText(0,2,_T("2"));
-	m_clientlist.SetItemText(0,3,_T("GASS_TEST"));
-	m_clientlist.SetItemText(0,4,_T("192.168.10.20"));
-	m_clientlist.SetItemText(0,5,_T("Window 7"));
-
-
-	nRow = m_clientlist.InsertItem(1,_T("0000002"));
-
-	m_clientlist.SetItemText(1,1,_T("8"));
-	m_clientlist.SetItemText(1,2,_T("4"));
-	m_clientlist.SetItemText(1,3,_T("GASS_TEST_2"));
-	m_clientlist.SetItemText(1,4,_T("192.168.10.22"));
-	m_clientlist.SetItemText(1,5,_T("Ubuntu"));
-
-
-	*/
+void CDlgTaskStatus::GenExampleListData()
+{
 }
 
 
@@ -172,6 +124,10 @@ BOOL CDlgTaskStatus::OnInitDialog()
 	m_ListStatus.InsertColumn(6, _T("切割份数"), LVCFMT_LEFT, 80);
 	m_ListStatus.InsertColumn(7, _T("完成份数"), LVCFMT_LEFT, 80);
 	m_ListStatus.InsertColumn(8, _T("状态"), LVCFMT_LEFT, 80);
+
+	
+	m_bThreadRefreshRunning = 0;
+	StartRefresh();//心跳
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 异常: OCX 属性页应返回 FALSE
@@ -259,18 +215,9 @@ void CDlgTaskStatus::OnNMDblclkListTask(NMHDR *pNMHDR, LRESULT *pResult)
 	*pResult = 0;
 }
 
-BOOL CDlgTaskStatus::AddToTaskList(int nAlgo,int nCharset,int nType,int nIsFile,int nLenMin,int nLenMax,char *psFile,char *guid)
+BOOL CDlgTaskStatus::RefreshList(void)
 {
-	//添加到list，并保存到本地链表		
-	int n = m_ListStatus.GetItemCount();
-	
-	m_ListStatus.InsertItem(n,"");		
-	m_ListStatus.SetItemText (n, 1, psFile);
-	m_ListStatus.SetItemText (n, 2, "1");
-	m_ListStatus.SetItemText (n, 3, "没有开始破解");
-	m_ListStatus.SetItemText (n, 4, "%0");
-	m_ListStatus.SetItemText (n, 5, "guid");
-
+	OnBnClickedBtnRefresh();
 	return 0;
 }
 
@@ -515,4 +462,76 @@ void CDlgTaskStatus::OnBnClickedBtnStop()
 
 		}
 	}
+}
+
+
+//自动刷新任务列表
+void *CDlgTaskStatus::ThreadRefresh(void *par)
+{
+	CDlgTaskStatus *p = (CDlgTaskStatus*)par;
+	
+	while(p->m_bThreadRefreshStop!=TRUE)
+	{
+		p->RefreshList();
+		g_packmanager.StartSleep(p->m_hStopRefresh,10*1000);//等10秒
+	}
+	return 0;
+}
+void CDlgTaskStatus::StartRefresh(void)
+{	
+	if(m_bThreadRefreshRunning==TRUE)
+	{
+		CLog::Log(LOG_LEVEL_WARNING,"线程运行中，不需要再创建\n");
+		return;
+	}
+	
+	m_bThreadRefreshStop = FALSE;
+	m_bThreadRefreshRunning = TRUE;
+
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+	
+	pthread_mutex_t running_mutex;
+	pthread_cond_t keeprunning_cv;
+	pthread_mutex_init(&running_mutex, NULL);
+	pthread_cond_init(&keeprunning_cv, NULL);
+	
+	m_hStopRefresh = g_packmanager.CreateSleep();
+	
+	int returnValue = pthread_create( &m_ThreadRefresh, &attr, ThreadRefresh, (void *)this);
+	if( returnValue != 0 )
+	{
+		CLog::Log(LOG_LEVEL_ERROR,"心跳线程失败，错误代码: %d\n", returnValue);
+		m_bThreadRefreshStop = TRUE;
+		m_bThreadRefreshRunning = FALSE;
+		g_packmanager.StopSleep(m_hStopRefresh);
+	}
+	else
+	{
+		CLog::Log(LOG_LEVEL_NOMAL,"心跳线程创建成功\n");
+		m_bThreadRefreshStop = FALSE;
+		m_bThreadRefreshRunning = TRUE;
+	}
+}
+
+void CDlgTaskStatus::StopRefresh(void)
+{
+	if(m_bThreadRefreshRunning==FALSE)
+	{
+		CLog::Log(LOG_LEVEL_NOMAL,"线程没有在运行\n");
+		return;
+	}
+
+	m_bThreadRefreshStop = TRUE;
+	g_packmanager.StopSleep(m_hStopRefresh);
+	int returnValue = pthread_join(m_ThreadRefresh, NULL);
+	if( returnValue != 0 )
+	{
+		CLog::Log(LOG_LEVEL_ERROR,"线程退出失败，错误代码: %d\n", returnValue);
+	}
+	else{
+		CLog::Log(LOG_LEVEL_NOMAL,"线程成功退出\n");
+	}
+	m_bThreadRefreshRunning = FALSE;
 }

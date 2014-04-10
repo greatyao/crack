@@ -3,6 +3,11 @@
 #include <string>
 #include <vector>
 
+//pthread
+#include "pthread.h"
+#include "sched.h"
+#include "semaphore.h"
+
 using namespace std;
 
 // CDlgTaskStatus dialog
@@ -25,8 +30,9 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:	
-	vector<string> m_TaskList;//保存人物  
-	BOOL AddToTaskList(int nAlgo,int nCharset,int nType,int nIsFile,int nLenMin,int nLenMax,char *psFile,char *guid);
+	vector<string> m_TaskList;//保存任务
+	BOOL RefreshList(void);
+
 
     CToolTipCtrl m_toolTip;//提示信息
 	CListCtrl m_ListStatus;
@@ -39,4 +45,15 @@ public:
 	afx_msg void OnBnClickedBtnPause();
 	afx_msg void OnBnClickedBtnDelete();
 	afx_msg void OnBnClickedBtnStop();
+
+	//自动刷新任务列表	
+	HANDLE m_hStopRefresh;	//sleep
+
+	pthread_t m_ThreadRefresh;	//线程句柄
+	int m_bThreadRefreshStop;	//停止线程标记
+	int m_bThreadRefreshRunning;//线程运行标记
+
+	static void *ThreadRefresh(void *);
+	void StartRefresh(void);		
+	void StopRefresh(void);
 };
