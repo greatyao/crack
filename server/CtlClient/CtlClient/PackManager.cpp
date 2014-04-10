@@ -516,6 +516,8 @@ int CPackManager::GenTaskStatusPack(task_status_info **res){
 
 }
 int CPackManager::GenClientStatusPack(compute_node_info **res){
+	if(m_connected != 2)
+		return ERR_CONNECTIONLOST;
 
 	int ret = 0;
 	unsigned char cmd;
