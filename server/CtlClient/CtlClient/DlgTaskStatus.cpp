@@ -312,7 +312,7 @@ void CDlgTaskStatus::OnBnClickedBtnRefresh()
 		sprintf(tmpbuf,"%ds",p->m_remain_time);
 		m_ListStatus.SetItemText(i,4,tmpbuf);
 
-		sprintf(tmpbuf,"%f",p->m_progress);
+		sprintf(tmpbuf,"%.2f",p->m_progress);
 		m_ListStatus.SetItemText(i,5,tmpbuf);
 		
 		wsprintfA(tmpbuf,"%d",p->m_split_number);
