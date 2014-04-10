@@ -113,7 +113,7 @@ BOOL CDlgTaskStatus::OnInitDialog()
     m_toolTip.AddTool(GetDlgItem(IDC_BTN_REFRESH), "刷新列表中任务的进度信息");
 
 	//初始化CListCtrl
-	ListView_SetExtendedListViewStyle(m_ListStatus.m_hWnd, LVS_EX_FULLROWSELECT|LVS_EX_CHECKBOXES );
+	ListView_SetExtendedListViewStyle(m_ListStatus.m_hWnd,LVS_EX_GRIDLINES| LVS_EX_FULLROWSELECT|LVS_EX_CHECKBOXES );
 
 	m_ListStatus.InsertColumn(0, _T("选择"), LVCFMT_LEFT, 40);
 	m_ListStatus.InsertColumn(1, _T("任务GUID"), LVCFMT_LEFT, 180);
@@ -150,7 +150,7 @@ BOOL CDlgTaskStatus::PreTranslateMessage(MSG* pMsg)
         {
             m_toolTip.Pop();
         }
-        return TRUE;
+		return CDialog::PreTranslateMessage(pMsg);
     }
     return CDialog::PreTranslateMessage(pMsg);
 }

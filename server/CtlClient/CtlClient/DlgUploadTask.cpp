@@ -200,7 +200,7 @@ BOOL CDlgUploadTask::PreTranslateMessage(MSG* pMsg)
         {
             m_toolTip.Pop();
         }
-        return TRUE;
+		return CDialog::PreTranslateMessage(pMsg);
     }
     return CDialog::PreTranslateMessage(pMsg);
 }
