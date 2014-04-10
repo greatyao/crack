@@ -120,6 +120,13 @@ public:
 	//ÄÚ´æ·ÖÅäº¯Êý
 	void * _malloc(size_t size){return malloc(size);}
 	void _free(void *mem){free(mem);}
+
+	//»¥³â
+	CRITICAL_SECTION m_csSocket;
+	void InitLockSocket(void);
+	void DelLockSocket(void);
+	void LockSocket(void);
+	void UnLockSocket(void);
 };
 
 extern CPackManager g_packmanager;

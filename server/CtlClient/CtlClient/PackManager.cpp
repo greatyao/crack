@@ -10,6 +10,7 @@ CPackManager::CPackManager(void)
 	//CLog::InitLogSystem(LOG_TO_FILE,TRUE,"ControlClient.log");
 	CLog::InitLogSystem(LOG_TO_SCREEN,TRUE);
 
+	InitLockSocket();
 	m_connected = 0;
 	StartClient();
 }
@@ -17,6 +18,7 @@ CPackManager::CPackManager(void)
 CPackManager::~CPackManager(void)
 {
 	StopClient();
+	DelLockSocket();
 }
 
 #import "progid:WbemScripting.SWbemLocator" named_guids
@@ -191,14 +193,16 @@ int CPackManager::DoLoginPack(client_login_req req){
 	memset(recbuf,0,1024*4);
 
 	CLog::Log(LOG_LEVEL_WARNING,"Send TOKEN LOGIN ...\n");
+	LockSocket();
 	ret = m_sockclient.Write(TOKEN_LOGIN,0,&req,sizeof(client_login_req));
 	if (ret < 0){
-
+		UnLockSocket();
 		CLog::Log(LOG_LEVEL_WARNING,"Send TOKEN LOGIN Error\n");
 		return ret;
 	}
 	
 	ret = m_sockclient.Read(&cmd,&status,recbuf,1024*4);
+	UnLockSocket();
 	if (ret < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"Recv TOKEN LOGIN Error\n");
 		return ret;
@@ -218,14 +222,17 @@ int CPackManager::DoKeeplivePack(){
 	memset(recbuf,0,1024*4);
 
 	CLog::Log(LOG_LEVEL_WARNING,"Send HeartBeat Req...\n");
+	LockSocket();
 	ret = m_sockclient.Write(TOKEN_HEARTBEAT,0,NULL,0);
 	if (ret < 0){
 
+		UnLockSocket();
 		CLog::Log(LOG_LEVEL_WARNING,"Send Heartbeat Req Error\n");
 		return ret;
 	}
 	
 	ret = m_sockclient.Read(&cmd,&status,recbuf,1024*4);
+	UnLockSocket();
 	if (ret < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"Recv HeartBeat res Error\n");
 		return ret;
@@ -248,14 +255,17 @@ int CPackManager::DoTaskUploadPack(crack_task req,task_upload_res *res){
 	memset(recbuf,0,1024*4);
 
 	CLog::Log(LOG_LEVEL_WARNING,"Send task Upload Req ...\n");
+	LockSocket();
 	ret = m_sockclient.Write(CMD_TASK_UPLOAD,0,&req,sizeof(crack_task));
 	if (ret <0){
 
+		UnLockSocket();
 		CLog::Log(LOG_LEVEL_WARNING,"Send Task Upload req Error\n");
 		return ret;
 	}
 	
 	ret = m_sockclient.Read(&cmd,&status,recbuf,1024*4);
+	UnLockSocket();
 	if (ret < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"Recv Task Upload res Error\n");
 		return ret;
@@ -288,14 +298,17 @@ int CPackManager::GenTaskStartPack(task_start_req req,task_status_res *res){
 	memset(recbuf,0,1024*4);
 
 	CLog::Log(LOG_LEVEL_WARNING,"Send Task Start Req...\n");
+	LockSocket();
 	ret = m_sockclient.Write(CMD_TASK_START,0,&req,sizeof(task_start_req));
 	if (ret < 0){
 
+		UnLockSocket();
 		CLog::Log(LOG_LEVEL_WARNING,"Send Task Start Req Error\n");
 		return ret;
 	}
 	
 	ret = m_sockclient.Read(&cmd,&status,recbuf,1024*4);
+	UnLockSocket();
 	if (ret < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"Recv Task Start res Error\n");
 		return ret;
@@ -323,14 +336,17 @@ int CPackManager::GenTaskStopPack(task_stop_req req,task_status_res *res){
 	memset(recbuf,0,1024*4);
 
 	CLog::Log(LOG_LEVEL_WARNING,"Send Task Stop Req ...\n");
+	LockSocket();
 	ret = m_sockclient.Write(CMD_TASK_STOP,0,&req,sizeof(task_stop_req));
 	if (ret < 0){
 
+		UnLockSocket();
 		CLog::Log(LOG_LEVEL_WARNING,"Send Task Stop req Error\n");
 		return ret;
 	}
 	
 	ret = m_sockclient.Read(&cmd,&status,recbuf,1024*4);
+	UnLockSocket();
 	if (ret < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"Recv Task Stop res Error\n");
 		return ret;
@@ -356,14 +372,17 @@ int CPackManager::GenTaskPausePack(task_pause_req req,task_status_res *res){
 	memset(recbuf,0,1024*4);
 
 	CLog::Log(LOG_LEVEL_WARNING,"Send Task Pause req...\n");
+	LockSocket();
 	ret = m_sockclient.Write(CMD_TASK_PAUSE,0,&req,sizeof(task_pause_req));
 	if (ret < 0){
 
+		UnLockSocket();
 		CLog::Log(LOG_LEVEL_WARNING,"Send Taks Pause Req Error\n");
 		return ret;
 	}
 	
 	ret = m_sockclient.Read(&cmd,&status,recbuf,1024*4);
+	UnLockSocket();
 	if (ret < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"Recv Task Pause Res Error\n");
 		return ret;
@@ -389,14 +408,17 @@ int CPackManager::GenTaskDeletePackt(task_delete_req req,task_status_res *res){
 	memset(recbuf,0,1024*4);
 
 	CLog::Log(LOG_LEVEL_WARNING,"Send Task Delete Req ...\n");
+	LockSocket();
 	ret = m_sockclient.Write(CMD_TASK_DELETE,0,&req,sizeof(task_delete_req));
 	if (ret < 0){
 
+		UnLockSocket();
 		CLog::Log(LOG_LEVEL_WARNING,"Send Task Delete Req Error\n");
 		return ret;
 	}
 	
 	ret = m_sockclient.Read(&cmd,&status,recbuf,1024*4);
+	UnLockSocket();
 	if (ret < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"Recv Task Delte Res Error\n");
 		return ret;
@@ -410,42 +432,6 @@ int CPackManager::GenTaskDeletePackt(task_delete_req req,task_status_res *res){
 	return ret;
 
 }
-
-/*
-int CPackManager::GenTaskResultPack(task_result_req req,task_status_res *res){
-
-	CheckConnect();
-
-	int ret = 0;
-	unsigned char cmd;
-	short status;
-	unsigned char recbuf[1024*4];
-
-	memset(recbuf,0,1024*4);
-
-	CLog::Log(LOG_LEVEL_WARNING,"Send Get A Task Result Req...\n");
-	ret = m_sockclient.Write(CMD_TASK_RESULT,0,&req,sizeof(task_result_req));
-	if (ret < 0){
-
-		CLog::Log(LOG_LEVEL_WARNING,"Send TOKEN Get A Task Result ReqError\n");
-		return ret;
-	}
-	
-	ret = m_sockclient.Read(&cmd,&status,recbuf,1024*4);
-	if (ret < 0){
-		CLog::Log(LOG_LEVEL_WARNING,"Recv Get A Task Result Res Error\n");
-		return ret;
-
-	}
-	CLog::Log(LOG_LEVEL_WARNING,"Recv Get A Task Result Res OK\n");
-	if (status == 0){
-		memcpy(res,recbuf,sizeof(task_status_res));
-
-	}
-	return ret;
-
-}
-*/
 
 
 int CPackManager::GenTaskResultPack(task_result_req req,task_result_info **res){
@@ -461,14 +447,17 @@ int CPackManager::GenTaskResultPack(task_result_req req,task_result_info **res){
 	memset(recbuf,0,1024*4);
 
 	CLog::Log(LOG_LEVEL_WARNING,"Send Get Task Result Req ...\n");
+	LockSocket();
 	ret = m_sockclient.Write(CMD_TASK_RESULT,0,&req,sizeof(task_result_req));
 	if (ret < 0){
 
+		UnLockSocket();
 		CLog::Log(LOG_LEVEL_WARNING,"Send Get Task Result Req Error\n");
 		return ret;
 	}
 	
 	ret = m_sockclient.Read(&cmd,&status,recbuf,1024*4);
+	UnLockSocket();
 	if (ret < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"Recv Get Task Result Res Error\n");
 		return ret;
@@ -514,14 +503,17 @@ int CPackManager::GenTaskStatusPack(task_status_info **res){
 	memset(recbuf,0,1024*4);
 
 	CLog::Log(LOG_LEVEL_WARNING,"Send Get Tasks Status Req ...\n");
+	LockSocket();
 	ret = m_sockclient.Write(CMD_REFRESH_STATUS,0,NULL,0);
 	if (ret < 0){
 
+		LockSocket();
 		CLog::Log(LOG_LEVEL_WARNING,"Send Get Tasks Status Req Error\n");
 		return ret;
 	}
 	
 	ret = m_sockclient.Read(&cmd,&status,recbuf,1024*4);
+	UnLockSocket();
 	if (ret < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"Recv Tasks Status Res Error\n");
 		return ret;
@@ -557,14 +549,16 @@ int ret = 0;
 	memset(recbuf,0,1024*4);
 
 	CLog::Log(LOG_LEVEL_WARNING,"Send Client Status Req ...\n");
+	LockSocket();
 	ret = m_sockclient.Write(CMD_GET_CLIENT_LIST,0,NULL,0);
 	if (ret != 0){
-
+		UnLockSocket();
 		CLog::Log(LOG_LEVEL_WARNING,"Send Client Status Req Error\n");
 		return ret;
 	}
 	
 	ret = m_sockclient.Read(&cmd,&status,recbuf,1024*4);
+	UnLockSocket();
 	if (ret < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"Recv Client Status Res Error\n");
 		return ret;
@@ -614,14 +608,17 @@ int CPackManager::GenNewFileUploadPack(file_upload_req req,file_upload_res *res)
 	memset(recbuf,0,1024*4);
 
 	CLog::Log(LOG_LEVEL_WARNING,"Send File Upload Req ...\n");
+	LockSocket();
 	ret = m_sockclient.Write(CMD_UPLOAD_FILE,0,&req,sizeof(file_upload_req));
 	if (ret < 0){
 
+		UnLockSocket();
 		CLog::Log(LOG_LEVEL_WARNING,"Send File Upload Req Error\n");
 		return ret;
 	}
 	
 	ret = m_sockclient.Read(&cmd,&status,recbuf,1024*4);
+	UnLockSocket();
 	if (ret < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"Recv File Upload Res Error\n");
 		return ret;
@@ -674,13 +671,16 @@ int CPackManager::GenNewFileUploadStartPack(file_upload_start_res *res){
 	req.len = filelen;
 
 	CLog::Log(LOG_LEVEL_WARNING,"Send File Upload Start Req ...\n");
+	LockSocket();
 	ret = m_sockclient.Write(CMD_START_UPLOAD,0,&req,sizeof(file_upload_start_req));
 	if (ret < 0){
 
+		UnLockSocket();
 		CLog::Log(LOG_LEVEL_WARNING,"Send File Upload Start Req Error\n");
 		return ret;
 	}
 	
+	UnLockSocket();	
 	return ret;
 }
 
@@ -698,10 +698,13 @@ int CPackManager::GenNewFileUploadingPack(){
 	//file read 
 	
 	fp = (FILE *)this->m_file_desc;
+	
+	LockSocket();
 	while(!feof(fp)){
 		memset(sendbuf,0,1024*4);
 		readLen = fread(sendbuf,1,1024,fp);
 		if (readLen < 0 ){
+			UnLockSocket();
 			CLog::Log(LOG_LEVEL_WARNING,"read file Error\n");
 			return -1;
 		}
@@ -722,7 +725,7 @@ int CPackManager::GenNewFileUploadingPack(){
 		printf("Send file buffer %d vs %d ok\n",ret,m_cur_upload_file_len);
 		//
 	}
-
+	UnLockSocket();
 	fclose(fp);
 }
 
@@ -745,19 +748,23 @@ int CPackManager::GenNewFileUploadEndPack(file_upload_end_res *res){
 	req.offset = 0;
 
 	CLog::Log(LOG_LEVEL_WARNING,"Send File Upload End Req ...\n");
+	LockSocket();
 	ret = m_sockclient.Write(CMD_END_UPLOAD,0,&req,sizeof(file_upload_end_req));
 	if (ret < 0){
 
+		UnLockSocket();
 		CLog::Log(LOG_LEVEL_WARNING,"Send File Upload End Req Error\n");
 		return ret;
 	}
 	
 	ret = m_sockclient.Read(&cmd,&status,recbuf,1024*4);
 	if (ret < 0){
+		UnLockSocket();
 		CLog::Log(LOG_LEVEL_WARNING,"Recv File Upload End Res Error\n");
 		return ret;
 
 	}
+	UnLockSocket();
 	CLog::Log(LOG_LEVEL_WARNING,"Recv File Upload End Res OK\n");
 	if (status == 0){
 
@@ -1020,3 +1027,23 @@ void *CPackManager::SendDataViaThread(void *)
 	return 0;
 }
 
+
+void CPackManager::InitLockSocket(void)
+{
+	InitializeCriticalSection(&m_csSocket);
+}
+
+void CPackManager::DelLockSocket(void)
+{
+	DeleteCriticalSection(&m_csSocket);
+}
+
+void CPackManager::LockSocket(void)
+{
+	EnterCriticalSection(&m_csSocket);
+}
+
+void CPackManager::UnLockSocket(void)
+{
+	LeaveCriticalSection(&m_csSocket);
+}

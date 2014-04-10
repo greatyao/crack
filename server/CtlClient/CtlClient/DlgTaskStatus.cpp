@@ -324,6 +324,9 @@ void CDlgTaskStatus::OnBnClickedBtnRefresh()
 			sprintf(tmpbuf,"%d·ÖÖÓ%dÃë",t_sec_m,t_sec_s);
 		else
 			sprintf(tmpbuf,"%dÃë",t_sec_s);
+		if(t_sec==-1)
+		m_ListStatus.SetItemText(i,3,"¡Þ");
+		else
 		m_ListStatus.SetItemText(i,3,tmpbuf);
 
 
@@ -337,6 +340,9 @@ void CDlgTaskStatus::OnBnClickedBtnRefresh()
 			sprintf(tmpbuf,"%d·ÖÖÓ%dÃë",t_sec_m,t_sec_s);
 		else
 			sprintf(tmpbuf,"%dÃë",t_sec_s);
+		if(t_sec==-1)
+		m_ListStatus.SetItemText(i,4,"¡Þ");
+		else
 		m_ListStatus.SetItemText(i,4,tmpbuf);
 
 		sprintf(tmpbuf,"%.0f%%",(p->m_progress)*100.0);
