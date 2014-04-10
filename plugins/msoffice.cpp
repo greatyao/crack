@@ -637,7 +637,7 @@ int msoffice_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 
 	strcpy(hash->hash, atoh(verifierhashvalue,64));
 	strcpy(hash->salt, atoh(docsalt,32));
-	strcpy(hash->salt2, "");
+	strcpy(hash->salt2, atoh(verifierhashinput,32));
 
 	return 0;
 }
@@ -647,7 +647,7 @@ int msoffice_check_valid(struct crack_hash* hash)
 	if(!hash)
 		return ERR_INVALID_PARAM;
 
-	if(ishex(hash->hash) && strlen(hash->hash)==64 && ishex(hash->salt) && strlen(hash->salt)==32)
+	if(ishex(hash->hash) && strlen(hash->hash)==64 && ishex(hash->salt) && strlen(hash->salt)==32 && ishex(hash->salt2) && strlen(hash->salt2)==32)
 		return 1;
 	else
 		return 0;
@@ -658,7 +658,7 @@ int msoffice_recovery(const struct crack_hash* hash, char* line, int size)
 	if(!hash || !line || size <= 0)
 		return ERR_INVALID_PARAM;
 
-	snprintf(line, size, "%s:%s", hash->hash,hash->salt);
+	snprintf(line, size, "%s:%s:%s", hash->hash,hash->salt,hash->salt2);
 	return 0;
 }
 
