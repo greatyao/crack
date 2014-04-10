@@ -336,7 +336,7 @@ void CDlgUploadTask::OnBnClickedOk()
 
 	}
 	
-//上传文件开始
+	//上传文件开始
 	file_upload_start_res uploadstartres={0};
 	ret = g_packmanager.GenNewFileUploadStartPack(&uploadstartres);
 	if (ret < 0){
@@ -367,9 +367,9 @@ void CDlgUploadTask::OnBnClickedOk()
 	ret = g_packmanager.GenNewFileUploadEndPack(&uploadendres);
 	if (ret < 0){
 
-		CString tmpStr("Upload File ...... Error");
-
-		AfxMessageBox(tmpStr);
+		char buffer[MAX_PATH];
+		g_packmanager.GetErrMsg(uploadendres.offset,buffer);
+		AfxMessageBox(buffer);
 		return ;
 
 	}
