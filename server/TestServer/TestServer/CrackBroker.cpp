@@ -573,6 +573,27 @@ int CCrackBroker::GetAWorkItem(struct crack_block **pRes){
 
 }
 
+int CCrackBroker::QueryTaskByWI(char* task_guid, const char* block_guid)
+{
+	CB_MAP::iterator iter_block;
+	CCrackBlock *pCB = NULL;
+	CCrackTask *pCT = NULL;
+
+	iter_block = m_total_crackblock_map.find((char*)block_guid);
+	if (iter_block == m_total_crackblock_map.end()){
+
+		CLog::Log(LOG_LEVEL_WARNING,"Can't find Crack Block With GUID %s\n", block_guid);
+		return  NOT_FIND_GUID_BLOCK;
+	}
+
+	pCB = iter_block->second;
+	pCT =(CCrackTask *)pCB->task;
+	if(!pCT) return NOT_FIND_GUID_BLOCK;
+	
+	strcpy(task_guid, pCT->guid);
+	return 0;
+}
+
 int CCrackBroker::GetWIStatus(struct crack_status *pReq){
 
 	int ret = 0;

@@ -102,6 +102,8 @@ public:
 
 	int GetWIResult(struct crack_result *pReq);
 
+	int QueryTaskByWI(char* task_guid, const char* block_guid);
+
 	
 	int DoClientQuit(char *ip,int port);
 

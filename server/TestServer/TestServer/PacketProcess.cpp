@@ -543,11 +543,20 @@ int cc_task_file_download(void *pclient, unsigned char * pdata,UINT len){
 	getClientIPInfo(pclient,ip,&port);
 
 	preq = (struct download_file_req *)pdata;
+	char task_guid[40];
+	if(g_CrackBroker.QueryTaskByWI(task_guid, (char *)preq->guid) != 0)
+	{
+		ret = -1;
+		goto resp;
+	}
 
-	pfile = fopen((char *)preq->guid,"rb");
+
+	char filename[MAX_PATH];
+	sprintf(filename,"%s%s",FILE_DIR, task_guid);
+	pfile = fopen(filename,"rb");
 	if (!pfile){
 		
-		CLog::Log(LOG_LEVEL_WARNING,"fopen file %s error \n",preq->guid);
+		CLog::Log(LOG_LEVEL_WARNING,"fopen file %s error %d\n", filename, GetLastError());
 		
 		ret = -1;
 
@@ -568,6 +577,7 @@ int cc_task_file_download(void *pclient, unsigned char * pdata,UINT len){
 
 	}
 
+resp:
 	//产生应答报文，并发送
 	int m = Write(*(SOCKET*)pclient, CMD_DOWNLOAD_FILE, ret, &fileinfo,resLen,true);
 	if (m < 0){
