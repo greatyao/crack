@@ -115,7 +115,6 @@ public:
 	int m_connected;
 	int StartClient(void);
 	int StopClient(void);
-	int CheckConnect(void);
 
 	//ÄÚ´æ·ÖÅäº¯Êı
 	void * _malloc(size_t size){return malloc(size);}

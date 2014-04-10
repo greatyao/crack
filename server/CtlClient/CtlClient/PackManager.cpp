@@ -2,6 +2,7 @@
 #include "PackManager.h"
 #include "SocketClient.h"
 #include "CLog.h"
+#include "err.h"
 
 CPackManager g_packmanager;
 
@@ -12,7 +13,9 @@ CPackManager::CPackManager(void)
 
 	InitLockSocket();
 	m_connected = 0;
+	m_bThreadHeartBeatRunning = 0;
 	StartClient();
+	StartHeartBeat();
 }
 
 CPackManager::~CPackManager(void)
@@ -102,10 +105,10 @@ void CPackManager::GetErrMsg(short status,char *msg){
 
 int CPackManager::StartClient(void)
 {
-	if(m_connected)//已经连接服务器
+	if(m_connected)//已经连接服务器或者正在连接
 	{
 		return 0;
-	}	
+	}
 
 	char ip[20]="192.168.18.117";
 	//直接读配置
@@ -114,19 +117,20 @@ int CPackManager::StartClient(void)
 	strcat(ini_file,".ini");
 
 	GetPrivateProfileString("config","ip","127.0.0.1",ip,MAX_PATH-1,ini_file);
+	m_connected = 1;
 
 	if( m_sockclient.Init(ip,6010)!=0 )
 	{
 		CLog::Log(LOG_LEVEL_ERROR,"连接服务器失败\n");
+		m_connected = 0;
 		return 0;
 	}
-	m_connected = 1;
+	m_connected = 2;
 
 	//发送登陆包
 	client_login_req req={0};
 	SYSTEM_INFO s_info;
 	GetSystemInfo(&s_info);
-
 
 	struct sockaddr_in addr;
 	socklen_t len2 = sizeof(addr);
@@ -150,10 +154,6 @@ int CPackManager::StartClient(void)
 
 	DoLoginPack(req);
 
-	//心跳线程使用
-	m_bThreadHeartBeatRunning = 0;
-	StartHeartBeat();//心跳
-
 	return 1;
 }
 
@@ -170,21 +170,9 @@ int CPackManager::StopClient(void)
 	return 1;
 }
 
-int CPackManager::CheckConnect(void)
-{
-	if(m_connected==0)
-	{
-		//尝试连接
-		return StartClient();
-	}
-
-	return 1;
-}
-
 
 int CPackManager::DoLoginPack(client_login_req req){
 	
-	CheckConnect();
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -211,9 +199,9 @@ int CPackManager::DoLoginPack(client_login_req req){
 	CLog::Log(LOG_LEVEL_WARNING,"Recv TOKEN LOGIN OK\n");
 	return status;
 }
+
 int CPackManager::DoKeeplivePack(){
 
-	CheckConnect();
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -227,7 +215,8 @@ int CPackManager::DoKeeplivePack(){
 	if (ret < 0){
 
 		UnLockSocket();
-		CLog::Log(LOG_LEVEL_WARNING,"Send Heartbeat Req Error\n");
+		CLog::Log(LOG_LEVEL_WARNING,"Send Heartbeat Req Error %d\n", ret);
+		
 		return ret;
 	}
 	
@@ -246,7 +235,6 @@ int CPackManager::DoKeeplivePack(){
 	
 int CPackManager::DoTaskUploadPack(crack_task req,task_upload_res *res){
 
-	CheckConnect();
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -288,8 +276,6 @@ CMD_TASK_START,		//开始任务
 */
 
 int CPackManager::GenTaskStartPack(task_start_req req,task_status_res *res){
-
-	CheckConnect();
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -327,7 +313,6 @@ int CPackManager::GenTaskStartPack(task_start_req req,task_status_res *res){
 
 int CPackManager::GenTaskStopPack(task_stop_req req,task_status_res *res){
 
-	CheckConnect();
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -362,8 +347,6 @@ int CPackManager::GenTaskStopPack(task_stop_req req,task_status_res *res){
 }
 int CPackManager::GenTaskPausePack(task_pause_req req,task_status_res *res){
 
-	CheckConnect();
-
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -397,8 +380,6 @@ int CPackManager::GenTaskPausePack(task_pause_req req,task_status_res *res){
 
 }
 int CPackManager::GenTaskDeletePackt(task_delete_req req,task_status_res *res){
-
-	CheckConnect();
 
 	int ret = 0;
 	unsigned char cmd;
@@ -435,8 +416,6 @@ int CPackManager::GenTaskDeletePackt(task_delete_req req,task_status_res *res){
 
 
 int CPackManager::GenTaskResultPack(task_result_req req,task_result_info **res){
-
-	CheckConnect();
 
 	int ret = 0;
 	unsigned char cmd;
@@ -493,7 +472,6 @@ CMD_REFRESH_STATUS,	//取得任务的进度和状态等信息
 	*/
 int CPackManager::GenTaskStatusPack(task_status_info **res){
 
-	CheckConnect();
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -507,7 +485,7 @@ int CPackManager::GenTaskStatusPack(task_status_info **res){
 	ret = m_sockclient.Write(CMD_REFRESH_STATUS,0,NULL,0);
 	if (ret < 0){
 
-		LockSocket();
+		UnLockSocket();
 		CLog::Log(LOG_LEVEL_WARNING,"Send Get Tasks Status Req Error\n");
 		return ret;
 	}
@@ -539,8 +517,7 @@ int CPackManager::GenTaskStatusPack(task_status_info **res){
 }
 int CPackManager::GenClientStatusPack(compute_node_info **res){
 
-	CheckConnect();
-int ret = 0;
+	int ret = 0;
 	unsigned char cmd;
 	short status;
 	unsigned char recbuf[1024*4];
@@ -599,7 +576,6 @@ int ret = 0;
 //处理文件上传
 int CPackManager::GenNewFileUploadPack(file_upload_req req,file_upload_res *res){
 		
-	CheckConnect();
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -639,7 +615,6 @@ int CPackManager::GenNewFileUploadPack(file_upload_req req,file_upload_res *res)
 	//处理文件上传开始
 int CPackManager::GenNewFileUploadStartPack(file_upload_start_res *res){
 	
-	CheckConnect();
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -732,7 +707,6 @@ int CPackManager::GenNewFileUploadingPack(){
 	//处理文件上传结束
 int CPackManager::GenNewFileUploadEndPack(file_upload_end_res *res){
 
-	CheckConnect();
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -800,12 +774,36 @@ int CPackManager::GenNewFileUploadEndPack(file_upload_end_res *res){
 void *CPackManager::ThreadHeartBeat(void *par)
 {	
 	CPackManager *p = (CPackManager*)par;
-	
-	while(p->m_bThreadHeartBeatStop!=TRUE)
+
+	while(1)
 	{
-		p->DoKeeplivePack();
-		p->StartSleep(p->m_hStopSleep,120*1000);//等120秒
+		while(p->m_connected != 2)
+		{
+			if(p->m_bThreadHeartBeatStop==TRUE) 
+				return NULL;
+
+			p->StartClient();
+			p->StartSleep(p->m_hStopSleep,10*1000);//等10秒
+		}
+
+		while(1)
+		{
+			if(p->m_bThreadHeartBeatStop == TRUE) 
+				return NULL;
+
+			int ret = p->DoKeeplivePack();
+		
+			if(ret == ERR_CONNECTIONLOST)
+			{
+				p->m_connected = 0;
+				break;
+			}
+
+			p->StartSleep(p->m_hStopSleep,10*1000);//等10秒
+		}
 	}
+	
+	
 	return 0;
 };	
 
