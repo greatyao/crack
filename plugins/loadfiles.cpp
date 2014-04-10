@@ -15,7 +15,7 @@ int load_hashes_file2(const char *filename, struct crack_task* task)
 	int n, special;
 	
 	n = load_hashes_file(filename, task->algo, hashes, MAX_HASHES_PER_FILE, &special);
-	if(n <= 0) return n;
+	if(special == 0 && n < 0) return n;
 	if(special == 1 && n == 1) return 0;
 	
 	task->count = n;
