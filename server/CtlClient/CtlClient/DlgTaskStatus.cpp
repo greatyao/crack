@@ -165,11 +165,11 @@ BOOL CDlgTaskStatus::OnInitDialog()
 
 	m_ListStatus.InsertColumn(0, _T("选择"), LVCFMT_LEFT, 40);
 	m_ListStatus.InsertColumn(1, _T("任务GUID"), LVCFMT_LEFT, 180);
-	m_ListStatus.InsertColumn(2, _T("算法"), LVCFMT_LEFT, 50);
+	m_ListStatus.InsertColumn(2, _T("算法"), LVCFMT_LEFT, 60);
 	m_ListStatus.InsertColumn(3, _T("已用时间"), LVCFMT_LEFT, 70);
 	m_ListStatus.InsertColumn(4, _T("剩余时间"), LVCFMT_LEFT, 70);
 	m_ListStatus.InsertColumn(5, _T("进度"), LVCFMT_LEFT, 50);
-	m_ListStatus.InsertColumn(6, _T("切割份数"), LVCFMT_LEFT, 100);
+	m_ListStatus.InsertColumn(6, _T("切割份数"), LVCFMT_LEFT, 80);
 	m_ListStatus.InsertColumn(7, _T("完成份数"), LVCFMT_LEFT, 80);
 	m_ListStatus.InsertColumn(8, _T("状态"), LVCFMT_LEFT, 80);
 
@@ -274,6 +274,62 @@ BOOL CDlgTaskStatus::AddToTaskList(int nAlgo,int nCharset,int nType,int nIsFile,
 	return 0;
 }
 
+
+const char *crack_algorithm_string[80]={
+	"none",
+	"md4",//=0x01,        //MD4 plugin
+	"md5",//             //MD5 plugin
+	"md5md5",//          //md5(md5(pass)) plugin
+	"md5unix",//         //MD5(Unix) plugin (shadow files)
+	"mediawiki",//       //md5(salt.'-'.md5(password)) plugin (Wikimedia)
+	"oscommerce",//      //md5(salt",//password) plugin (osCommerce)
+	"ipb2",//            //md5(md5(salt).md5(pass)) plugin (IPB > 2.x)
+	"joomla",//          //md5(password",//salt) plugin (joomla)
+	"vbulletin",//       //md5(md5(pass).salt) plugin
+	"desunix",//         //DES(Unix) plugin (.htpasswd)
+	"sha1",//            //SHA1 plugin
+	"sha1sha1",//        //sha1(sha1(pass)) plugin
+	"sha256",//          //SHA-256 plugin
+	"sha256unix",//      //SHA256(Unix) plugin (shadow files)
+	"sha512",//          //SHA-512 plugin
+	"sha512unix",//      //SHA512(Unix) plugin (shadow files)
+	"msoffice_old",//    //MS Office XP/2003 plugin
+	"msoffice",//        //MS Office 2007/2010/2013 plugin
+	"django256",//       //Django SHA-256 plugin
+	"zip",//             //ZIP passwords plugin
+	"rar",//             //RAR3 passwords plugin
+	"apr1",//            //Apache apr1 plugin
+	"bfunix",//          //bfunix plugin (shadow files)
+	"dmg",//             //FileVault (v1)  passwords plugin
+	"drupal7",//         //Drupal >=7 hashes plugin
+	"lm",//              //LM plugin
+	"luks",//            //LUKS encrypted block device plugin
+	"mscash",//          //Domain cached credentials plugin
+	"mscash2",//         //Domain cached credentials v2 plugin
+	"mssql_2000",//      //Microsoft SQL Server 2000 plugin
+	"mssql_2005",//      //Microsoft SQL Server 2005 plugin
+	"mssql_2012",//      //Microsoft SQL Server 2012 plugin
+	"mysql5",//          //MySQL > 4.1 plugin
+	"nsldap",//          //LDAP SHA plugin
+	"nsldaps",//         //LDAP SSHA (salted SHA) plugin
+	"ntlm",//            //NTLM plugin
+	"o5logon",//         //Oracle TNS O5logon
+	"oracle_old",//      //Oracle 7 up to 10r2 plugin
+	"oracle11g",//       //Oracle 11g plugin
+	"osx_old",//         //MacOSX <= 10.6 system passwords plugin
+	"osxlion",//         //MacOSX Lion system passwords plugin
+	"phpbb3",//          //phpBB3 hashes plugin
+	"pixmd5",//          //Cisco PIX password hashes plugin
+	"privkey",//         //SSH/SSL private key passphrase plugin
+	"ripemd160",//       //RIPEMD-160 plugin
+	"sapg",//            //SAP CODVN G passwords plugin
+	"sl3",//             //Nokia SL3 plugin
+	"smf",//             //SMF plugin
+	"wordpress",//       //Wordpress hashes plugin
+	"wpa",
+	"max"
+};
+
 void CDlgTaskStatus::OnBnClickedBtnRefresh()
 {
 	int ret = 0;
@@ -304,15 +360,39 @@ void CDlgTaskStatus::OnBnClickedBtnRefresh()
 		m_ListStatus.InsertItem(i,"");
 		m_ListStatus.SetItemText(i,1,(char *)p->guid);
 
-		//
-		sprintf(tmpbuf,"%d",p->m_algo);
+		//算法
+		if( (p->m_algo>algo_wpa)||(p->m_algo<algo_md4) )
+			sprintf(tmpbuf,"%s","无法识别");
+		else
+			sprintf(tmpbuf,"%s",crack_algorithm_string[p->m_algo]);
 		m_ListStatus.SetItemText(i,2,tmpbuf);
-		sprintf(tmpbuf,"%ds",p->m_running_time);
+
+		unsigned int t_sec = p->m_running_time;
+		unsigned int t_sec_s = t_sec%60 ;
+		unsigned int t_sec_m = (t_sec/60)%60 ;
+		unsigned int t_sec_h = t_sec/(60*60) ;
+		if(t_sec_h>0)
+			sprintf(tmpbuf,"%d小时%d分%d秒",t_sec_h,t_sec_m,t_sec_s);
+		else if(t_sec_m>0)
+			sprintf(tmpbuf,"%d分钟%d秒",t_sec_m,t_sec_s);
+		else
+			sprintf(tmpbuf,"%d秒",t_sec_s);
 		m_ListStatus.SetItemText(i,3,tmpbuf);
-		sprintf(tmpbuf,"%ds",p->m_remain_time);
+
+
+		 t_sec = p->m_remain_time;
+		 t_sec_s = t_sec%60 ;
+		 t_sec_m = (t_sec/60)%60 ;
+		 t_sec_h = t_sec/(60*60) ;
+		if(t_sec_h>0)
+			sprintf(tmpbuf,"%d小时%d分%d秒",t_sec_h,t_sec_m,t_sec_s);
+		else if(t_sec_m>0)
+			sprintf(tmpbuf,"%d分钟%d秒",t_sec_m,t_sec_s);
+		else
+			sprintf(tmpbuf,"%d秒",t_sec_s);
 		m_ListStatus.SetItemText(i,4,tmpbuf);
 
-		sprintf(tmpbuf,"%.2f",p->m_progress);
+		sprintf(tmpbuf,"%.0f%%",(p->m_progress)*100.0);
 		m_ListStatus.SetItemText(i,5,tmpbuf);
 		
 		wsprintfA(tmpbuf,"%d",p->m_split_number);
