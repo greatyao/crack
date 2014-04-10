@@ -187,19 +187,16 @@ void CDlgTaskStatus::OnNMDblclkListTask(NMHDR *pNMHDR, LRESULT *pResult)
 	int num = ret/sizeof(task_result_info);
 	int i = 0;
 
-	char temp[128];
-	char* buffer = new char[num == 0?1:num*(sizeof(struct crack_hash)+100)];
-	buffer[0] = 0;
+	CString temp, buffer("");
 	for(i=0;i < num;i ++ ){
 
-		memset(temp,0,128);
 		p = &pres[i];
 		CLog::Log(LOG_LEVEL_WARNING,"Get Task Result : %s ,%d,%s\n",p->john,p->status,p->password);
 		
 		if(p->password[0])
 		{
-			sprintf(temp,"Hash : %s, status :%d ,password : %s\n",p->john,p->status,p->password);
-			strcat(buffer,temp);
+			temp.Format("Hash : %s, status :%d ,password : %s\n",p->john,p->status,p->password);
+			buffer += temp;
 		}
 		
 	}
@@ -211,7 +208,6 @@ void CDlgTaskStatus::OnNMDblclkListTask(NMHDR *pNMHDR, LRESULT *pResult)
 	else
 		AfxMessageBox(buffer);
 
-	delete []buffer;
 	*pResult = 0;
 }
 
