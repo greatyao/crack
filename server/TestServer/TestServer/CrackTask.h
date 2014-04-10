@@ -94,6 +94,8 @@ public:
 
 	CB_MAP m_crackblock_map;
 
+	CB_MAP::iterator cur_crack_block;
+
 	CCriticalSection m_crackblock_cs;
 
 

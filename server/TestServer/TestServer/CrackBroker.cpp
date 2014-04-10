@@ -199,6 +199,7 @@ int	CCrackBroker::StartTask(struct task_start_req *pReq){
 		
 		//Task status --> Running , the block status --> ready
 		ret = pCT->SetStatus(CT_STATUS_RUNNING);
+		
 	
 
 	}
@@ -812,7 +813,17 @@ int CCrackBroker::getStatusFromTask(CCrackTask *pCT,task_status_info *pRes){
 
 
 	pRes->m_remain_time = pCT->m_remain_time;
-	pRes->m_running_time = mytime-pCT->m_start_time;
+	//pRes->m_running_time = mytime-pCT->m_start_time;
+	if (pCT->m_status == CT_STATUS_RUNNING){
+		
+		pRes->m_running_time = mytime-pCT->m_start_time;
+
+	}else{
+
+		pCT->m_start_time = mytime;
+		pRes->m_running_time = 0;
+	}
+
 	pRes->m_algo = pCT->algo;
 	//get the current block progress 
 	pCT->calcProgressByBlock();

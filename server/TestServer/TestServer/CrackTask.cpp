@@ -145,7 +145,7 @@ int CCrackTask::SplitTaskFile(char *pguid){
 	this->m_split_num = splitnum;
 	this->m_finish_num = 0;
 	count = ret;
-
+	ret = 0;
 	return ret;
 
 }
@@ -155,8 +155,45 @@ CCrackBlock *CCrackTask::GetAReadyWorkItem(){
 	
 	CCrackBlock *pCB = NULL;
 	CB_MAP::iterator iter_block;
+	CB_MAP::iterator iter_block_end = m_crackblock_map.end();
 
-	for (iter_block = m_crackblock_map.begin();iter_block != m_crackblock_map.end();iter_block++){
+	iter_block = ++cur_crack_block;
+	
+	for (;iter_block != iter_block_end;iter_block ++){
+
+		if (iter_block->second->m_status == WI_STATUS_READY){
+
+			pCB = iter_block->second;
+			pCB->m_status = WI_STATUS_RUNNING;
+			m_runing_num ++;
+			cur_crack_block = iter_block;
+			break;
+
+		}
+
+	}
+	
+	if (!pCB){
+
+		iter_block = m_crackblock_map.begin();
+		for(;iter_block!= cur_crack_block;iter_block++){
+
+			if (iter_block->second->m_status == WI_STATUS_READY){
+				
+				pCB = iter_block->second;
+				pCB->m_status = WI_STATUS_RUNNING;
+				m_runing_num ++;
+				cur_crack_block = iter_block;
+				break;
+			}
+
+		}
+
+
+	}
+
+
+	/*for (iter_block = m_crackblock_map.begin();iter_block != m_crackblock_map.end();iter_block++){
 
 		pCB = iter_block->second;
 		if (pCB->m_status == WI_STATUS_READY){
@@ -176,7 +213,7 @@ CCrackBlock *CCrackTask::GetAReadyWorkItem(){
 		
 		pCB= NULL;
 	}
-	
+	*/
 	
 	return pCB;
 }
@@ -223,7 +260,7 @@ int CCrackTask::SetStatus(char status){
 		case CT_STATUS_RUNNING:
 				
 			ret = updateStatusToRunning();
-
+		
 			break;
 		case CT_STATUS_READY:
 
@@ -298,6 +335,7 @@ int CCrackTask::updateStatusToRunning(){
 	CCrackHash *pCCH = NULL;
 	time_t time_last;  
     time_last = time(NULL);  
+	int tag = 0;
 
 	if ((m_status != CT_STATUS_READY) && (m_status != CT_STATUS_PAUSED)){
 		
@@ -329,6 +367,11 @@ int CCrackTask::updateStatusToRunning(){
 	
 
 			pCb->m_status = WI_STATUS_READY;
+			if (tag == 0 ){
+				this->cur_crack_block = iter_block;
+				tag = 1;
+			}
+			
 		}
 
 	}

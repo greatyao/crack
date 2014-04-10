@@ -634,23 +634,27 @@ int cc_task_file_download_start(void *pclient,unsigned char *pdata,UINT len){
 			ret = -2;
 			readLen = 0;
 
-		}else{
+		}else if(readLen == 0){
 
+			fclose(pfile);
 			ret = 0;
 
-		}
-				
-		ret = Write(sock, CMD_START_DOWNLOAD, ret,resBuf,readLen,false);
-		if (ret < 0){
-
-			CLog::Log(LOG_LEVEL_WARNING,"file download data block Error\n");
-			break;
-
-		}else{
+		}else {
 			
-			CLog::Log(LOG_LEVEL_WARNING,"file download data block .len : %d OK\n",readLen);
-			readLen = 0;
-		}
+			ret = 0;
+			ret = Write(sock, CMD_START_DOWNLOAD, ret,resBuf,readLen,false);
+			if (ret < 0){
+
+				CLog::Log(LOG_LEVEL_WARNING,"file download data block Error\n");
+				break;
+
+			}else{
+				
+				CLog::Log(LOG_LEVEL_WARNING,"file download data block .len : %d OK\n",readLen);
+				readLen = 0;
+			}
+		}		
+		
 
 	}
 
@@ -859,13 +863,14 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 			//recv the file data 
 			writeFileLen = fwrite(resBuf,1,readLen,pfile);
 			if (writeFileLen < 1){
-				CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get Task File Upload writelen %d  Error %d \n",ip,port,writeFileLen);
+				CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get Task File Upload writelen %d  Error %d \n",ip,port,writeFileLen,readLen);
 				ret = -3;
 				break;
 
 			}else{
 			
 				CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get Task File Upload writelen %d OK\n",ip,port,writeFileLen);
+							
 			}
 		}
 
