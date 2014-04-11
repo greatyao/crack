@@ -92,8 +92,7 @@ int	CCrackBroker::CreateTask(struct crack_task *pReq,unsigned char *pguid){
 	for(temp_iter = m_cracktask_map.begin(); temp_iter != m_cracktask_map.end();temp_iter ++ ){
 		
 		pTask = temp_iter->second;
-		CLog::Log(LOG_LEVEL_WARNING,"Task guid : %s, Task : %d, %d, %s\n",pTask->guid,pTask->algo,pTask->charset,pTask->filename);
-
+		CLog::Log(LOG_LEVEL_WARNING,"New task guid=%s, Algo=%d, Charset=%d\n",pTask->guid,pTask->algo,pTask->charset);
 	}
 
 //	m_cracktask_cs.Unlock();
@@ -399,7 +398,7 @@ int CCrackBroker::GetClientList(struct compute_node_info **pRes,unsigned int *re
 		pres[j].gputhreads = ((CCompClient *)pCI)->m_gputhreads;
 		pres[j].cputhreads = ((CCompClient *)pCI)->m_cputhreads;
 
-		CLog::Log(LOG_LEVEL_WARNING,"Computer Client %d: %s %s [%d %d]\n", j, pres[j].os, pres[j].hostname,
+		CLog::Log(LOG_LEVEL_WARNING,"CompClient %d: OS=\"%s\" Host=\"%s\" [%d %d]\n", j, pres[j].os, pres[j].hostname,
 			pres[j].gputhreads, pres[j].cputhreads );
 	
 		j++;
@@ -423,7 +422,7 @@ int CCrackBroker::GetAWorkItem(struct crack_block **pRes){
 	char *pguid = NULL;
 	int size = 0;
 
-	CLog::Log(LOG_LEVEL_WARNING,"Enter into Get A Work Item\n");
+	//CLog::Log(LOG_LEVEL_WARNING,"Enter into CCrackBroker::GetAWorkItem\n");
 
 	pres = (struct crack_block *)Alloc(sizeof(struct crack_block));
 	if (!pres)
@@ -437,14 +436,14 @@ int CCrackBroker::GetAWorkItem(struct crack_block **pRes){
 	memset(pres,0,sizeof(struct crack_block));
 	
 	size = m_cracktask_ready_queue.size();
-	if (size < 1){
-		
-		CLog::Log(LOG_LEVEL_WARNING,"There is no a Task Ready\n");
+	//CLog::Log(LOG_LEVEL_WARNING,"There is %d task Ready\n", size);
+	if (size < 1){	
 	//	m_cracktask_cs.Unlock();
 		return ALLOC_CRACK_BLOCK_ERR;
 	}
 
 	pguid = m_cracktask_ready_queue.front();
+	//CLog::Log(LOG_LEVEL_WARNING,"Front task guid = %s\n", pguid);
 	if (pguid == NULL){
 
 		CLog::Log(LOG_LEVEL_WARNING,"Running Task is Null\n");
@@ -456,6 +455,8 @@ int CCrackBroker::GetAWorkItem(struct crack_block **pRes){
 	if (iter_task == m_cracktask_map.end()){
 
 		CLog::Log(LOG_LEVEL_WARNING,"Can't find Task With GUID %s\n",pguid);
+		m_cracktask_ready_queue.pop_front();
+		m_cracktask_ready_queue.push_back(pguid);
 		ret =  NOT_FIND_GUID_TASK;
 //		m_cracktask_cs.Unlock();
 		return ret;
@@ -467,6 +468,8 @@ int CCrackBroker::GetAWorkItem(struct crack_block **pRes){
 	if (pCB == NULL){
 		
 		CLog::Log(LOG_LEVEL_WARNING,"Can't find A Ready WorkItem from Task %s \n",pguid);
+		m_cracktask_ready_queue.pop_front();
+		m_cracktask_ready_queue.push_back(pguid);
 		return NOT_READY_WORKITEM;
 	}
 	
@@ -559,10 +562,10 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 	switch(pReq->status){
 
 		case WORK_ITEM_LOCK:
-			
 			pCB->m_status = WI_STATUS_RUNNING;
 			break;
 		case WORK_ITEM_UNLOCK:
+			CLog::Log(LOG_LEVEL_WARNING, "**** Reuse WorkItem [guid=%s] ****\n",pReq->guid);
 			
 			pCB->m_status = WI_STATUS_READY;
 			((CCrackTask *)(pCB->task))->m_runing_num -=1;
@@ -573,7 +576,7 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 			pCB->m_status = WI_STATUS_RUNNING;
 			break;
 		case WORK_ITEM_CRACKED:
-
+			CLog::Log(LOG_LEVEL_WARNING, "**** WorkItem [guid=%s] password=\"%s\" ****\n",pReq->guid,pReq->password);
 			pCB->m_status = WI_STATUS_FINISHED;
 			pCT =(CCrackTask *)pCB->task;
 			
@@ -589,7 +592,8 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 		//	m_cracktask_cs.Unlock();
 			break;
 		case WORK_ITEM_UNCRACKED:
-
+			CLog::Log(LOG_LEVEL_WARNING, "**** WorkItem [guid=%s] NON password ****\n",pReq->guid);
+			
 			pCB->m_status = WI_STATUS_NO_PWD;
 			pCT = (CCrackTask *)pCB->task;
 		//	m_cracktask_cs.Lock();

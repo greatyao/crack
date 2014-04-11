@@ -76,7 +76,8 @@ int CCrackTask::SplitTaskFile(char *pguid){
 
 		m_crackhash_list.push_back(&pCCH[i]);
 
-		CLog::Log(LOG_LEVEL_WARNING,"Crack Hash is %s,%s,%s\n",hashes[i].hash,hashes[i].salt,hashes[i].salt2);
+		if(this->special == 0)
+			CLog::Log(LOG_LEVEL_WARNING,"Crack Hash is %s,%s,%s\n",hashes[i].hash,hashes[i].salt,hashes[i].salt2);
 	}
 
 	//出始化相关工作项
@@ -96,8 +97,8 @@ int CCrackTask::SplitTaskFile(char *pguid){
 		pCb[i].task = this;
 		
 		m_crackblock_map.insert(CB_MAP::value_type(pCb[i].guid,&pCb[i]));
-		CLog::Log(LOG_LEVEL_WARNING,"Crack Block is %s,%s,%d,%d,%d,%d\n",pCb[i].john,pCb[i].guid,pCb[i].start,pCb[i].end,pCb[i].start2,pCb[i].end2);
-		
+		if(this->special == 0)
+			CLog::Log(LOG_LEVEL_WARNING,"Crack Block is %s,%s %d,%d\n",pCb[i].john, pCb[i].guid ,pCb[i].start,pCb[i].end);
 	}
 
 	//释放资源
@@ -121,7 +122,6 @@ CCrackBlock *CCrackTask::GetAReadyWorkItem(){
 	CB_MAP::iterator iter_block_begin = m_crackblock_map.begin();
 
 	iter_block = cur_crack_block;
-	
 	do{
 		if (iter_block->second->m_status == WI_STATUS_READY){
 
@@ -129,7 +129,6 @@ CCrackBlock *CCrackTask::GetAReadyWorkItem(){
 			pCB->m_status = WI_STATUS_RUNNING;
 			m_runing_num ++;
 			break;
-
 		}
 
 		iter_block++;
@@ -295,7 +294,6 @@ int CCrackTask::updateStatusToRunning(){
 			if (tag == 0 ){
 				this->cur_crack_block = iter_block;
 				tag = 1;
-				break;
 			}
 			
 		}
