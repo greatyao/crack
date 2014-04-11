@@ -250,9 +250,11 @@ void CDlgUploadTask::OnBnClickedButton1()
 }
 
 void CDlgUploadTask::OnBnClickedOk()
-{
+{	
 	
-	//读取输入数据
+	/////////////////////////////////////////////////
+	//读取输入数据	
+	/////////////////////////////////////////////////
 	//解密算法
 	int loc_algo   = m_comboalgo.GetCurSel()+1;
 	//解密字符集
@@ -270,26 +272,58 @@ void CDlgUploadTask::OnBnClickedOk()
 	int loc_len_end = strtoul(p,NULL,10);
 	//文件路径
 	CString loc_file_name = m_filename;
+	//字典或者彩虹表选择序号
+	int loc_dic_sel = m_CombBoxSel.GetCurSel();
+	//掩码输入
+	CString loc_s_mask;
+	m_EditType.GetWindowTextA(loc_s_mask);
+	//算法选择
 
 
-	//错误检测
+	/////////////////////////////////////////////////
+	//检测错误输入
+	/////////////////////////////////////////////////
 	if(loc_file_name.GetLength()<1)
 	{
 		AfxMessageBox("上传文件不能为空");
 		return;
 	}
-	if((m_startlength.GetLength()<1)||(m_endlength.GetLength()<1))
+	if(loc_type==0)//暴力
 	{
-		AfxMessageBox("请输入密码起始长度");
-		return;
+		if((m_startlength.GetLength()<1)||(m_endlength.GetLength()<1))
+		{
+			AfxMessageBox("请输入密码起始长度");
+			return;
+		}
+		if((loc_len_start<1)||(loc_len_start>loc_len_end))
+		{
+			AfxMessageBox("密码起始长度错误");
+			return;
+		}
 	}
-	if((loc_len_start<1)||(loc_len_start>loc_len_end))
+	else if(loc_type==1)//字典
 	{
-		AfxMessageBox("密码起始长度错误");
-		return;
+	}
+	else if(loc_type==2)//特定规则
+	{
+	}
+	else if(loc_type==3)//掩码
+	{
+		if(loc_s_mask.GetLength()<1)
+		{
+			AfxMessageBox("请输出掩码信息");
+			return;
+		}
+	}
+	else if(loc_type==4)//彩虹表
+	{
 	}
 
 
+	
+	/////////////////////////////////////////////////
+	//处理提交数据
+	/////////////////////////////////////////////////
 	char buf[1024];
 	memset(buf,0,1024);
 	
@@ -300,6 +334,14 @@ void CDlgUploadTask::OnBnClickedOk()
 	newtask.type = m_dectype.GetCurSel();
 
 	newtask.special = 0;
+	//增加掩码等信息
+	if(loc_type==1)//字典
+		newtask.dict_idx = loc_dic_sel;
+	else if(loc_type==3)//掩码
+	{
+		newtask.maskLength = loc_s_mask.GetLength();
+		m_EditType.GetWindowTextA(newtask.masks,18);		
+	}	
 
 	p = (LPSTR)(LPCTSTR)m_endlength.GetBuffer();
 	newtask.endLength = strtoul(p,NULL,10);
@@ -427,8 +469,7 @@ void CDlgUploadTask::OnNMCustomdrawSliderLenMin(NMHDR *pNMHDR, LRESULT *pResult)
 
 //
 void CDlgUploadTask::ProcessControl(int id)
-{
-	
+{	
 	m_EditLenMin.ShowWindow(SW_HIDE);
 	m_EditLenMax.ShowWindow(SW_HIDE);
 
@@ -437,10 +478,11 @@ void CDlgUploadTask::ProcessControl(int id)
 	
 	m_EditType.ShowWindow(SW_HIDE);
 	m_CombBoxSel.ShowWindow(SW_HIDE);
+	int nItem = m_CombBoxSel.GetCount();
+	for(int i=0; i<nItem; i++)	m_CombBoxSel.DeleteString(0);
 
 	m_StaticLenMin.ShowWindow(SW_HIDE);
 	m_StaticLenMax.ShowWindow(SW_HIDE);
-
 
 	if(id==0)//暴力
 	{
