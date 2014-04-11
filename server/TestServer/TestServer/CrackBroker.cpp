@@ -22,7 +22,6 @@ int CCrackBroker::ClientLogin(client_login_req *pReq){
 		pCI = new CCompClient;
 		((CCompClient *)pCI)->m_gputhreads = pReq->m_gputhreads;
 		((CCompClient *)pCI)->m_cputhreads = pReq->m_cputhreads;
-		CLog::Log(LOG_LEVEL_WARNING, "login CompClient %d %d\n", pReq->m_gputhreads,  pReq->m_cputhreads);
 	}
 	else
 		pCI = new CClientInfo;

@@ -59,9 +59,4 @@ VOID ProcessClientData1(LPVOID lpParameter){
 
 	delete lpParameter;
 	CLog::Log(LOG_LEVEL_WARNING, "Client [%s:%d] Quit!\n",ip,port);
-
-	
-
-	
-
 }
