@@ -336,13 +336,16 @@ void CDlgUploadTask::OnBnClickedOk()
 
 	newtask.special = 0;
 
-	p = (LPSTR)(LPCTSTR)m_endlength.GetBuffer();
-	newtask.endLength = strtoul(p,NULL,10);
-
-	p = (LPSTR)(LPCTSTR)m_startlength.GetBuffer(); 
-	newtask.startLength = strtoul(p,NULL,10);
 
 	//增加掩码等信息
+	if(loc_type==0)
+	{
+		p = (LPSTR)(LPCTSTR)m_endlength.GetBuffer();
+		newtask.endLength = strtoul(p,NULL,10);
+
+		p = (LPSTR)(LPCTSTR)m_startlength.GetBuffer(); 
+		newtask.startLength = strtoul(p,NULL,10);
+	}
 	if(loc_type==1)//字典
 		newtask.dict_idx = loc_dic_sel;
 	else if(loc_type==3)//掩码
