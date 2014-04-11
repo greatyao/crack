@@ -47,14 +47,10 @@
 #define NOT_READY_WORKITEM STANDARD_ERR+91
 
 struct MapLessCompare{
-	
 	bool operator()(const char * str1,const char *str2) const
 	{
-
 		return strcmp(str1,str2) < 0;
 	}
-
-
 };
 
 //typedef std::map<char *, CCrackBlock *,MapLessCompare > TOTAL_CB_MAP;
@@ -73,7 +69,9 @@ public:
 	~CCrackBroker(void);
 
 	int ClientLogin(client_login_req *pReq);
+
 	int ClientKeepLive(char *ip);
+	int ClientKeepLive2(const char *ip, void* s, unsigned char* cmd, void** data);
 
 	//控制节点业务逻辑处理函数
 
@@ -126,10 +124,6 @@ private:
 
 	int getBlockFromCrackBlock(CCrackBlock *pCB,struct crack_block *pRes);
 
-
-	
-
-
 public :
 	
 	CCriticalSection m_cracktask_cs;
@@ -143,7 +137,6 @@ public :
 	CCriticalSection m_client_cs;
 	CI_VECTOR m_client_list;
 
-	
 	CCriticalSection m_total_crackblock_cs;
 
 	CB_MAP m_total_crackblock_map;

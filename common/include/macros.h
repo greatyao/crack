@@ -24,6 +24,8 @@ enum
 	COMMAND_ACTIVED = 0x00,			// 服务端可以激活开始工作
 	COMMAND_REMOVE,					// 程序退出
 	COMMAND_REPLAY_HEARTBEAT,		// 回复心跳包
+	COMMAND_COMP_HEARTBEAT,			// 回复心跳包
+	
 	//
 	//
 	//// 服务端发出的标识
@@ -82,6 +84,15 @@ struct file_info
 	void* f;			//文件fd
 	unsigned int len;	//文件长度
 	unsigned int offset;//文件游标
+};
+
+//服务端发给计算节点告知其就绪状态的任务数目和不需要再进行解密的block
+struct keeplive_compclient
+{
+	unsigned int tasks;		//就绪任务数
+	unsigned int blocks;	//不再需要进行解密的workitem数目
+	typedef char block_guid[40];
+	block_guid guids[0];
 };
 
 typedef enum CRACK_TASK_STATUS {

@@ -67,6 +67,7 @@ int client_login(void *pclient, unsigned char * pdata, UINT len){
 	}
 
 	pC->m_port = port;
+	pC->m_clientsock = *(SOCKET *)pclient;
 	memcpy(pC->m_ip,ip,strlen(ip));
 	//处理业务逻辑
 
@@ -104,16 +105,24 @@ int client_keeplive(void *pclient, unsigned char * pdata, UINT len){
 	time_t tmpTime = 0;
 
 	getClientIPInfo(pclient,ip,&port);
-		
+
+#if 0		
 	nRet = g_CrackBroker.ClientKeepLive(ip);
 
 	//生成应答并返回
-
 	int m = Write(*(SOCKET*)pclient, COMMAND_REPLAY_HEARTBEAT, 0, NULL,0,true);
+#else
+	unsigned char cmd;
+	char* data = NULL;
+	nRet = g_CrackBroker.ClientKeepLive2(ip, pclient, &cmd, (void **)&data);
+	int m = Write(*(SOCKET*)pclient, cmd, 0, data, nRet, true);
+	g_CrackBroker.Free(data);
+#endif
+	
 	if (m < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Keeplive :Send Response Error %d \n",ip,port,m);
 	}else	{
-		//CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client KeepLive OK\n",ip,port);
+		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client KeepLive %d OK\n",ip, port, cmd);
 	}
 
 	return nRet;
@@ -389,7 +398,7 @@ int cc_get_task_result(void *pclient, unsigned char * pdata, UINT len){
 		CLog::Log(LOG_LEVEL_WARNING,"Broker Get Task %s Result ,ErrorCode : %d\n",pResReq->guid,nRet);
 		resLen = 0;
 	}else{
-		CLog::Log(LOG_LEVEL_WARNING,"Broker Get Task %s Result OK\n",pResReq->guid);
+		//CLog::Log(LOG_LEVEL_WARNING,"Broker Get Task %s Result OK\n",pResReq->guid);
 		resLen = sizeof(struct task_result_info)*resNum;
 	}
 

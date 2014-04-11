@@ -42,6 +42,42 @@ int CCrackBroker::ClientLogin(client_login_req *pReq){
 }
 
 //处理心跳
+int CCrackBroker::ClientKeepLive2(const char *ip, void* s, unsigned char* cmd, void** data)
+{
+	unsigned int sock = *(unsigned int *)s;
+	CClientInfo *pCI = NULL;
+
+	for (int i = 0 ;i < m_client_list.size(); i ++){
+		if(m_client_list[i]->m_clientsock == sock)
+		{
+			pCI= m_client_list[i];
+			break;
+		}
+	}
+
+	//不是计算节点，直接发送简单的心跳回应包
+	if(pCI == NULL || pCI->m_type != COMPUTE_TYPE_CLIENT)
+	{
+		*cmd = COMMAND_REPLAY_HEARTBEAT;
+		return 0;
+	}
+
+	int noneed = 0;//不再需要进行解密的workitem数目，需要根据每个计算节点和block/task之间的关系计算得出
+	int len = sizeof(keeplive_compclient)+noneed*sizeof(keeplive_compclient::block_guid);
+	keeplive_compclient* ka = (keeplive_compclient*)Alloc(len);
+	ka->tasks = m_cracktask_ready_queue.size();
+	ka->blocks = noneed;
+	for(int i = 0; i < noneed; i++)
+	{
+		//对ka->guids进行赋值
+	}
+
+	*cmd = COMMAND_COMP_HEARTBEAT;
+	*data = ka;
+	return len;
+}
+
+//处理心跳
 int CCrackBroker::ClientKeepLive(char *ip){
 	
 	int ret = 0;
