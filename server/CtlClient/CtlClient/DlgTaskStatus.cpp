@@ -20,7 +20,7 @@ CDlgTaskStatus::CDlgTaskStatus(CWnd* pParent /*=NULL*/)
 
 CDlgTaskStatus::~CDlgTaskStatus()
 {
-	StopRefresh();
+	
 }
 
 void CDlgTaskStatus::DoDataExchange(CDataExchange* pDX)
@@ -38,25 +38,12 @@ BEGIN_MESSAGE_MAP(CDlgTaskStatus, CDialog)
 	ON_BN_CLICKED(IDC_BTN_DELETE, &CDlgTaskStatus::OnBnClickedBtnDelete)
 	ON_BN_CLICKED(IDC_BTN_STOP, &CDlgTaskStatus::OnBnClickedBtnStop)
 	ON_WM_CLOSE()
+	ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 
 void CDlgTaskStatus::GetStatusStrByCmd(char cmd,char *pdes){
-
-	/*
-	CT_STATUS_READY = 1,   //任务的就绪状态
-	CT_STATUS_FINISHED,		//任务完成状态	
-	CT_STATUS_FAILURE,		//任务解密失败状态
-	CT_STATUS_RUNNING,		//任务正在解密状态
-
-//	CT_STATUS_STOPPED,		//任务停止状态  
-	CT_STATUS_PAUSED,		//任务暂停解密状态
-	CT_STATUS_DELETED,		//将任务设置为删除状态
-	CT_STATUS_MAX
-	*/
-	
 	switch(cmd){
-
 
 		case CT_STATUS_READY:
 			
@@ -91,12 +78,6 @@ void CDlgTaskStatus::GetStatusStrByCmd(char cmd,char *pdes){
 	return;
 
 }
-// CDlgTaskStatus message handlers
-void CDlgTaskStatus::GenExampleListData()
-{
-}
-
-
 
 BOOL CDlgTaskStatus::OnInitDialog()
 {
@@ -125,12 +106,21 @@ BOOL CDlgTaskStatus::OnInitDialog()
 	m_ListStatus.InsertColumn(7, _T("完成份数"), LVCFMT_LEFT, 80);
 	m_ListStatus.InsertColumn(8, _T("状态"), LVCFMT_LEFT, 80);
 
-	
-	m_bThreadRefreshRunning = 0;
-	StartRefresh();//心跳
+	SetTimer(1,10000,NULL);//启动定时器1,定时时间是10秒
 
 	return TRUE;  // return TRUE unless you set the focus to a control
-	// 异常: OCX 属性页应返回 FALSE
+}
+
+void CDlgTaskStatus::OnTimer(UINT nIDEvent) 
+{
+	OnBnClickedBtnRefresh();
+	CDialog::OnTimer(nIDEvent);
+}
+
+void CDlgTaskStatus::OnClose()
+{
+	KillTimer(1);    
+	CDialog::OnClose();
 }
 
 BOOL CDlgTaskStatus::PreTranslateMessage(MSG* pMsg) 
@@ -209,12 +199,6 @@ void CDlgTaskStatus::OnNMDblclkListTask(NMHDR *pNMHDR, LRESULT *pResult)
 		AfxMessageBox(buffer);
 
 	*pResult = 0;
-}
-
-BOOL CDlgTaskStatus::RefreshList(void)
-{
-	OnBnClickedBtnRefresh();
-	return 0;
 }
 
 
@@ -315,9 +299,9 @@ void CDlgTaskStatus::OnBnClickedBtnRefresh()
 		unsigned int t_sec_m = (t_sec/60)%60 ;
 		unsigned int t_sec_h = t_sec/(60*60) ;
 		if(t_sec_h>0)
-			sprintf(tmpbuf,"%d小时%d分%d秒",t_sec_h,t_sec_m,t_sec_s);
+			sprintf(tmpbuf,"%d时%d分%d秒",t_sec_h,t_sec_m,t_sec_s);
 		else if(t_sec_m>0)
-			sprintf(tmpbuf,"%d分钟%d秒",t_sec_m,t_sec_s);
+			sprintf(tmpbuf,"%d分%d秒",t_sec_m,t_sec_s);
 		else
 			sprintf(tmpbuf,"%d秒",t_sec_s);
 		if(t_sec==-1)
@@ -464,76 +448,4 @@ void CDlgTaskStatus::OnBnClickedBtnStop()
 
 		}
 	}
-}
-
-
-//自动刷新任务列表
-void *CDlgTaskStatus::ThreadRefresh(void *par)
-{
-	CDlgTaskStatus *p = (CDlgTaskStatus*)par;
-	
-	while(p->m_bThreadRefreshStop!=TRUE)
-	{
-		p->RefreshList();
-		g_packmanager.StartSleep(p->m_hStopRefresh,10*1000);//等10秒
-	}
-	return 0;
-}
-void CDlgTaskStatus::StartRefresh(void)
-{	
-	if(m_bThreadRefreshRunning==TRUE)
-	{
-		CLog::Log(LOG_LEVEL_WARNING,"线程运行中，不需要再创建\n");
-		return;
-	}
-	
-	m_bThreadRefreshStop = FALSE;
-	m_bThreadRefreshRunning = TRUE;
-
-	pthread_attr_t attr;
-	pthread_attr_init(&attr);
-	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-	
-	pthread_mutex_t running_mutex;
-	pthread_cond_t keeprunning_cv;
-	pthread_mutex_init(&running_mutex, NULL);
-	pthread_cond_init(&keeprunning_cv, NULL);
-	
-	m_hStopRefresh = g_packmanager.CreateSleep();
-	
-	int returnValue = pthread_create( &m_ThreadRefresh, &attr, ThreadRefresh, (void *)this);
-	if( returnValue != 0 )
-	{
-		CLog::Log(LOG_LEVEL_ERROR,"心跳线程失败，错误代码: %d\n", returnValue);
-		m_bThreadRefreshStop = TRUE;
-		m_bThreadRefreshRunning = FALSE;
-		g_packmanager.StopSleep(m_hStopRefresh);
-	}
-	else
-	{
-		CLog::Log(LOG_LEVEL_NOMAL,"心跳线程创建成功\n");
-		m_bThreadRefreshStop = FALSE;
-		m_bThreadRefreshRunning = TRUE;
-	}
-}
-
-void CDlgTaskStatus::StopRefresh(void)
-{
-	if(m_bThreadRefreshRunning==FALSE)
-	{
-		CLog::Log(LOG_LEVEL_NOMAL,"线程没有在运行\n");
-		return;
-	}
-
-	m_bThreadRefreshStop = TRUE;
-	g_packmanager.StopSleep(m_hStopRefresh);
-	int returnValue = pthread_join(m_ThreadRefresh, NULL);
-	if( returnValue != 0 )
-	{
-		CLog::Log(LOG_LEVEL_ERROR,"线程退出失败，错误代码: %d\n", returnValue);
-	}
-	else{
-		CLog::Log(LOG_LEVEL_NOMAL,"线程成功退出\n");
-	}
-	m_bThreadRefreshRunning = FALSE;
 }

@@ -12,8 +12,6 @@ public:
 	CDlgClientStatus(CWnd* pParent = NULL);   // standard constructor
 	virtual ~CDlgClientStatus();
 
-	void GenExampleListData();
-
 // Dialog Data
 	enum { IDD = IDD_DLG_CLIENT_STATUS };
 

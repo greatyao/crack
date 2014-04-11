@@ -35,55 +35,31 @@ BEGIN_MESSAGE_MAP(CDlgClientStatus, CDialog)
 END_MESSAGE_MAP()
 
 
+BOOL CDlgClientStatus::OnInitDialog(){
 
-// CDlgClientStatus message handlers
-void CDlgClientStatus::GenExampleListData(){
+	CDialog::OnInitDialog();
 
-	
-	//update the list control
-	/*
-	unsigned char guid[40];
-	unsigned int cputhreads;
-	unsigned int gputhreads;
-	unsigned char hostname[50];
-	unsigned char ip[20];
-	unsigned char os[48];
-	*/
-
-
-	 LONG lStyle; 
-       lStyle = GetWindowLong(m_clientlist.m_hWnd, GWL_STYLE);// 获取当前窗口style 
-       lStyle &= ~LVS_TYPEMASK; // 清除显示方式位 
-       lStyle |= LVS_REPORT; // 设置style 
-       SetWindowLong(m_clientlist.m_hWnd, GWL_STYLE, lStyle);
+	LONG lStyle; 
+	lStyle = GetWindowLong(m_clientlist.m_hWnd, GWL_STYLE);// 获取当前窗口style 
+	lStyle &= ~LVS_TYPEMASK; // 清除显示方式位 
+	lStyle |= LVS_REPORT; // 设置style 
+	SetWindowLong(m_clientlist.m_hWnd, GWL_STYLE, lStyle);
 
 	DWORD dwStyle = m_clientlist.GetExtendedStyle();
-      dwStyle |= LVS_EX_FULLROWSELECT;//选中某行使整行高亮（只适用与report风格的listctrl）
-      dwStyle |= LVS_EX_GRIDLINES;//网格线（只适用与report风格的listctrl）
-    //  dwStyle |= LVS_EX_CHECKBOXES;//item前生成checkbox控件
-      m_clientlist.SetExtendedStyle(dwStyle); //设置扩展风格
+	dwStyle |= LVS_EX_FULLROWSELECT;//选中某行使整行高亮（只适用与report风格的listctrl）
+	dwStyle |= LVS_EX_GRIDLINES;//网格线（只适用与report风格的listctrl）
+	// dwStyle |= LVS_EX_CHECKBOXES;//item前生成checkbox控件
+	m_clientlist.SetExtendedStyle(dwStyle); //设置扩展风格
 
 	m_clientlist.InsertColumn( 0, _T("IPADDRESS"), LVCFMT_LEFT, 100 ); 
 	m_clientlist.InsertColumn( 1, _T("OS"), LVCFMT_LEFT, 100 ); 
 	m_clientlist.InsertColumn( 2, _T("HOSTNAME"), LVCFMT_LEFT, 100 ); 
 	m_clientlist.InsertColumn( 3, _T("CPU_NUM"), LVCFMT_CENTER, 100 ); 
 	m_clientlist.InsertColumn( 4, _T("GPU_NUM"), LVCFMT_CENTER, 100 ); 
-}
-
-BOOL CDlgClientStatus::OnInitDialog(){
-
-	CDialog::OnInitDialog();
-
-
-	//socket req get client list
-	GenExampleListData();
-
-
-	
-
 
 	return TRUE;
 }
+
 void CDlgClientStatus::OnBnClickedBtnClient()
 {
 	// TODO: Add your control notification handler code here
