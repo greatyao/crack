@@ -248,6 +248,12 @@ int msoffice_check_valid(struct crack_hash* hash);
 int msoffice_recovery(const struct crack_hash* hash, char* line, int size);
 
 //
+int rar_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
+int rar_is_special();
+int rar_check_valid(struct crack_hash* hash);
+int rar_recovery(const struct crack_hash* hash, char* line, int size);
+
+//
 int zip_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
 int zip_is_special();
 int zip_check_valid(struct crack_hash* hash);
