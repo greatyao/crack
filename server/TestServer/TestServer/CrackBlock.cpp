@@ -13,29 +13,10 @@ CCrackBlock::~CCrackBlock(void)
 
 void CCrackBlock::Init(struct crack_block *pCrackBlock){
 
-	
-	algo = pCrackBlock->algo;
-	charset = pCrackBlock->charset;
-	type = pCrackBlock->type;
-	special = pCrackBlock->special;
-
-
-	memset(guid,0,40);
-	memset(john,0,sizeof(struct crack_hash));
-	
-	memcpy(guid,pCrackBlock->guid,40);
-	memcpy(john,pCrackBlock->john,sizeof(struct crack_hash));
-
-	start = pCrackBlock->start;
-	end = pCrackBlock->end;
-
-	start2 = pCrackBlock->start2;
-	end2 = pCrackBlock->end2;
-		
-	task = NULL;
-	//this->hash_idx = -1;
-
-	hash_idx = pCrackBlock->hash_idx;
+	//直接按照结构体赋值拷贝一大串内存即可，无需一个个依次赋值
+	crack_block* parent = this;
+	memcpy(parent, pCrackBlock, sizeof(crack_block));
+	parent->task = NULL;
 
 	m_status = WI_STATUS_WAITING;
 

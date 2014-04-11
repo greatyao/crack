@@ -17,30 +17,11 @@ CCrackTask::~CCrackTask(void)
 {
 }
 
-/*
-unsigned char algo;		//解密算法
-	unsigned char charset;	//解密字符集
-	unsigned char type;		//解密类型
-	unsigned char special;	//是否是文件解密（pdf+office+rar+zip）
-	unsigned char startLength;//起始长度
-	unsigned char endLength;	//终结长度
-	unsigned char filename[256];	//用户传过来的文件名
-	char guid[40];			//用户端的任务的GUID
-	int count;				//需要解密的Hash个数（如果是文件=1）
-	struct crack_hash* hashes;			//这里需要动态申请
-	*/
 int CCrackTask::Init(crack_task *pCrackTask)
 {
-	algo = pCrackTask->algo;
-	charset = pCrackTask->charset;
-	type = pCrackTask->type;
-	special = pCrackTask->special;
-	startLength = pCrackTask->startLength;
-	endLength = pCrackTask->endLength;
-	
-	memset(filename,0,256);
-	memset(guid,0,40);
-	memcpy(guid,pCrackTask->guid,40);
+	//直接按照结构体赋值拷贝一大串内存即可，无需一个个依次赋值
+	crack_task* parent = this;
+	memcpy(parent, pCrackTask, sizeof(crack_task));
 
 	m_status = CT_STATUS_READY;   //状态准备运行
 	
@@ -478,9 +459,6 @@ int CCrackTask::updateStatusToDel(){
 	}
 
 	return ret;
-
-
-
 }
 
 //执行暂停任务
@@ -492,7 +470,6 @@ int CCrackTask::updateStatusToPause(){
 	CCrackHash *pCCH = NULL;
 	unsigned char john[196];
 	CCrackBlock *pCb = NULL;
-
 
 	if (m_status != CT_STATUS_RUNNING){
 		
@@ -541,33 +518,13 @@ int CCrackTask::updateStatusToPause(){
 //crackblock ---> find pass, set finish
 //         ---> m_progress = 100.0 , set finish
 //		   running ----> finish
-/*
-struct crack_result
-{
-	char guid[40];			//workitem/crack_block的GUID
-	unsigned int status;	//workitem的结果状态
-	char password[32];		//如果解密成功，存放密码
-};
 
-*/
 
 int CCrackTask::updateStatusToFinish(struct crack_result *result,int hash_index){
 
 	int ret = 0;
 	unsigned char tempStatus = m_status;
 	CCrackHash *pCCH = m_crackhash_list[hash_index];
-
-	//设置相关进度信息
-	/*
-	#define WORK_ITEM_AVAILABLE		0	//workitem的起始状态，可供其他计算单元使用
-#define WORK_ITEM_LOCK			1	//workitem已经被一个计算单元占用，但是不确定计算单元的解密任务是否进行，此时不能被其他计算单元使用
-#define WORK_ITEM_UNLOCK		2	//计算单元通知服务端unlock该资源，重新设置为avaiable，以供其他计算节点使用
-#define WORK_ITEM_WORKING		3	//计算单元正在对该workitem进行解密任务
-#define WORK_ITEM_CRACKED		4	//计算单元完成解密任务，同时破解出密码
-#define WORK_ITEM_UNCRACKED		5	//计算单元完成解密任务，但没有破解出密码
-	*/
-
-	//....
 
 	switch(result->status){
 		
@@ -679,7 +636,6 @@ int CCrackTask::updateStatusToFail(){
 }
 
 
-
 int CCrackTask::setCrackBlockStatus(char status,int hash_index){
 
 	int ret =0 ;
@@ -704,12 +660,10 @@ int CCrackTask::setCrackBlockStatus(char status,int hash_index){
 
 int CCrackTask::setFinishByHash(){
 
-	
 	int i = 0;
 	int ret = 1;
 
 	for(i = 0;i < m_crackhash_list.size();i ++ ){
-
 		
 		if ((m_crackhash_list[i]->m_status == HASH_STATUS_READY) || (m_crackhash_list[i]->m_status == HASH_STATUS_RUNNING)){
 			ret = 0;
@@ -721,7 +675,6 @@ int CCrackTask::setFinishByHash(){
 		
 		this->m_status = CT_STATUS_FINISHED;
 		this->m_progress = 100.0;
-
 	}
 
 	return ret; //如果ret = 1 , 任务所有的hash 都解密完成;ret=0, 包含未解密完成的hash
@@ -745,8 +698,6 @@ int CCrackTask::checkBlockOfHash(int hash_index){
 		}
 	}
 	return ret;
-
-
 }
 
 void * CCrackTask::Alloc(int size){
@@ -755,13 +706,10 @@ void * CCrackTask::Alloc(int size){
 
 	p = malloc(size);
 	return p;
-
-
 }
+
 void CCrackTask::Free(void *p){
 
 	free(p);
-
-
 }
 
