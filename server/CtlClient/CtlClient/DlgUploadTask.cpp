@@ -158,7 +158,8 @@ BOOL CDlgUploadTask::OnInitDialog(){
     m_toolTip.AddTool(GetDlgItem(IDC_EDIT_LEN_MAX), "暴力破解密码的最大长度");
     m_toolTip.AddTool(GetDlgItem(IDC_EDIT_FILE_PATH), "输入文件路径，或者点击后面的选择文件按钮选择文件");
     m_toolTip.AddTool(GetDlgItem(IDC_BUTTON_SEL_FILE), "选择破解的目标文件(hash文件或者加密文件)");
-    m_toolTip.AddTool(GetDlgItem(IDOK), "上传任务");
+	m_toolTip.AddTool(GetDlgItem(IDC_EDIT_TYPE_TYPE), "掩码输入说明：\r\n掩码破解必须包括已知字符和?号通配符，比如 138???? 表示通配138开头的7位密码");
+	m_toolTip.AddTool(GetDlgItem(IDOK), "上传任务");
 
 	m_SlideLenMin.SetRange(1,20);
 	m_SlideLenMax.SetRange(1,20);
@@ -202,7 +203,8 @@ BOOL CDlgUploadTask::PreTranslateMessage(MSG* pMsg)
             pMsg->hwnd == GetDlgItem(IDC_EDIT_LEN_MAX)->m_hWnd  || 
             pMsg->hwnd == GetDlgItem(IDC_EDIT_FILE_PATH)->m_hWnd  || 
             pMsg->hwnd == GetDlgItem(IDC_BUTTON_SEL_FILE)->m_hWnd|| 
-            pMsg->hwnd == GetDlgItem(IDOK)->m_hWnd )
+            pMsg->hwnd == GetDlgItem(IDC_EDIT_TYPE_TYPE)->m_hWnd|| 
+            pMsg->hwnd == GetDlgItem(IDOK)->m_hWnd )			
         {
             m_toolTip.RelayEvent(pMsg);
         }
@@ -312,7 +314,13 @@ void CDlgUploadTask::OnBnClickedOk()
 	{
 		if(loc_s_mask.GetLength()<1)
 		{
-			AfxMessageBox("请输出掩码信息");
+			AfxMessageBox("请输入掩码信息");
+			return;
+		}
+
+		if(-1==loc_s_mask.Find('?') )
+		{
+			AfxMessageBox("掩码信息错误");
 			return;
 		}
 	}
