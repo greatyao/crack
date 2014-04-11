@@ -317,11 +317,20 @@ void CDlgUploadTask::OnBnClickedOk()
 			AfxMessageBox("请输入掩码信息");
 			return;
 		}
-
 		if(-1==loc_s_mask.Find('?') )
 		{
 			AfxMessageBox("掩码信息错误");
 			return;
+		}
+
+		char *p_mask = loc_s_mask.GetBuffer();
+		for(int i=0; i<loc_s_mask.GetLength(); i++)
+		{
+			if(p_mask[i]&0x80)
+			{
+				AfxMessageBox("不能包含中文等宽字符");
+				return;
+			}
 		}
 	}
 	else if(loc_type==4)//彩虹表
