@@ -209,7 +209,7 @@ int ResourcePool::CoordinatorQuery(resourceslot* plots[], int n, int type)
 		j = (j+1) % m_rs_pool.size();
 	}while(j != m_base_coordinator);
 	
-	m_base_coordinator = (m_base_coordinator+1)% m_rs_pool.size();
+	m_base_coordinator = (j+1)% m_rs_pool.size();
 
 	return i;
 }
@@ -268,7 +268,7 @@ int ResourcePool::LauncherQuery(resourceslot* plots[], int n)
 		j = (j+1) % m_rs_pool.size();
 	}while(j != m_base_coordinator);
 	
-	m_base_coordinator = (m_base_coordinator+1)% m_rs_pool.size();
+	m_base_coordinator = (j+1)% m_rs_pool.size();
 
 	return i;
 }
