@@ -43,7 +43,6 @@ VOID ProcessClientData1(LPVOID lpParameter){
 		int m = Read(cliSocket, &cmd, &status, recvBuf, sizeof(recvBuf));
 	
 		if(m == ERR_CONNECTIONLOST) {
-	//		g_CrackBroker.DoClientQuit(ip,port);
 			cmd = CMD_CLIENT_QUIT;
 			memset(recvBuf,0,36000);
 			memcpy(recvBuf,ip,strlen(ip));
@@ -53,8 +52,7 @@ VOID ProcessClientData1(LPVOID lpParameter){
 		}else if(m == ERR_INVALIDDATA || m == ERR_UNCOMPRESS)
 			continue;
 		
-		CLog::Log(LOG_LEVEL_WARNING, "%s:%d recv cmd %d status %d body %d\n",ip, port, cmd, status, m);
-
+		//CLog::Log(LOG_LEVEL_WARNING, "%s:%d recv cmd %d status %d body %d\n",ip, port, cmd, status, m);
 
 		doRecvData(lpParameter, recvBuf, m, cmd);
 	}
