@@ -164,15 +164,6 @@ void ResourcePool::GetDevicesNo(int* gpu, int* cpu)
 	if(gpu) *gpu = gpu_num;
 	if(cpu) *cpu = cpu_num;
 }
-	
-void ResourcePool::Lock(void)
-{
-	pthread_mutex_lock(&mutex);
-}
-void ResourcePool::UnLock(void)
-{
-	pthread_mutex_unlock(&mutex);
-}
 
 int ResourcePool::CoordinatorQuery(resourceslot* plots[], int n, int type)
 {

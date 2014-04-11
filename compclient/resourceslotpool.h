@@ -79,12 +79,19 @@ private:
 	~ResourcePool();
 public:
 
+	class Lock{
+	private:
+		pthread_mutex_t* _m;
+	public:
+		Lock(pthread_mutex_t* m):_m(m){pthread_mutex_lock(_m);}
+		~Lock(){pthread_mutex_unlock(_m);}
+	};
+
 	static ResourcePool& Get();
 
 	void Init();
 		
-	void Lock(void);
-	void UnLock(void);	
+	pthread_mutex_t* GetMutex(){return &mutex;}
 	/***************************************************************
 	轮流查询机制
 	***************************************************************/

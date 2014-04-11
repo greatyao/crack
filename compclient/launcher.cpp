@@ -37,7 +37,7 @@ int clauncher::ReportDone(char* guid, bool cracked, const char* passwd)
 	int k = ResourcePool::Get().QueryByGuid(rs, MAX_PARALLEL_NUM, guid);
 	if(k == 0)	return -1;
 	
-	ResourcePool::Get().Lock();
+	ResourcePool::Lock(ResourcePool::Get().GetMutex());
 	
 	if(cracked)
 		CLog::Log(LOG_LEVEL_SUCCEED, "clauncher: Crack password %s [guid=%s]\n", passwd, guid);
@@ -46,8 +46,6 @@ int clauncher::ReportDone(char* guid, bool cracked, const char* passwd)
 	
 	//ResourcePool::Get().SetToRecover(prsp, cracked, passwd);
 	ResourcePool::Get().SetToRecover(rs, k, cracked, passwd);
-	
-	ResourcePool::Get().UnLock();
 	
 	return 0;
 }
@@ -79,13 +77,13 @@ void *clauncher::Thread(void*par)//扫描线程
 	{
 		if(p->m_bStop) break;
 		
-		//do
-		pool.Lock();
+		sleep(3);
+		ResourcePool::Lock(pool.GetMutex());
 		//prsp = pool.LauncherQuery(uStatus);
-		//if(!uStatus)	goto next;
+		//if(!uStatus)	continue;
 		
 		int k = pool.LauncherQuery(rs, MAX_PARALLEL_NUM);
-		if(k == 0) goto next;
+		if(k == 0) continue;
 		uStatus = rs[0]->m_rs_status;
 		CLog::Log(LOG_LEVEL_NOMAL, "clauncher: LauncherQuery %d %s\n", k, status_msg[uStatus]);
 		
@@ -127,10 +125,6 @@ void *clauncher::Thread(void*par)//扫描线程
 				break;
 			default:break;
 		}
-next:
-		//随便等待一下，这里仅供测试，实际不需要
-		pool.UnLock();
-		sleep(3);
 	}
 	
 	CLog::Log(LOG_LEVEL_NOMAL, "claucher: Exit thread\n");

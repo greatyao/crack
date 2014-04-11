@@ -42,14 +42,14 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 	{
 		if(p->m_bStop) break;
 			
+		sleep(3);
 		//从资源池获取可用的计算单元
-		pool.Lock();
+		ResourcePool::Lock(pool.GetMutex());
 		//prsp = pool.CoordinatorQuery(status, crack_device);
-		//if(!status)
-		//	goto next;
+		//if(!status) continue;
 		
 		int k = pool.CoordinatorQuery(rs, MAX_PARALLEL_NUM, crack_device);
-		if(k == 0) goto next;
+		if(k == 0) continue;
 		status = rs[0]->m_rs_status;
 		CLog::Log(LOG_LEVEL_NOMAL, "ccoordinator: CoordinatorQuery %d %s\n", k, status_msg[status]);
 		
@@ -58,13 +58,13 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 		{
 			//这里需要从网络获取workitem数据，只有有数据才会进行下一步
 			if(CrackManager::Get().CouldCrack() == false)
-				goto next;
+				continue;
 				
 			if(Client::Get().WillFetchItemFromServer() == false)
-				goto next;
+				continue;
 			
 			ret = Client::Get().GetWorkItemFromServer(&item);
-			if(ret != sizeof(item))	goto next;
+			if(ret != sizeof(item))	continue;
 			
 			CLog::Log(LOG_LEVEL_NOMAL, "ccoordinator: Fetch workitem [guid=%s]\n", item.guid);
 			if(CrackManager::Get().CheckParameters(&item) != 0)
@@ -73,7 +73,7 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 				strcpy(result.guid, item.guid);
 				result.status = WORK_ITEM_UNLOCK;
 				Client::Get().ReportResultToServer(&result);
-				goto next;
+				continue;
 			}
 		
 			//从服务器申请任务，并且将资源状态设置为RS_STATUS_AVAILABLE
@@ -96,10 +96,6 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 			Client::Get().ReportResultToServer(&result);
 			pool.SetToReady(rs, k);
 		}
-		
-next:	
-		pool.UnLock();
-		sleep(3);
 	}
 	
 	CLog::Log(LOG_LEVEL_NOMAL, "ccoordinator: Exit thread\n");
