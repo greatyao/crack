@@ -56,7 +56,7 @@ static struct hash_parameter all_support_hashes[] =
 	{algo_sha512,       {"-p sha512 -b%d:%d:%s %s %s", "-p sha512 -r %s %s %s"}},
 	{algo_sha512unix,   {"-p sha512unix -b%d:%d:%s %s %s", "-p sha512unix -r %s %s %s"}},
 	{algo_msoffice_old, {"-p msoffice-old -b%d:%d:%s %s %s", "-p msoffice-old -r %s %s %s"}},
-	{algo_msoffice,     {"-p msoffice -b%d:%d:%s %s %s", "-p msoffice -r %s %s %s"}},
+	{algo_msoffice,     {"-p msoffice -r brute -a %d:%d:%s %s %s", "-p msoffice -r %s %s %s"}},
 	{algo_django256,    {"-p django256 -r brute -a %d:%d:%s: %s %s", "-p django256 -r %s %s %s"}},
 	{algo_zip,          {"-p zip -b%d:%d:%s %s %s", "-p zip -r %s %s %s"}},
 	{algo_rar,          {"-p rar -b%d:%d:%s %s %s", "-p rar -r %s %s %s"}},
