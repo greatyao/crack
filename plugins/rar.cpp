@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include "plugin.h"
 #include "algorithm_types.h"
 #include "err.h"
