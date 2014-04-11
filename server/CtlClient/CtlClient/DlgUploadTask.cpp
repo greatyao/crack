@@ -463,22 +463,6 @@ void CDlgUploadTask::ErrorMsg(int id)
 	{
 		AfxMessageBox("参数非法");
 	}
-	else if(id==ERR_NO_THISTASK)
-	{
-		AfxMessageBox("没有该任务");
-	}
-	else if(id==ERR_NO_SUPPORT_ALGO)
-	{
-		AfxMessageBox("不支持该解密类型");
-	}
-	else if(id==ERR_NO_SUPPORT_CHARSET)
-	{
-		AfxMessageBox("不支持该字符集");
-	}
-	else if(id==ERR_LAUCH_TASK)
-	{
-		AfxMessageBox("启动失败");
-	}
 	else if(id==ERR_COMPRESS)
 	{
 		AfxMessageBox("压缩数据失败");
@@ -487,37 +471,9 @@ void CDlgUploadTask::ErrorMsg(int id)
 	{
 		AfxMessageBox("解压缩数据失败");
 	}
-	else if(id==ERR_INVALIDDATA)
-	{
-		AfxMessageBox("从socket端接收到不正确的格式数据");
-	}
 	else if(id==ERR_CONNECTIONLOST)
 	{
 		AfxMessageBox("与socket断开连接");
-	}
-	else if(id==ERR_INTERNALCLIENT)
-	{
-		AfxMessageBox("Client内部错误");
-	}
-	else if(id==ERR_TIMEOUT)
-	{
-		AfxMessageBox("超时");
-	}
-	else if(id==ERR_FILENOEXIST)
-	{
-		AfxMessageBox("文件打开失败");
-	}
-	else if(id==ERR_CHILDEXIT)
-	{
-		AfxMessageBox("子进程已经结束");
-	}
-	else if(id==ERR_NOENTRY)
-	{
-		AfxMessageBox("配置文件中没有该字段的相关信息");
-	}
-	else if(id==ERR_DOWNLOADFILE)
-	{
-		AfxMessageBox("下载文件错误");
 	}
 	else {
 		AfxMessageBox("未知错误");
