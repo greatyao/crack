@@ -8,6 +8,7 @@
 #include "algorithm_types.h"
 
 #include "PackManager.h"
+#include "err.h"
 #include "CLog.h"
 
 
@@ -334,6 +335,13 @@ void CDlgUploadTask::OnBnClickedOk()
 	newtask.type = m_dectype.GetCurSel();
 
 	newtask.special = 0;
+
+	p = (LPSTR)(LPCTSTR)m_endlength.GetBuffer();
+	newtask.endLength = strtoul(p,NULL,10);
+
+	p = (LPSTR)(LPCTSTR)m_startlength.GetBuffer(); 
+	newtask.startLength = strtoul(p,NULL,10);
+
 	//增加掩码等信息
 	if(loc_type==1)//字典
 		newtask.dict_idx = loc_dic_sel;
@@ -342,12 +350,6 @@ void CDlgUploadTask::OnBnClickedOk()
 		newtask.maskLength = loc_s_mask.GetLength();
 		m_EditType.GetWindowTextA(newtask.masks,18);		
 	}	
-
-	p = (LPSTR)(LPCTSTR)m_endlength.GetBuffer();
-	newtask.endLength = strtoul(p,NULL,10);
-
-	p = (LPSTR)(LPCTSTR)m_startlength.GetBuffer(); 
-	newtask.startLength = strtoul(p,NULL,10);
 
 	sprintf((char *)newtask.filename,"%s",m_filename);
 
@@ -358,13 +360,9 @@ void CDlgUploadTask::OnBnClickedOk()
 	int ret =0;
 	
 	ret = g_packmanager.DoTaskUploadPack(newtask,&ures);
-	if (ret < 0){
-
-		CString tmpStr("Upload Task Error");
-
-		AfxMessageBox(tmpStr);
+	if (ret < 0){		
+		ErrorMsg(ret);
 		return ;
-
 	}
 
 	file_upload_req uploadreq;
@@ -378,11 +376,8 @@ void CDlgUploadTask::OnBnClickedOk()
 	
 	//上传文件
 	ret = g_packmanager.GenNewFileUploadPack(uploadreq,&uploadres);
-	if (ret < 0){
-
-		CString tmpStr("Upload File Error");
-
-		AfxMessageBox(tmpStr);
+	if (ret < 0){	
+		ErrorMsg(ret);
 		return ;
 
 	}
@@ -390,25 +385,16 @@ void CDlgUploadTask::OnBnClickedOk()
 	//上传文件开始
 	file_upload_start_res uploadstartres={0};
 	ret = g_packmanager.GenNewFileUploadStartPack(&uploadstartres);
-	if (ret < 0){
-
-		CString tmpStr("Upload Start File Error");
-
-		AfxMessageBox(tmpStr);
+	if (ret < 0){	
+		ErrorMsg(ret);
 		return ;
-
 	}
 
 //上传文件
 	ret = g_packmanager.GenNewFileUploadingPack();
-	if (ret < 0){
-
-		CString tmpStr("Upload File ...... Error");
-
-		AfxMessageBox(tmpStr);
+	if (ret < 0){			
+		ErrorMsg(ret);
 		return ;
-
-
 	}
 
 //上传文件结束
@@ -465,6 +451,74 @@ void CDlgUploadTask::OnNMCustomdrawSliderLenMin(NMHDR *pNMHDR, LRESULT *pResult)
 		m_EditLenMax.SetWindowTextA(buffer);
 	}
 	*pResult = 0;
+}
+
+
+void CDlgUploadTask::ErrorMsg(int id)
+{
+	if(id==ERR_INVALID_PARAM)
+	{
+		AfxMessageBox("参数非法");
+	}
+	else if(id==ERR_NO_THISTASK)
+	{
+		AfxMessageBox("没有该任务");
+	}
+	else if(id==ERR_NO_SUPPORT_ALGO)
+	{
+		AfxMessageBox("不支持该解密类型");
+	}
+	else if(id==ERR_NO_SUPPORT_CHARSET)
+	{
+		AfxMessageBox("不支持该字符集");
+	}
+	else if(id==ERR_LAUCH_TASK)
+	{
+		AfxMessageBox("启动失败");
+	}
+	else if(id==ERR_COMPRESS)
+	{
+		AfxMessageBox("压缩数据失败");
+	}
+	else if(id==ERR_UNCOMPRESS)
+	{
+		AfxMessageBox("解压缩数据失败");
+	}
+	else if(id==ERR_INVALIDDATA)
+	{
+		AfxMessageBox("从socket端接收到不正确的格式数据");
+	}
+	else if(id==ERR_CONNECTIONLOST)
+	{
+		AfxMessageBox("与socket断开连接");
+	}
+	else if(id==ERR_INTERNALCLIENT)
+	{
+		AfxMessageBox("Client内部错误");
+	}
+	else if(id==ERR_TIMEOUT)
+	{
+		AfxMessageBox("超时");
+	}
+	else if(id==ERR_FILENOEXIST)
+	{
+		AfxMessageBox("文件打开失败");
+	}
+	else if(id==ERR_CHILDEXIT)
+	{
+		AfxMessageBox("子进程已经结束");
+	}
+	else if(id==ERR_NOENTRY)
+	{
+		AfxMessageBox("配置文件中没有该字段的相关信息");
+	}
+	else if(id==ERR_DOWNLOADFILE)
+	{
+		AfxMessageBox("下载文件错误");
+	}
+	else {
+		AfxMessageBox("未知错误");
+	}
 }
 
 //

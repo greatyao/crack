@@ -55,6 +55,7 @@ public:
 	CStatic m_StaticLenMax;
 	CComboBox m_CombBoxSel;
 
+	void ErrorMsg(int id);
 	//攻击相关控件处理
 	void ProcessControl(int id);
 	afx_msg void OnCbnSelchangeComboType();
