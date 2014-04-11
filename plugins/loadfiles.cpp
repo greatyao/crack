@@ -15,8 +15,8 @@ int load_hashes_file2(const char *filename, struct crack_task* task)
 	int n, special;
 	
 	n = load_hashes_file(filename, task->algo, hashes, MAX_HASHES_PER_FILE, &special);
-	if(special == 0 && n < 0) return n;
-	if(special == 1 && n == 1) return 0;
+	if(special == 0 && n <= 0) return n;
+	if(special == 1 && n < 0) return n;
 	
 	task->count = n;
 	task->hashes = (struct crack_hash*)malloc(sizeof(struct crack_hash)*n);
@@ -63,7 +63,7 @@ int load_hashes_file(const char *filename,  int algo, struct crack_hash* hashes,
 		else
 		{
 			CLog::Log(LOG_LEVEL_WARNING, "Cannot load file: %s!\n", filename);
-			return ret;
+			return ret < 0 ? ret : ERR_INVALID_PARAM;
 		}
     }
 
