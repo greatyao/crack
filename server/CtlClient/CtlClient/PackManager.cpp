@@ -173,6 +173,9 @@ int CPackManager::StopClient(void)
 
 int CPackManager::DoLoginPack(client_login_req req){
 	
+	if(m_connected != 2)
+		return ERR_CONNECTIONLOST;
+
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -201,6 +204,9 @@ int CPackManager::DoLoginPack(client_login_req req){
 }
 
 int CPackManager::DoKeeplivePack(){
+
+	if(m_connected != 2)
+		return ERR_CONNECTIONLOST;
 
 	int ret = 0;
 	unsigned char cmd;
@@ -234,6 +240,9 @@ int CPackManager::DoKeeplivePack(){
 }
 	
 int CPackManager::DoTaskUploadPack(crack_task req,task_upload_res *res){
+
+	if(m_connected != 2)
+		return ERR_CONNECTIONLOST;
 
 	int ret = 0;
 	unsigned char cmd;
@@ -276,6 +285,10 @@ CMD_TASK_START,		//开始任务
 */
 
 int CPackManager::GenTaskStartPack(task_start_req req,task_status_res *res){
+
+	if(m_connected != 2)
+		return ERR_CONNECTIONLOST;
+
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -313,6 +326,9 @@ int CPackManager::GenTaskStartPack(task_start_req req,task_status_res *res){
 
 int CPackManager::GenTaskStopPack(task_stop_req req,task_status_res *res){
 
+	if(m_connected != 2)
+		return ERR_CONNECTIONLOST;
+
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -347,6 +363,9 @@ int CPackManager::GenTaskStopPack(task_stop_req req,task_status_res *res){
 }
 int CPackManager::GenTaskPausePack(task_pause_req req,task_status_res *res){
 
+	if(m_connected != 2)
+		return ERR_CONNECTIONLOST;
+
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -380,6 +399,9 @@ int CPackManager::GenTaskPausePack(task_pause_req req,task_status_res *res){
 
 }
 int CPackManager::GenTaskDeletePackt(task_delete_req req,task_status_res *res){
+
+	if(m_connected != 2)
+		return ERR_CONNECTIONLOST;
 
 	int ret = 0;
 	unsigned char cmd;
@@ -416,6 +438,9 @@ int CPackManager::GenTaskDeletePackt(task_delete_req req,task_status_res *res){
 
 
 int CPackManager::GenTaskResultPack(task_result_req req,task_result_info **res){
+
+	if(m_connected != 2)
+		return ERR_CONNECTIONLOST;
 
 	int ret = 0;
 	unsigned char cmd;
@@ -471,6 +496,9 @@ CMD_REFRESH_STATUS,	//取得任务的进度和状态等信息
 	CMD_GET_CLIENT_LIST,//返回在线计算机信息的列表
 	*/
 int CPackManager::GenTaskStatusPack(task_status_info **res){
+
+	if(m_connected != 2)
+		return ERR_CONNECTIONLOST;
 
 	int ret = 0;
 	unsigned char cmd;
@@ -578,6 +606,9 @@ int CPackManager::GenClientStatusPack(compute_node_info **res){
 //处理文件上传
 int CPackManager::GenNewFileUploadPack(file_upload_req req,file_upload_res *res){
 		
+	if(m_connected != 2)
+		return ERR_CONNECTIONLOST;
+
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -617,6 +648,9 @@ int CPackManager::GenNewFileUploadPack(file_upload_req req,file_upload_res *res)
 	//处理文件上传开始
 int CPackManager::GenNewFileUploadStartPack(file_upload_start_res *res){
 	
+	if(m_connected != 2)
+		return ERR_CONNECTIONLOST;
+
 	int ret = 0;
 	unsigned char cmd;
 	short status;
@@ -664,6 +698,9 @@ int CPackManager::GenNewFileUploadStartPack(file_upload_start_res *res){
 	//文件传输
 int CPackManager::GenNewFileUploadingPack(){
 
+	if(m_connected != 2)
+		return ERR_CONNECTIONLOST;
+
 	int ret = 0;
 
 	unsigned char cmd;
@@ -708,6 +745,9 @@ int CPackManager::GenNewFileUploadingPack(){
 
 	//处理文件上传结束
 int CPackManager::GenNewFileUploadEndPack(file_upload_end_res *res){
+
+	if(m_connected != 2)
+		return ERR_CONNECTIONLOST;
 
 	int ret = 0;
 	unsigned char cmd;
