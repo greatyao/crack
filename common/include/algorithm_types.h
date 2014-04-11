@@ -18,6 +18,12 @@ enum crack_charset
 	charset_custom,		//自己定义
 };
 
+enum crack_dict
+{
+	dict_english,			//字典1
+	dict_birthday,			//字典2	
+};
+
 static const char* crack_charsets[] = 
 {
 	"0123456789",
@@ -111,15 +117,28 @@ struct crack_block
 	unsigned char algo;		//解密算法
 	unsigned char charset;	//解密字符集
 	unsigned char type;		//解密类型
-	unsigned char dict_idx:6;//字典索引
-	unsigned char special:2;//是否是文件解密（pdf+office+rar+zip）
+	unsigned char special;//是否是文件解密（pdf+office+rar+zip）
 	char guid[40];			//服务端的workitem的GUID
 	char john[sizeof(struct crack_hash)];		//原始Hash格式：hash值+盐
-	unsigned short start;	//开始长度
-	unsigned short end;		//结束长度
-	//以下两个是索引
-	unsigned short start2;	//55555-99999:start2=5,end2=9	000-55555:start2=0,end2=5
-	unsigned short end2;
+	union{
+		struct{
+			unsigned short start;	//开始长度
+			unsigned short end;		//结束长度
+			//以下两个是索引
+			unsigned short start2;	//55555-99999:start2=5,end2=9	000-55555:start2=0,end2=5
+			unsigned short end2;
+		};
+		
+		struct{
+			unsigned char dict_idx;//字典索引
+		};
+		
+		struct{
+			unsigned short maskLength;	//长度
+			char masks[18];				//掩码值(字符串138??????表示前3位为138，后6位为指定的charset值)
+		};
+	};
+		
 #if defined(WIN32) || defined(WIN64)	
 	struct crack_task* task;	//指向所属的task
 #else
@@ -134,10 +153,20 @@ struct crack_task
 	unsigned char algo;		//解密算法
 	unsigned char charset;	//解密字符集
 	unsigned char type;		//解密类型
-	unsigned char dict_idx:6;//字典索引
-	unsigned char special:2;//是否是文件解密（pdf+office+rar+zip）
-	unsigned char startLength;//起始长度
-	unsigned char endLength;	//终结长度
+	unsigned char special;//是否是文件解密（pdf+office+rar+zip）
+	union{
+		struct{
+			unsigned char startLength;	//起始长度
+			unsigned char endLength;	//终结长度
+		};//暴力破解
+		struct{
+			unsigned char dict_idx;		//字典索引
+		};//字典破解
+		struct{
+			unsigned short maskLength;	//长度
+			char masks[18];				//掩码值(字符串138??????表示前3位为138，后6位为指定的charset值)
+		};//掩码破解
+	};
 	unsigned char filename[256];	//用户传过来的文件名
 	char guid[40];			//用户端的任务的GUID
 	int count;				//需要解密的Hash个数（如果是文件=1）
