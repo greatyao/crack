@@ -58,31 +58,16 @@ int CCrackTask::SplitTaskFile(char *pguid){
 
 	count = 0;
 
-	//calculate the crack_hash 
-/*	mcount = HASH_NUM_IN_TASK;
-	p = Alloc(CH_LEN * HASH_NUM_IN_TASK);
-	
-
-	if (!p) {
-		CLog::Log(LOG_LEVEL_WARNING,"Init Crack Task Error\n");
-		return -1;
-	}
-*/
 	//调用文件分割函数
 	memset(filename,0,sizeof(filename));
 	sprintf((char *)filename,".\\tempdir\\%s",guid);
 	
-	//ret = load_hashes_file((char *)filename,algo,(struct crack_hash*)p,mcount);
 	ret = load_hashes_file2((char *)filename,this);
 	if (ret <= 0 ){
 		CLog::Log(LOG_LEVEL_WARNING,"load the hash Info Error\n");
 	//	Free(p);
 		return LOAD_FILE_ERR;
 	}
-	
-	
-
-//	pch =(struct crack_hash *)p;
 	
 	pCCH = new CCrackHash[count];
 	for (i = 0 ;i < ret ;i ++ ){
@@ -93,7 +78,6 @@ int CCrackTask::SplitTaskFile(char *pguid){
 
 		CLog::Log(LOG_LEVEL_WARNING,"Crack Hash is %s,%s,%s\n",hashes[i].hash,hashes[i].salt,hashes[i].salt2);
 	}
-	
 
 	//出始化相关工作项
 	pCrackBlock = split.split_easy(this,splitnum);
@@ -115,8 +99,6 @@ int CCrackTask::SplitTaskFile(char *pguid){
 		CLog::Log(LOG_LEVEL_WARNING,"Crack Block is %s,%s,%d,%d,%d,%d\n",pCb[i].john,pCb[i].guid,pCb[i].start,pCb[i].end,pCb[i].start2,pCb[i].end2);
 		
 	}
-	
-	
 
 	//释放资源
 	release_hashes_from_load(this);
@@ -128,7 +110,6 @@ int CCrackTask::SplitTaskFile(char *pguid){
 	count = ret;
 	ret = 0;
 	return ret;
-
 }
 
 
@@ -137,64 +118,29 @@ CCrackBlock *CCrackTask::GetAReadyWorkItem(){
 	CCrackBlock *pCB = NULL;
 	CB_MAP::iterator iter_block;
 	CB_MAP::iterator iter_block_end = m_crackblock_map.end();
+	CB_MAP::iterator iter_block_begin = m_crackblock_map.begin();
 
-	iter_block = ++cur_crack_block;
+	iter_block = cur_crack_block;
 	
-	for (;iter_block != iter_block_end;iter_block ++){
-
+	do{
 		if (iter_block->second->m_status == WI_STATUS_READY){
 
 			pCB = iter_block->second;
 			pCB->m_status = WI_STATUS_RUNNING;
 			m_runing_num ++;
-			cur_crack_block = iter_block;
 			break;
 
 		}
 
-	}
-	
-	if (!pCB){
+		iter_block++;
+		if(iter_block == iter_block_end)
+			iter_block = iter_block_begin;
 
-		iter_block = m_crackblock_map.begin();
-		for(;iter_block!= cur_crack_block;iter_block++){
+	}while(iter_block != cur_crack_block);
 
-			if (iter_block->second->m_status == WI_STATUS_READY){
-				
-				pCB = iter_block->second;
-				pCB->m_status = WI_STATUS_RUNNING;
-				m_runing_num ++;
-				cur_crack_block = iter_block;
-				break;
-			}
-
-		}
-
-
-	}
-
-
-	/*for (iter_block = m_crackblock_map.begin();iter_block != m_crackblock_map.end();iter_block++){
-
-		pCB = iter_block->second;
-		if (pCB->m_status == WI_STATUS_READY){
-			
-		
-			break;
-		}
-
-	}
-	
-	if (iter_block != m_crackblock_map.end()){
-		
-		pCB->m_status = WI_STATUS_RUNNING;
-		m_runing_num ++;
-			
-	}else{
-		
-		pCB= NULL;
-	}
-	*/
+	cur_crack_block = ++iter_block;
+	if(cur_crack_block == iter_block_end)
+		cur_crack_block = iter_block_begin;
 	
 	return pCB;
 }
@@ -337,7 +283,6 @@ int CCrackTask::updateStatusToRunning(){
 
 			pCCH->m_status = HASH_STATUS_RUNNING;
 		}
-
 	}
 
 	//设置子任务为准备运行状态
@@ -345,19 +290,20 @@ int CCrackTask::updateStatusToRunning(){
 	
 		pCb = iter_block->second;
 		if (pCb->m_status == WI_STATUS_WAITING){
-	
 
 			pCb->m_status = WI_STATUS_READY;
 			if (tag == 0 ){
 				this->cur_crack_block = iter_block;
 				tag = 1;
+				break;
 			}
 			
 		}
 
 	}
 
-	
+	if (tag == 0 )
+		cur_crack_block = m_crackblock_map.begin();
 
 	return ret;
 }
@@ -407,8 +353,6 @@ int CCrackTask::updateStatusToStop(){
 
 	resetProgress();
 	return ret;
-
-
 }
 
 //删除任务
@@ -611,7 +555,6 @@ int CCrackTask::updateStatusToFinish(struct crack_result *result,int hash_index)
 	}
 
 	return ret;
-
 }
 
 //设置任务执行失败
@@ -632,7 +575,6 @@ int CCrackTask::updateStatusToFail(){
 
 	m_status = CT_STATUS_FAILURE;
 	return ret;
-
 }
 
 
