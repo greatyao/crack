@@ -56,6 +56,7 @@ Client::Client()
 	connected = false;
 	stop = false;
 	tid = 0;
+	fetch = true;
 	pthread_mutex_init(&mutex, NULL);
 }
 
@@ -80,7 +81,7 @@ void* Client::MonitorThread(void* p)
 {
 	Client* client = (Client*)p;
 	int ret;
-	char buf[1024];
+	char buf[1024*4];
 		
 	sleep(5);
 
@@ -97,6 +98,8 @@ void* Client::MonitorThread(void* p)
 		}
 		CLog::Log(LOG_LEVEL_NOMAL, "------------------------------\n");
 			
+		time_t t0 = time(NULL);
+		client->fetch = true;
 		while(1)
 		{
 			if(client->stop) return NULL;
@@ -112,7 +115,22 @@ void* Client::MonitorThread(void* p)
 			//后续考虑心跳包里面是否有结束某个workitem的解密工作
 			short status;
 			int m = client->Read(&cmd, &status, buf, sizeof(buf));
-			CLog::Log(LOG_LEVEL_NOMAL, "Client: Read hearbreak %d %d\n", m, cmd);
+			
+			if(cmd == COMMAND_COMP_HEARTBEAT)
+			{
+				keeplive_compclient* ka = (keeplive_compclient*)buf;
+				CLog::Log(LOG_LEVEL_NOMAL, "Client: Special Hearbreak cmd %d [%d,%d]\n", cmd, ka->tasks, ka->blocks);
+				client->fetch = (ka->tasks > 0);
+			}
+			else
+				CLog::Log(LOG_LEVEL_NOMAL, "Client: Special Hearbreak cmd %d %d\n", cmd, m);
+			
+			time_t t1 = time(NULL);
+			if(t1 - t0 >= 600)
+			{	
+				t0 = t1;
+				client->fetch = true;
+			}
 		}
 	}
 	
@@ -213,6 +231,14 @@ int Client::Connect(const char* ip, unsigned short port)
 	CLog::Log(LOG_LEVEL_NOMAL, "Client: Read login %d %d\n", m, cmd);
 			
 	return 0;
+}
+
+bool Client::WillFetchItemFromServer()const
+{
+	if(connected != 2)
+		return false;
+		
+	return fetch;
 }
 
 static int read_timeout(int fd, unsigned int wait_seconds)
@@ -334,6 +360,7 @@ int Client::Read(unsigned char *cmd, short* status, void* data, int size, int* s
 	int totalN = hdr.compressLen;
 	int origN = hdr.dataLen;
 	if(seq)	*seq = hdr.seq;
+	printf("origN %d compressN %d seq %d\n", totalN, origN, hdr.seq);
 	
 	if(origN < -1 || size < origN)
 		return ERR_INVALIDDATA;

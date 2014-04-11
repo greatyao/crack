@@ -40,6 +40,9 @@ public:
 	
 	static void* MonitorThread(void* p);
 	
+	//是否从服务器上取workitem（根据心跳包里面）
+	bool WillFetchItemFromServer()const;
+	
 private:
 	Client();
 	~Client();
@@ -56,6 +59,7 @@ private:
 	bool stop;
 	pthread_t tid;
 	pthread_mutex_t mutex;
+	bool fetch;
 };
 
 #endif

@@ -59,6 +59,10 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 			//这里需要从网络获取workitem数据，只有有数据才会进行下一步
 			if(CrackManager::Get().CouldCrack() == false)
 				goto next;
+				
+			if(Client::Get().WillFetchItemFromServer() == false)
+				goto next;
+			
 			ret = Client::Get().GetWorkItemFromServer(&item);
 			if(ret != sizeof(item))	goto next;
 			

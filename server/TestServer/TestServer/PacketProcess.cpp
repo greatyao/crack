@@ -122,7 +122,7 @@ int client_keeplive(void *pclient, unsigned char * pdata, UINT len){
 	if (m < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Keeplive :Send Response Error %d \n",ip,port,m);
 	}else	{
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client KeepLive %d OK\n",ip, port, cmd);
+		//CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client KeepLive %d OK\n",ip, port, cmd);
 	}
 
 	return nRet;
@@ -437,7 +437,7 @@ int cc_refresh_status(void *pclient, unsigned char * pdata, UINT len){
 		CLog::Log(LOG_LEVEL_WARNING,"Broker Get Task Status %d Result ,ErrorCode : %d\n",resNum,nRet);
 		resLen = 0;
 	}else{
-		CLog::Log(LOG_LEVEL_WARNING,"Broker Get Task Status %d Result OK\n",resNum);
+		//CLog::Log(LOG_LEVEL_WARNING,"Broker Get Task Status %d Result OK\n",resNum);
 		resLen = sizeof(struct task_status_info) * resNum;
 	}
 	
