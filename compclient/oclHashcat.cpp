@@ -19,7 +19,7 @@ struct maphashtarget{
 
 struct hash_parameter{
 	crack_algorithm algo;
-	const char* params; 
+	const char* params[max_value]; 
 };
 
 static const char* charsets[] = {
@@ -36,21 +36,21 @@ static const char* charsets[] = {
 
 static struct hash_parameter all_support_hashes[] = 
 {
-	{algo_md4,			"-m 900 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
-	{algo_md5,			"-m 0 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+/*	{algo_md4,			{"-m 900 -a 3 --increment-min=%d --increment-max=%d %s %s %s"}},*/
+	{algo_md5,			{"-m 0 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s"}},
 //	{algo_md5md5,		"-p md5md5 -b%d:%d:%s %s %s"},
-	{algo_md5unix,		"-m 500 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+	{algo_md5unix,		{"-m 500 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s"}},
 //	{algo_mediawiki,	"-p mediawiki -b%d:%d:%s %s %s"},
-	{algo_oscommerce,	"-m 21 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+	{algo_oscommerce,	{"-m 21 -a 3 --increment-min=%d --increment-max=%d %s %s %s",  "-m 0 -a 3 %s %s %s"}},
 //	{algo_ipb2,			"-p ipb2 -b%d:%d:%s %s %s"},
-	{algo_joomla,		"-m 11 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+	{algo_joomla,		{"-m 11 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s"}},
 //	{algo_vbulletin,    "-p vbulletin -b%d:%d:%s %s %s"},
-	{algo_desunix,      "-m 1500 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
-	{algo_sha1,         "-m 100 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},//finished
+	{algo_desunix,      {"-m 1500 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s"}},
+	{algo_sha1,         {"-m 100 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s"}},//finished
 //	{algo_sha1sha1,     "-p sha1sha1 -b%d:%d:%s %s %s"},
-	{algo_sha256,       "-m 1400 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+	{algo_sha256,       {"-m 1400 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s"}},
 //	{algo_sha256unix,   "-p sha256unix -b%d:%d:%s %s %s"},
-	{algo_sha512,       "-m 1700 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+	{algo_sha512,       {"-m 1700 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s"}},
 //	{algo_sha512unix,   "-p sha512unix -b%d:%d:%s %s %s"},
 //	{algo_msoffice_old, "-p msoffice-old -b%d:%d:%s %s %s"},
 //	{algo_msoffice,     "-p msoffice -b%d:%d:%s %s %s"},
@@ -61,26 +61,26 @@ static struct hash_parameter all_support_hashes[] =
 //	{algo_bfunix,       "-p bfunix -b%d:%d:%s %s %s"},
 //	{algo_dmg,          "-p dmg -b%d:%d:%s %s %s"},
 //	{algo_drupal7,      "-p drupa17 -b%d:%d:%s %s %s"},
-	{algo_lm,           "-m 3000 -a 3 --increment-min=%d --incremnet-max=%d %s %s %s"},
+	{algo_lm,           {"-m 3000 -a 3 --increment-min=%d --incremnet-max=%d %s %s %s", "-m 0 -a 3 %s %s %s"}},
 //	{algo_luks,         "-p luks -b%d:%d:%s %s %s"},
-	{algo_mscash,       "-m 1100 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
-	{algo_mscash2,      "-m 2100 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
-	{algo_mssql_2000,   "-m 131 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
-	{algo_mssql_2005,   "-m 132 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
-	{algo_mssql_2012,   "-m 1731 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+	{algo_mscash,       {"-m 1100 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s"}},
+	{algo_mscash2,      {"-m 2100 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s"}},
+	{algo_mssql_2000,   {"-m 131 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s"}},
+	{algo_mssql_2005,   {"-m 132 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s"}},
+	{algo_mssql_2012,   {"-m 1731 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s"}},
 //	{algo_mysql5,       "-p mssql5 -b%d:%d:%s %s %s"},
-	{algo_nsldap,       "-m 101 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
-	{algo_nsldaps,      "-m 111 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
-	{algo_ntlm,         "-m 1000 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+	{algo_nsldap,       {"-m 101 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s"}},
+	{algo_nsldaps,      {"-m 111 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s"}},
+	{algo_ntlm,         {"-m 1000 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s"}},
 //	{algo_o5logon,      "-p o5logon -b%d:%d:%s %s %s"},
 //	{algo_oracle_old,   "-m 3100 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},//something wrong with oclhashcat
 //	{algo_oracle11g,    "-m 112 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},//wrong with hash-length inputed
 //	{algo_osx_old,      "-p osx-old -b%d:%d:%s %s %s"},
-	{algo_osxlion,      "-m 1722 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
-	{algo_phpbb3,       "-m 400 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+	{algo_osxlion,      {"-m 1722 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s"}},
+	{algo_phpbb3,       {"-m 400 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s"}},
 //	{algo_pixmd5,       "-p pixmd5 -b%d:%d:%s %s %s"},
 //	{algo_privkey,      "-p privkey -b%d:%d:%s %s %s"},
-	{algo_ripemd160,    "-m 6000 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
+	{algo_ripemd160,    {"-m 6000 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s"}},
 //	{algo_sapg,         "-p sapg -b%d:%d:%s %s %s"},
 //	{algo_sl3,          "-p sl3 -b%d:%d:%s %s %s"},
 //	{algo_smf,          "-p smf -b%d:%d:%s %s %s"},
@@ -109,68 +109,102 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 	unsigned char charset = item->charset;
 	unsigned short start = item->start;
 	unsigned short end = item->end;
+	unsigned char type = item->type;
 	const char* hash = item->john;
 	const char* fmt;
-	int i;
+	unsigned short platformId = deviceIds[0] >> 8;
+        unsigned short ids[16] = {0};
+	char cmd[4096];
+        char others[128];
+	int i,j;
+	struct maphashtarget a;
 	
 	if(!gpu)
 		return ERR_INVALID_PARAM;
-
-	for(i = 0; i < SUPPORT_HASH_NUM; i++)
-	{
-		if(algo == all_support_hashes[i].algo)
+	switch(type){
+	case bruteforce:
+		for(i = 0; i < SUPPORT_HASH_NUM; i++)
 		{
-			fmt = all_support_hashes[i].params;
-			break;
+			if(algo == all_support_hashes[i].algo && type < max_value && type>= 0)
+			{
+				fmt = all_support_hashes[i].params[type];
+				break;
+			}
 		}
-	}
-	if(i == SUPPORT_HASH_NUM)
-	{
-		//Î´ÕÒµ½Ö¸¶¨½âÃÜÀàÐÍ
-		return ERR_NO_SUPPORT_ALGO;
-	}
-
-	if(charset < charset_num || charset > charset_ascii)
-	{
-		//²»Ö§³Ö×Ô¶¨ÒåÀàÐÍ
-		return ERR_NO_SUPPORT_CHARSET;
-	}
-	
-	if(ndevices < 1 || ndevices > 16)
-	{
-		return ERR_INVALID_PARAM;
-	}
-	
-	unsigned short platformId = deviceIds[0] >> 8;
-	unsigned short ids[16] = {0};
-	for(i = 0; i < ndevices; i++)
-		ids[i] = (deviceIds[i] & 0xff) + 1;
-
-	char cmd[4096];
-	char others[128]; 
-
-	sprintf(others, "-d ", platformId);
-	for(i = 0; i < ndevices-1; i++)
-		sprintf(others, "%s%d,", others, ids[i]);
-	sprintf(others, "%s%d", others, ids[i]);
-
-	sprintf(cmd, fmt, start, end, charsets[charset], others, item->john);
-	struct maphashtarget a;
-	a.algo = algo;
-	memcpy(a.hash,item->john,sizeof(item->john));
-	if(algo==algo_mssql_2005||algo==algo_mssql_2012)
+		if(i == SUPPORT_HASH_NUM)
 		{
-		int i=0;
-		char c;
-		while(a.hash[i])
-		{
-			c=a.hash[i];
-			a.hash[i]=tolower(c);
-			i++;
+			//¿¿¿¿¿¿¿¿¿
+			return ERR_NO_SUPPORT_ALGO;
 		}
-	}
-	this->MapTargetHash.insert(pair<string,maphashtarget>(item->guid,a));
+
+		if(charset < charset_num || charset > charset_ascii)
+		{
+			//¿¿¿¿¿¿¿¿
+			return ERR_NO_SUPPORT_CHARSET;
+		}
 	
+		if(ndevices < 1 || ndevices > 16)
+		{
+			return ERR_INVALID_PARAM;
+		}
+	
+		for(i = 0; i < ndevices; i++)
+			ids[i] = (deviceIds[i] & 0xff) + 1;
+
+		sprintf(others, "-d ", platformId);
+		for(i = 0; i < ndevices-1; i++)
+			sprintf(others, "%s%d,", others, ids[i]);
+		sprintf(others, "%s%d", others, ids[i]);
+
+		sprintf(cmd, fmt, start, end, charsets[charset], others, item->john);
+		//struct maphashtarget a;
+		a.algo = algo;
+		memcpy(a.hash,item->john,sizeof(item->john));
+		if(algo==algo_mssql_2005||algo==algo_mssql_2012)
+		{
+			int i=0;
+			char c;
+			while(a.hash[i])
+			{
+				c=a.hash[i];
+				a.hash[i]=tolower(c);
+				i++;
+			}
+		}
+		this->MapTargetHash.insert(pair<string,maphashtarget>(item->guid,a));
+		break;
+	case dict:
+		for(i = 0; i < SUPPORT_HASH_NUM; i++)
+		{
+			if(algo == all_support_hashes[i].algo && type < max_value && type>= 0)
+			{
+				fmt = all_support_hashes[i].params[type];
+				break;
+			}
+		}
+		if(i == SUPPORT_HASH_NUM)
+		{	
+			//¿¿¿¿¿¿¿¿¿
+			return ERR_NO_SUPPORT_ALGO;
+		}
+		if(ndevices < 1 || ndevices > 16)
+		{
+			return ERR_INVALID_PARAM;
+		}
+		for(j = 0; j < ndevices; j++)
+			ids[j] = deviceIds[j] & 0xff;		
+		sprintf(others, "-d ", platformId);
+                for(i = 0; i < ndevices-1; i++)
+                        sprintf(others, "%s%d,", others, ids[i]+1);
+                sprintf(others, "%s%d", others, ids[i]+1);
+		sprintf(cmd,fmt,others,item->john,"~/dic.1");
+		//sprintf(cmd, fmt, start, end, charsets[charset], others, item->john);
+		break;
+	default:
+                CLog::Log(LOG_LEVEL_NOMAL, "#######   crack type: %d  ###########\n",type);
+                break;
+	}
+
 	int pid = this->Exec(item->guid, path, cmd, MonitorThread, true, true, false);
 	
 	if(pid > 0){
@@ -194,6 +228,7 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short devic
 	const char* hash = item->john;
 	const char* fmt;
 	int i;
+	struct maphashtarget a;
 	char cmd[4096];
 	char others[128];
 
@@ -205,26 +240,26 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short devic
 	case bruteforce:
 		for(i = 0; i < SUPPORT_HASH_NUM; i++)
 		{	
-			if(algo == all_support_hashes[i].algo)
+			if(algo == all_support_hashes[i].algo && type < max_value && type >= 0)
 			{
-				fmt = all_support_hashes[i].params;
+				fmt = all_support_hashes[i].params[type];
 				break;
 			}
 		}	
-        if(i == SUPPORT_HASH_NUM)
-        {
+        	if(i == SUPPORT_HASH_NUM)
+        	{	
 			//¿¿¿¿¿¿¿¿¿
-	        return ERR_NO_SUPPORT_ALGO;
-        }
+	        	return ERR_NO_SUPPORT_ALGO;
+        	}
 		if(charset < charset_num || charset > charset_ascii)
-        {
+        	{
 			//¿¿¿¿¿¿¿¿
 			return ERR_NO_SUPPORT_CHARSET;
-        }
+        	}
 	 	
-        sprintf(others, "-d %d", deviceId+1);
+	        sprintf(others, "-d %d", deviceId+1);
 		sprintf(cmd, fmt, start, end, charsets[charset], others, item->john);
-		struct maphashtarget a;
+		//struct maphashtarget a;
 		a.algo = algo;
 		memcpy(a.hash,item->john,sizeof(item->john));
 		if(algo==algo_mssql_2005||algo==algo_mssql_2012)
@@ -241,6 +276,23 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short devic
 		this->MapTargetHash.insert(pair<string,maphashtarget>(item->guid,a));
 		break;
 	case dict:
+		sprintf(others, "-d %d", deviceId+1);
+		sprintf(cmd,fmt,"",others,item->john);
+		//struct maphashtarget a;
+                a.algo = algo;
+                memcpy(a.hash,item->john,sizeof(item->john));
+                if(algo==algo_mssql_2005||algo==algo_mssql_2012)
+                {
+                        int i=0;
+                        char c;
+                        while(a.hash[i])
+                        {
+                                c=a.hash[i];
+                                a.hash[i]=tolower(c);
+                                i++;
+                        }
+                }
+                this->MapTargetHash.insert(pair<string,maphashtarget>(item->guid,a));
 		break;
 	case rule:
 		break;
@@ -313,6 +365,9 @@ void *oclHashcat::MonitorThread(void *p)
 		buffer[n] = 0;
 		//CLog::Log(LOG_LEVEL_NOMAL,"read[%d]\n", n);
 		s = buffer;
+		
+		if(n>0)
+			CLog::Log(LOG_LEVEL_NOMAL,"%s\n", buffer);
 		
 		if(algo==algo_mssql_2000)
 			idx = s.rfind(s_hash_with_comma.substr(0,14));//mssql_2000:
