@@ -101,8 +101,6 @@ int client_keeplive(void *pclient, unsigned char * pdata, UINT len){
 	//struct client_keeplive_req keeplive;
 	char ip[20];
 	int port = 0;
-
-	char buf[40];
 	time_t tmpTime = 0;
 
 	getClientIPInfo(pclient,ip,&port);
@@ -133,7 +131,6 @@ int cc_task_upload(void *pclient, unsigned char * pdata, UINT len){
 	task_upload_res task_upload;
 	char ip[20];
 	int port = 0;
-	char buf[40];
 	time_t tmpTime = 0;
 
 	getClientIPInfo(pclient,ip,&port);
@@ -499,8 +496,6 @@ int cc_task_file_download(void *pclient, unsigned char * pdata,UINT len){
 
 	char ip[20];
 	int port = 0;
-
-	char buf[40];
 	time_t tmpTime = 0;
 
 	getClientIPInfo(pclient,ip,&port);
@@ -562,8 +557,6 @@ int cc_task_file_download_start(void *pclient,unsigned char *pdata,UINT len){
 
 	char ip[20];
 	int port = 0;
-
-	char buf[40];
 	time_t tmpTime = 0;
 
 	getClientIPInfo(pclient,ip,&port);
@@ -633,8 +626,6 @@ int cc_task_file_download_end(void *pclient,unsigned char *pdata,UINT len){
 	FILE *pfile = NULL;
 	char ip[20];
 	int port = 0;
-
-	char buf[40];
 	time_t tmpTime = 0;
 
 	getClientIPInfo(pclient,ip,&port);
@@ -677,7 +668,6 @@ int cc_task_upload_file(void *pclient,unsigned char *pdata,UINT len){
 	char ip[20];
 	int port = 0;
 	char filename[128];
-	char buf[40];
 	time_t tmpTime = 0;
 
 	getClientIPInfo(pclient,ip,&port);
@@ -752,7 +742,6 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 	
 	char ip[20];
 	int port = 0;
-	char buf[40];
 	time_t tmpTime = 0;
 	getClientIPInfo(pclient,ip,&port);
 
@@ -822,11 +811,8 @@ int cc_task_upload_file_end(void *pclient,unsigned char *pdata,UINT len){
 	file_upload_end_res uploadres;
 	control_header reshdr = INITIALIZE_EMPTY_HEADER(CMD_END_UPLOAD);
 	unsigned int filelen =  0;
-
 	char ip[20];
 	int port = 0;
-
-	char buf[40];
 	time_t tmpTime = 0;
 
 	getClientIPInfo(pclient,ip,&port);
