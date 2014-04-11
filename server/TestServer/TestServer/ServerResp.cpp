@@ -1,12 +1,12 @@
-
-
-
 #include "stdafx.h"
 #include "macros.h"
 #include "err.h"
 #include "ServerResp.h"
 #include "CLog.h"
 #include "zlib.h"
+#include "algorithm_types.h"
+#include "Common.h"
+#include "PacketProcess.h"
 
 static unsigned char pack_flag[5] = {'G', '&', 'C', 'P', 'U'};
 
@@ -129,88 +129,45 @@ int Write(int sck, unsigned char cmd, short status, const void* data, int size,b
 }
 
 
-//发送数据到对端接口
-int SendDataToPeer1(void *pclient, unsigned char * pdata, unsigned int len){
+void DispatchThread(void* p){
+	SOCKET cliSocket = *(SOCKET *)p;
+	
+	INT nRet = 0;
+	UINT len = 0;
 
+	BYTE recvBuf[MAX_BUF_LEN*4];
+	INT cmdheader = sizeof(control_header);
+	unsigned char cmd;
+	short status;
+	
+	struct sockaddr_in addr;
+	int len2 = sizeof(addr);
+	getpeername(cliSocket, (sockaddr *)&addr, &len2);
+	char ip[16];
+	memset(ip,0,16);
+	strcpy(ip, inet_ntoa(addr.sin_addr));
+	int port = ntohs(addr.sin_port);
 
-	int nRet = 0;
-	SOCKET peerSocket = *(SOCKET *)pclient;
-
-	nRet = send(peerSocket,(char *)pdata,len,0);
-	if (nRet == SOCKET_ERROR){
-
-		CLog::Log(LOG_LEVEL_WARNING,"Send Data Error.\n");
-		nRet = -1;
-	}else{
-
-		CLog::Log(LOG_LEVEL_WARNING,"Send Data OK.\n");
-	}
-	return nRet;
-}
-
-
-
-int SendDataToPeer(void *pclient, unsigned char * pdata, unsigned int len){
-
-	int nRet = 0;
-	int sendLen = 0;
-	SOCKET peerSocket = *(SOCKET *)pclient;
-
-
-	while (sendLen < len ){
-		nRet = send(peerSocket,(char *)pdata+sendLen,len-sendLen,0);
-		if (nRet == SOCKET_ERROR){
-
-			CLog::Log(LOG_LEVEL_WARNING,"Send Data Error.\n");
-			nRet = -1;
-			break;
-		}else{
-
-			if (nRet > 0){
-				
-				sendLen += nRet;
-				
-			}
-			CLog::Log(LOG_LEVEL_WARNING,"Send Data %d OK.\n",sendLen);
-		}
+	while(1)
+	{
+		int m = Read(cliSocket, &cmd, &status, recvBuf, sizeof(recvBuf));
+	
+		if(m == ERR_CONNECTIONLOST) {
+			cmd = CMD_CLIENT_QUIT;
+			memset(recvBuf,0,36000);
+			memcpy(recvBuf,ip,strlen(ip));
+			m = port;
+			doRecvData(p,recvBuf,m,cmd);
+			break;//推出了
+		}else if(m == ERR_INVALIDDATA || m == ERR_UNCOMPRESS)
+			continue;
 		
+		//CLog::Log(LOG_LEVEL_WARNING, "%s:%d recv cmd %d status %d body %d\n",ip, port, cmd, status, m);
 
+		doRecvData(p, recvBuf, m, cmd);
 	}
-	return nRet;
+
+	closesocket(cliSocket);
+	delete p;
+	CLog::Log(LOG_LEVEL_WARNING, "Client [%s:%d] Quit!\n",ip,port);
 }
-
-
-//接收数据
-int RecvDataFromPeer(void *pclient, unsigned char * pdata, unsigned int len){
-
-
-	int nRet = 0;
-	int recvLen = 0;
-	SOCKET peerSocket = *(SOCKET *)pclient;
-
-
-	while (recvLen < len ){
-
-		nRet = recv(peerSocket,(char *)pdata+recvLen,len-recvLen,0);
-		if(nRet == 0 || nRet == SOCKET_ERROR){
-
-			CLog::Log(LOG_LEVEL_WARNING,"Client %d Quit.\n",peerSocket);
-			return -1;
-			
-		}else{
-
-			if (nRet > 0){
-
-				recvLen +=nRet;
-			}
-			
-			CLog::Log(LOG_LEVEL_WARNING,"Recv Data Len :%d.\n",recvLen);
-
-		}
-
-	}
-	return recvLen;
-}
-
-
-

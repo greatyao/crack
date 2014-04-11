@@ -234,10 +234,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\server_function.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\ServerResp.cpp"
 				>
 			</File>
@@ -321,10 +317,6 @@
 			</File>
 			<File
 				RelativePath=".\Resource.h"
-				>
-			</File>
-			<File
-				RelativePath=".\server_function.h"
 				>
 			</File>
 			<File

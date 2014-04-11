@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 #include "SockServer.h"
-#include "server_function.h"
+#include "ServerResp.h"
 #include "CLog.h"
 
 
@@ -14,7 +14,6 @@ CSockServer::~CSockServer(void)
 
 UINT CSockServer::Initialize(UINT port,UINT maxConnNum)
 {
-	
 	m_nPort = port;
 	m_nMaxConnNum = maxConnNum;
 	m_nMaxThread = maxConnNum;
@@ -38,7 +37,6 @@ INT CSockServer::StartServer(void)
 	if (0 != nRet ){
 
 		CLog::Log(LOG_LEVEL_WARNING,"Init Server Socket Lib Error.\n");
-		//printf("init windows sock error!\n");
 		return -1;
 	}
 	
@@ -48,11 +46,8 @@ INT CSockServer::StartServer(void)
 	if (m_ListenSock == INVALID_SOCKET){
 		
 		CLog::Log(LOG_LEVEL_WARNING,"Create Server Socket Error.\n");
-		//printf("create socket error!\n");
 		return -2;
-
 	}
-
 
 	serverAddr.sin_port = htons(m_nPort);
 	serverAddr.sin_family = AF_INET;
@@ -60,23 +55,17 @@ INT CSockServer::StartServer(void)
 
 	nRet = bind(m_ListenSock,(SOCKADDR *)&serverAddr,sizeof(SOCKADDR));
 	if (nRet != 0){
-
 		CLog::Log(LOG_LEVEL_WARNING,"Bind Server Socket Error.\n");
 		return -3;
-
 	}
 
 	nRet = listen(m_ListenSock,10);
 	if (nRet != 0){
-
 		CLog::Log(LOG_LEVEL_WARNING,"Server Listen Error.\n");
 		return -4;
-
 	}
 
 	while(true){
-
-		
 		addrLen = sizeof(clientAddr);
 		clientSocket = accept(m_ListenSock,(SOCKADDR *)&clientAddr,&addrLen);
 		if (clientSocket == INVALID_SOCKET){
@@ -88,30 +77,13 @@ INT CSockServer::StartServer(void)
 		m_nCurrentThread +=1 ;
 
 		CLog::Log(LOG_LEVEL_WARNING,"Client Conn count is : %d\n",m_nCurrentThread);
-
-	/*	if (m_nCurrentThread > m_nMaxThread){
-				
-			closesocket(clientSocket);  //关闭客户端套接字
-			
-			CLog::Log(LOG_LEVEL_WARNING,"Client Conn Reach Limit %d.\n",m_nMaxThread);
-			//	printf("Client Connection count is %d , reach the max limit.\n",m_nCurrentThread);
-			Sleep(10000);
-			continue;
-
-		}
-	*/
-		
-		CLog::Log(LOG_LEVEL_WARNING,"Client Addr is : %s\n",inet_ntoa(clientAddr.sin_addr));
-
-		//printf("Client Connect : %s\n",inet_ntoa(clientAddr.sin_addr));
+		CLog::Log(LOG_LEVEL_WARNING,"Incoming a new client [%s:%d]\n",inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
 		
 		SOCKET* s = new SOCKET(clientSocket);
-		hThread = CreateThread(NULL,0,reinterpret_cast<LPTHREAD_START_ROUTINE>(&ProcessClientData1),(LPVOID)s,0,NULL);
+		hThread = CreateThread(NULL,0,reinterpret_cast<LPTHREAD_START_ROUTINE>(&DispatchThread),(LPVOID)s,0,NULL);
 		if (hThread == 0){
-
 			CLog::Log(LOG_LEVEL_WARNING,"Create Thread Process Client Connection Error.\n");
 			break;
-
 		}
 
 		CloseHandle(hThread);
@@ -127,5 +99,3 @@ int CSockServer::ShutDown(void)
 	WSACleanup();
 	return 0;
 }
-
-
