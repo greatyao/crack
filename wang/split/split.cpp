@@ -336,6 +336,17 @@ struct crack_block *csplit::split_default(struct crack_task *pct,unsigned &nspli
 			p_crack_block[i].end2 = (i+1)*(loc_s_charset.length()/nsplits);
 		}
 	}
+	
+	if((pct->type==mask))
+	{
+		p_crack_block[0].maskLength = pct->maskLength;
+		for(int i=0; i<18; i++)
+		{
+			p_crack_block[0].masks[i] = pct->masks[i];
+			if(	p_crack_block[0].masks[i] =='?')
+				p_crack_block[0].masks[i]  = 0xff;
+		}
+	}
 
 	if(loc_p_ct->count>1)//¶à¸ö
 	{
@@ -425,6 +436,16 @@ struct crack_block *csplit::split_easy(struct crack_task *pct,unsigned &nsplits)
 		{
 			//p_crack_block[i].end2 = loc_s_charset.length()-1;
 			p_crack_block[i].end2 = -1;//
+		}
+	}
+	if((pct->type==mask))
+	{
+		p_crack_block[0].maskLength = pct->maskLength;
+		for(int i=0; i<18; i++)
+		{
+			p_crack_block[0].masks[i] = pct->masks[i];
+			if(	p_crack_block[0].masks[i] =='?')
+				p_crack_block[0].masks[i]  = 0xff;
 		}
 	}
 
@@ -561,6 +582,16 @@ struct crack_block *csplit::split_normal(struct crack_task *pct,unsigned &nsplit
 		else
 		{
 			p_crack_block[i].end2 = (i+1)*(loc_s_charset.length()/nsplits);
+		}
+	}
+	if((pct->type==mask))
+	{
+		p_crack_block[0].maskLength = pct->maskLength;
+		for(int i=0; i<18; i++)
+		{
+			p_crack_block[0].masks[i] = pct->masks[i];
+			if(	p_crack_block[0].masks[i] =='?')
+				p_crack_block[0].masks[i]  = 0xff;
 		}
 	}
 
