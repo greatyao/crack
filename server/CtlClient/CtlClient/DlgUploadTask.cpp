@@ -41,6 +41,10 @@ void CDlgUploadTask::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT_LEN_MAX, m_EditLenMax);
 	DDX_Control(pDX, IDC_SLIDER_LEN_MIN, m_SlideLenMin);
 	DDX_Control(pDX, IDC_SLIDER2, m_SlideLenMax);
+	DDX_Control(pDX, IDC_EDIT_TYPE_TYPE, m_EditType);
+	DDX_Control(pDX, IDC_STATIC_LEN_MIN, m_StaticLenMin);
+	DDX_Control(pDX, IDC_STATIC_LEN_MAX, m_StaticLenMax);
+	DDX_Control(pDX, IDC_COMBO_SEL, m_CombBoxSel);
 }
 
 
@@ -49,6 +53,7 @@ BEGIN_MESSAGE_MAP(CDlgUploadTask, CDialog)
 	ON_BN_CLICKED(IDOK, &CDlgUploadTask::OnBnClickedOk)
 	ON_NOTIFY(NM_CUSTOMDRAW, IDC_SLIDER2, &CDlgUploadTask::OnNMCustomdrawSlider2)
 	ON_NOTIFY(NM_CUSTOMDRAW, IDC_SLIDER_LEN_MIN, &CDlgUploadTask::OnNMCustomdrawSliderLenMin)
+	ON_CBN_SELCHANGE(IDC_COMBO_TYPE, &CDlgUploadTask::OnCbnSelchangeComboType)
 END_MESSAGE_MAP()
 
 
@@ -67,7 +72,10 @@ VOID CDlgUploadTask::ComboInit(){
 
 	m_dectype.InsertString(0,_T("暴力破解"));
 	m_dectype.InsertString(1,_T("字典攻击"));
-	m_dectype.InsertString(2,_T("彩虹表"));
+	m_dectype.InsertString(2,_T("特定规则"));
+	m_dectype.InsertString(3,_T("掩码攻击"));
+	m_dectype.InsertString(4,_T("彩虹表"));
+
 
 	m_comboalgo.InsertString(0,_T("algo_md4"));
 	m_comboalgo.InsertString(1,_T("algo_md5"));
@@ -166,6 +174,7 @@ BOOL CDlgUploadTask::OnInitDialog(){
 
 	ComboInit();
 
+	ProcessControl(0);
 	return TRUE;
 }
 
@@ -414,4 +423,86 @@ void CDlgUploadTask::OnNMCustomdrawSliderLenMin(NMHDR *pNMHDR, LRESULT *pResult)
 		m_EditLenMax.SetWindowTextA(buffer);
 	}
 	*pResult = 0;
+}
+
+//
+void CDlgUploadTask::ProcessControl(int id)
+{
+	
+	m_EditLenMin.ShowWindow(SW_HIDE);
+	m_EditLenMax.ShowWindow(SW_HIDE);
+
+	m_SlideLenMin.ShowWindow(SW_HIDE);
+	m_SlideLenMax.ShowWindow(SW_HIDE);
+	
+	m_EditType.ShowWindow(SW_HIDE);
+	m_CombBoxSel.ShowWindow(SW_HIDE);
+
+	m_StaticLenMin.ShowWindow(SW_HIDE);
+	m_StaticLenMax.ShowWindow(SW_HIDE);
+
+
+	if(id==0)//暴力
+	{
+		m_StaticLenMin.SetWindowTextA("起始长度");
+		m_StaticLenMax.SetWindowTextA("结束长度");
+		m_StaticLenMin.ShowWindow(1);
+		m_StaticLenMax.ShowWindow(1);
+
+		m_EditLenMin.ShowWindow(1);
+		m_EditLenMax.ShowWindow(1);
+		m_EditLenMin.SetWindowTextA("1");
+		m_EditLenMax.SetWindowTextA("1");
+
+		m_SlideLenMin.ShowWindow(1);
+		m_SlideLenMax.ShowWindow(1);
+		m_SlideLenMin.SetPos(1);
+		m_SlideLenMax.SetPos(1);
+	}
+	else if(id==1)//字典
+	{
+		m_StaticLenMin.SetWindowTextA("选择字典文件");
+		m_StaticLenMin.ShowWindow(1);
+
+		m_CombBoxSel.ShowWindow(1);
+		m_CombBoxSel.InsertString(0,"字典0");
+		m_CombBoxSel.InsertString(1,"字典1");
+		m_CombBoxSel.SetCurSel(0);
+	}
+	else if(id==2)
+	{
+		m_StaticLenMin.SetWindowTextA("暂不支持");
+		m_StaticLenMin.ShowWindow(1);
+	}
+	else if(id==3)//掩码
+	{
+		m_StaticLenMin.SetWindowTextA("输入掩码");
+		m_StaticLenMin.ShowWindow(1);
+		m_EditType.ShowWindow(1);
+	}
+	else if(id==4)//彩虹 
+	{
+		m_StaticLenMin.SetWindowTextA("选择彩虹表");
+		m_StaticLenMin.ShowWindow(1);
+		
+		m_CombBoxSel.ShowWindow(1);
+		m_CombBoxSel.InsertString(0,"彩虹表0");
+		m_CombBoxSel.InsertString(1,"彩虹表1");
+		m_CombBoxSel.SetCurSel(0);
+	}
+	else{
+		m_StaticLenMin.SetWindowTextA("无效选择");
+		m_StaticLenMin.ShowWindow(1);
+	}
+
+}
+void CDlgUploadTask::OnCbnSelchangeComboType()
+{
+	static int sel = 0;
+	int k = m_dectype.GetCurSel();
+	if(k!=sel)
+	{
+		sel = k;
+		ProcessControl(sel);
+	}
 }

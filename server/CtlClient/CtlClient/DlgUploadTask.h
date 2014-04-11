@@ -50,4 +50,12 @@ public:
 	afx_msg void OnNMCustomdrawSliderLenMin(NMHDR *pNMHDR, LRESULT *pResult);
 	CSliderCtrl m_SlideLenMin;
 	CSliderCtrl m_SlideLenMax;
+	CEdit m_EditType;
+	CStatic m_StaticLenMin;
+	CStatic m_StaticLenMax;
+	CComboBox m_CombBoxSel;
+
+	//攻击相关控件处理
+	void ProcessControl(int id);
+	afx_msg void OnCbnSelchangeComboType();
 };
