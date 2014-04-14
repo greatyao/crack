@@ -83,7 +83,8 @@ void *clauncher::Thread(void*par)//扫描线程
 		//if(!uStatus)	continue;
 		
 		int k = pool.LauncherQuery(rs, MAX_PARALLEL_NUM);
-		if(k == 0) continue;
+		if(k <= 0) continue;
+		k = min(k, MAX_PARALLEL_NUM);
 		uStatus = rs[0]->m_rs_status;
 		CLog::Log(LOG_LEVEL_NOMAL, "clauncher: LauncherQuery %d %s\n", k, status_msg[uStatus]);
 		

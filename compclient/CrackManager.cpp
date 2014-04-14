@@ -238,6 +238,7 @@ int CrackManager::StartCrack(const crack_block* item, const char* guid, bool gpu
 		tools[toolPriority]->SupportMultiTasks() == 0)
 		return ERR_LAUCH_TASK;
 	
+	CLog::Log(LOG_LEVEL_NOMAL, "CrackManager: Starting to launch task [guid=%s]\n", guid);
 	return tools[toolPriority]->StartCrack(item, guid, gpu, deviceIds, ndevices);
 }
 
