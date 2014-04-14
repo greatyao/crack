@@ -274,6 +274,20 @@ void CDlgTaskStatus::OnBnClickedBtnRefresh()
 	char tmpbuf[128];
 	int count = ret/sizeof(task_status_info);
 
+	//先保存标记状态信息
+	int n = m_ListStatus.GetItemCount();
+	CString sFlags;
+	for(int i=0; i<n; i++)
+	{
+		int bFlag = m_ListStatus.GetCheck(i);
+		if(bFlag)
+		{
+			char buffer[100]={0};
+			m_ListStatus.GetItemText(i,1,buffer,100);//guid
+			sFlags=sFlags+buffer;
+		}
+	}
+
 	//m_tasklist.SetRedraw(FALSE);
 	m_ListStatus.DeleteAllItems();  
  
@@ -283,6 +297,11 @@ void CDlgTaskStatus::OnBnClickedBtnRefresh()
 
 		m_ListStatus.InsertItem(i,"");
 		m_ListStatus.SetItemText(i,1,(char *)p->guid);
+
+		if(sFlags.Find((char*)p->guid,0)>=0)
+		{
+			m_ListStatus.SetCheck(i,1);
+		}
 
 		//算法
 		if( (p->m_algo>algo_wpa)||(p->m_algo<algo_md4) )
@@ -404,7 +423,7 @@ void CDlgTaskStatus::OnBnClickedBtnDelete()
 		int bFlag = m_ListStatus.GetCheck(i);
 		if(bFlag)
 		{
-			//选中的，开始破解
+			//选中的删除
 			char buffer[100]={0};
 			m_ListStatus.GetItemText(i,1,buffer,100);
 			memcpy(req.guid,buffer,40);
@@ -417,6 +436,7 @@ void CDlgTaskStatus::OnBnClickedBtnDelete()
 
 		}
 	}
+	OnBnClickedBtnRefresh();
 }
 //停止破解
 void CDlgTaskStatus::OnBnClickedBtnStop()

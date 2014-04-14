@@ -116,7 +116,7 @@ int CPackManager::StartClient(void)
 	GetModuleFileNameA(NULL,ini_file,MAX_PATH);
 	strcat(ini_file,".ini");
 
-	GetPrivateProfileString("config","ip","127.0.0.1",ip,MAX_PATH-1,ini_file);
+	GetPrivateProfileString("config","ip","192.168.18.117",ip,MAX_PATH-1,ini_file);
 	m_connected = 1;
 
 	if( m_sockclient.Init(ip,6010)!=0 )
