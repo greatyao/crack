@@ -121,41 +121,37 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 	
 	if(!gpu)
 		return ERR_INVALID_PARAM;
+		
+	for(i = 0; i < SUPPORT_HASH_NUM; i++)
+	{
+		if(algo == all_support_hashes[i].algo && type < max_value && type>= 0)
+		{
+			fmt = all_support_hashes[i].params[type];
+			break;
+		}
+	}
+	if(i == SUPPORT_HASH_NUM)
+	{	
+		//¿¿¿¿¿¿¿¿?
+		return ERR_NO_SUPPORT_ALGO;
+	}
+	if(ndevices < 1 || ndevices > 16)
+	{
+		return ERR_INVALID_PARAM;
+	}
+	for(i = 0; i < ndevices; i++)
+		ids[i] = (deviceIds[i] & 0xff) + 1;
+	sprintf(others, "-d ", platformId);
+	for(i = 0; i < ndevices-1; i++)
+		sprintf(others, "%s%d,", others, ids[i]);
+	sprintf(others, "%s%d", others, ids[i]);
 	switch(type){
 	case bruteforce:
-		for(i = 0; i < SUPPORT_HASH_NUM; i++)
-		{
-			if(algo == all_support_hashes[i].algo && type < max_value && type>= 0)
-			{
-				fmt = all_support_hashes[i].params[type];
-				break;
-			}
-		}
-		if(i == SUPPORT_HASH_NUM)
-		{
-			//¿¿¿¿¿¿¿¿¿
-			return ERR_NO_SUPPORT_ALGO;
-		}
-
 		if(charset < charset_num || charset > charset_ascii)
 		{
 			//¿¿¿¿¿¿¿¿
 			return ERR_NO_SUPPORT_CHARSET;
 		}
-	
-		if(ndevices < 1 || ndevices > 16)
-		{
-			return ERR_INVALID_PARAM;
-		}
-	
-		for(i = 0; i < ndevices; i++)
-			ids[i] = (deviceIds[i] & 0xff) + 1;
-
-		sprintf(others, "-d ", platformId);
-		for(i = 0; i < ndevices-1; i++)
-			sprintf(others, "%s%d,", others, ids[i]);
-		sprintf(others, "%s%d", others, ids[i]);
-
 		sprintf(cmd, fmt, start, end, charsets[charset], others, item->john);
 		//struct maphashtarget a;
 		a.algo = algo;
@@ -174,35 +170,12 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 		this->MapTargetHash.insert(pair<string,maphashtarget>(item->guid,a));
 		break;
 	case dict:
-		for(i = 0; i < SUPPORT_HASH_NUM; i++)
-		{
-			if(algo == all_support_hashes[i].algo && type < max_value && type>= 0)
-			{
-				fmt = all_support_hashes[i].params[type];
-				break;
-			}
-		}
-		if(i == SUPPORT_HASH_NUM)
-		{	
-			//¿¿¿¿¿¿¿¿¿
-			return ERR_NO_SUPPORT_ALGO;
-		}
-		if(ndevices < 1 || ndevices > 16)
-		{
-			return ERR_INVALID_PARAM;
-		}
-		for(j = 0; j < ndevices; j++)
-			ids[j] = deviceIds[j] & 0xff;		
-		sprintf(others, "-d ", platformId);
-                for(i = 0; i < ndevices-1; i++)
-                        sprintf(others, "%s%d,", others, ids[i]+1);
-                sprintf(others, "%s%d", others, ids[i]+1);
-		sprintf(cmd,fmt,others,item->john,"~/dic.1");
+	   	sprintf(cmd,fmt,others,item->john,"~/dic.1");
 		//sprintf(cmd, fmt, start, end, charsets[charset], others, item->john);
 		break;
 	default:
-                CLog::Log(LOG_LEVEL_NOMAL, "#######   crack type: %d  ###########\n",type);
-                break;
+		CLog::Log(LOG_LEVEL_NOMAL, "#######   crack type: %d  ###########\n",type);
+        break;
 	}
 
 	int pid = this->Exec(item->guid, path, cmd, MonitorThread, true, true, false);
