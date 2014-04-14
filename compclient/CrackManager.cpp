@@ -210,30 +210,6 @@ bool CrackManager::CouldCrack()const
 	
 	return true;
 }
-	
-int CrackManager::StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short deviceId)
-{
-	if(!tools || !tools[toolPriority])
-		return ERR_NOENTRY;
-	
-	bool download = true;
-	if(item->special !=0 && access(item->john, 0) != 0)
-	{
-		int ntry = 0;
-		while(1)
-		{
-			download = (Client::Get().DownloadFile(item->guid, filedb_path.c_str()) == 0);
-			if(++ntry >= 3 || download == true)	break;
-		}
-	}
-	if(!download) return ERR_DOWNLOADFILE;
-		
-	if(tools[toolPriority]->RunningTasks() != 0 && 
-		tools[toolPriority]->SupportMultiTasks() == 0)
-		return ERR_LAUCH_TASK;
-		
-	return tools[toolPriority]->StartCrack(item, guid, gpu, deviceId);
-}
 
 int CrackManager::StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short* deviceIds, int ndevices)
 {
@@ -243,6 +219,7 @@ int CrackManager::StartCrack(const crack_block* item, const char* guid, bool gpu
 	bool download = true;
 	if(item->special !=0 && access(item->john, 0) != 0)
 	{
+		CLog::Log(LOG_LEVEL_NOTICE, "CrackManager: This is file crack, fetch original file\n");
 		int ntry = 0;
 		while(1)
 		{
@@ -251,7 +228,11 @@ int CrackManager::StartCrack(const crack_block* item, const char* guid, bool gpu
 		}
 	}
 
-	if(!download) return ERR_DOWNLOADFILE;
+	if(!download)
+	{	
+		CLog::Log(LOG_LEVEL_ERROR, "CrackManager: Could NOT download file [guid=%s]\n", guid);
+		return ERR_DOWNLOADFILE;
+	}
 	
 	if(tools[toolPriority]->RunningTasks() != 0 && 
 		tools[toolPriority]->SupportMultiTasks() == 0)

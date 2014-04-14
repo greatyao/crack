@@ -58,7 +58,6 @@ protected:
 	friend class CrackManager;
 
 public:
-	int StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short deviceId);
 	int StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short deviceIds[], int ndevices);
 	int StopCrack(const char* guid);
 	
@@ -76,7 +75,6 @@ public:
 	//以下的虚函数需要在现每个解密软件实现
 	
 	//启动
-	virtual int Launcher(const crack_block* item, bool gpu, unsigned short deviceId) = 0;
 	virtual int Launcher(const crack_block* item, bool gpu, unsigned short* deviceIds, int ndevices) = 0;
 	
 	virtual int SupportMultiTasks()const = 0;	

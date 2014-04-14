@@ -92,14 +92,6 @@ void Crack::RegisterCallback(ProcessDone done, ProgressStatus status)
 	this->statusFunc = status;
 }
 
-int Crack::StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short deviceId)
-{
-	int pid = this->Launcher(item, gpu, deviceId);
-	if(pid <= 0) return ERR_LAUCH_TASK;
-
-	return 0;
-}
-
 int Crack::StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short deviceIds[], int ndevices)
 {
 	int pid = this->Launcher(item, gpu, deviceIds, ndevices);

@@ -22,7 +22,6 @@ public:
 	
 	//½âÃÜ½Ó¿Ú
 	bool CouldCrack()const;
-	int StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short deviceId);
 	int StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short* deviceIds, int ndevices);
 	int StopCrack(const char* guid);
 	
