@@ -162,7 +162,8 @@ void CCrackTask::calcProgressByBlock(){
 	WI_STATUS_WAITING = 1,	//分配好工作项后，工作项的初始状态 
 	WI_STATUS_READY,		//任务启动
 	*/
-		}else if ((pCB->m_status == WI_STATUS_WAITING) || (pCB->m_status == WI_STATUS_READY)){
+		}else if ((pCB->m_status == WI_STATUS_WAITING) || (pCB->m_status == WI_STATUS_READY )||
+			(pCB->m_status == WI_STATUS_LOCK)||(pCB->m_status == WI_STATUS_UNLOCK)){
 			
 			fprogress +=0;
 
