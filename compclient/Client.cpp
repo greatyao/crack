@@ -123,7 +123,10 @@ void* Client::MonitorThread(void* p)
 				client->fetch = (ka->tasks > 0);
 			}
 			else
-				CLog::Log(LOG_LEVEL_NOMAL, "Client: Special Hearbreak cmd %d %d\n", cmd, m);
+			{
+				CLog::Log(LOG_LEVEL_NOMAL, "Client: Normal Hearbreak cmd %d %d\n", cmd, m);
+				client->fetch = true;
+			}
 			
 			time_t t1 = time(NULL);
 			if(t1 - t0 >= 600)
@@ -360,7 +363,7 @@ int Client::Read(unsigned char *cmd, short* status, void* data, int size, int* s
 	int totalN = hdr.compressLen;
 	int origN = hdr.dataLen;
 	if(seq)	*seq = hdr.seq;
-	printf("origN %d compressN %d seq %d\n", totalN, origN, hdr.seq);
+	//printf("origN %d compressN %d seq %d\n", totalN, origN, hdr.seq);
 	
 	if(origN < -1 || size < origN)
 		return ERR_INVALIDDATA;
