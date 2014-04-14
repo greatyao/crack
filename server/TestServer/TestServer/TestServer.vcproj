@@ -486,6 +486,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\plugins\rar.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\plugins\sha1.cpp"
 				>
 			</File>
@@ -539,6 +543,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\plugins\wpa.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\plugins\zip.cpp"
 				>
 			</File>
 		</Filter>

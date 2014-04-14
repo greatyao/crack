@@ -269,7 +269,10 @@ void _to64(char *s, unsigned long v, int n);
 #define snprintf _snprintf
 #define strtok_r strtok_s
 #define bzero(a, s) memset(a, 0, s)
+#else
+char* itoa(int value, char* result, int base);
 #endif
+
 
 #ifdef __cplusplus
 }

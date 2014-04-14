@@ -3,7 +3,11 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#if defined(WIN32) || defined(WIN64)
+typedef unsigned __int64 uint64_t;
+#else
 #include <stdint.h>
+#endif
 #include <stdlib.h>
 #include "plugin.h"
 #include "algorithm_types.h"
@@ -16,9 +20,6 @@
 	(((n)&0x0000ff00) << 8 ) | \
 	(((n)&0x00ff0000) >> 8 ) | \
 	(((n)&0xff000000) >> 24) )
-
-
-
 
 typedef struct bestfile_s
 {
