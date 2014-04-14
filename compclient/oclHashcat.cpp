@@ -155,7 +155,7 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 		sprintf(cmd, fmt, start, end, charsets[charset], others, item->john);
 		break;
 	case dict:
-	   	sprintf(cmd,fmt,others,item->john,"~/dic.1");
+	   	sprintf(cmd,fmt,others,item->john,"/home/gputest/dic.1");//Fixed:must absolute path
 		//sprintf(cmd, fmt, start, end, charsets[charset], others, item->john);
 		break;
 	default:
@@ -242,8 +242,8 @@ void *oclHashcat::MonitorThread(void *p)
 		//CLog::Log(LOG_LEVEL_NOMAL,"read[%d]\n", n);
 		s = buffer;
 		
-		if(n>0)
-			CLog::Log(LOG_LEVEL_NOMAL,"%s\n", buffer);
+		//if(n>0)
+		//	CLog::Log(LOG_LEVEL_NOMAL,"%s\n", buffer);
 		
 		if(algo==algo_mssql_2000)
 			idx = s.rfind(s_hash_with_comma.substr(0,14));//mssql_2000:
