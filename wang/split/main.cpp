@@ -19,6 +19,8 @@ int main(int c,char *v[])
 	strcpy(ct->hashes[0].hash, "ABCD");
 	strcpy(ct->hashes[1].hash, "1234");
 
+	ct->type = 3;
+
 
 	//²âÊÔ´úÂë
 	csplit sp;

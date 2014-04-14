@@ -37,6 +37,9 @@ public:
 	struct crack_block *split_default(struct crack_task *pct,unsigned &nsplits);
 	struct crack_block *split_easy(struct crack_task *pct,unsigned &nsplits);
 	struct crack_block *split_normal(struct crack_task *pct,unsigned &nsplits);
+	
+	struct crack_block *split_mask(struct crack_task *pct,unsigned &nsplits);
+
 	void release_splits(char *p);//ÊÍ·Å
 
 };

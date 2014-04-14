@@ -229,6 +229,12 @@ struct crack_block *csplit::split_default(struct crack_task *pct,unsigned &nspli
 		return 0;
 	}
 
+	
+	if((pct->type==mask))
+	{
+		return split_mask(pct,nsplits);
+	}
+
 	struct crack_task * loc_p_ct = pct;
 	string loc_s_charset;
 	Big_Int loc_total_combinations;
@@ -279,7 +285,7 @@ struct crack_block *csplit::split_default(struct crack_task *pct,unsigned &nspli
 	}
 
 	//确定最终切割份数
-	if( (step==0)||(pct->type==mask) )
+	if( (step==0)  )
 	{
 		nsplits = 1;
 	}
@@ -336,17 +342,6 @@ struct crack_block *csplit::split_default(struct crack_task *pct,unsigned &nspli
 			p_crack_block[i].end2 = (i+1)*(loc_s_charset.length()/nsplits);
 		}
 	}
-	
-	if((pct->type==mask))
-	{
-		p_crack_block[0].maskLength = pct->maskLength;
-		for(int i=0; i<18; i++)
-		{
-			p_crack_block[0].masks[i] = pct->masks[i];
-			if(	p_crack_block[0].masks[i] =='?')
-				p_crack_block[0].masks[i]  = 0xff;
-		}
-	}
 
 	if(loc_p_ct->count>1)//多个
 	{
@@ -372,6 +367,12 @@ struct crack_block *csplit::split_easy(struct crack_task *pct,unsigned &nsplits)
 {
 	if( (pct==0)||(pct->count<1) ) return 0;
 
+	
+	if((pct->type==mask))
+	{
+		return split_mask(pct,nsplits);
+	}
+
 	struct crack_task * loc_p_ct = pct;
 	string loc_s_charset;
 	Big_Int loc_total_combinations;
@@ -381,7 +382,7 @@ struct crack_block *csplit::split_easy(struct crack_task *pct,unsigned &nsplits)
 
 	//根据密码长度范围简单估算
 	const int k_pos = 10;
-	if( (loc_p_ct->startLength == loc_p_ct->endLength)||( loc_p_ct->endLength<=k_pos )||(pct->type==mask))
+	if( (loc_p_ct->startLength == loc_p_ct->endLength)||( loc_p_ct->endLength<=k_pos ))
 	{
 		nsplits = 1;
 	}
@@ -438,16 +439,6 @@ struct crack_block *csplit::split_easy(struct crack_task *pct,unsigned &nsplits)
 			p_crack_block[i].end2 = -1;//
 		}
 	}
-	if((pct->type==mask))
-	{
-		p_crack_block[0].maskLength = pct->maskLength;
-		for(int i=0; i<18; i++)
-		{
-			p_crack_block[0].masks[i] = pct->masks[i];
-			if(	p_crack_block[0].masks[i] =='?')
-				p_crack_block[0].masks[i]  = 0xff;
-		}
-	}
 
 	if(loc_p_ct->count>1)//多个
 	{
@@ -473,6 +464,11 @@ struct crack_block *csplit::split_normal(struct crack_task *pct,unsigned &nsplit
 	if( (pct==0)||(pct->count<1) ) 
 	{
 		return 0;
+	}
+	
+	if((pct->type==mask))
+	{
+		return split_mask(pct,nsplits);
 	}
 
 	struct crack_task * loc_p_ct = pct;
@@ -525,7 +521,7 @@ struct crack_block *csplit::split_normal(struct crack_task *pct,unsigned &nsplit
 	}
 
 	//确定最终切割份数
-	if( (step==0)||(pct->type==mask))
+	if( (step==0) )
 	{
 		nsplits = 1;
 	}
@@ -584,16 +580,6 @@ struct crack_block *csplit::split_normal(struct crack_task *pct,unsigned &nsplit
 			p_crack_block[i].end2 = (i+1)*(loc_s_charset.length()/nsplits);
 		}
 	}
-	if((pct->type==mask))
-	{
-		p_crack_block[0].maskLength = pct->maskLength;
-		for(int i=0; i<18; i++)
-		{
-			p_crack_block[0].masks[i] = pct->masks[i];
-			if(	p_crack_block[0].masks[i] =='?')
-				p_crack_block[0].masks[i]  = 0xff;
-		}
-	}
 
 	if(loc_p_ct->count>1)//多个
 	{
@@ -611,6 +597,53 @@ struct crack_block *csplit::split_normal(struct crack_task *pct,unsigned &nsplit
 	}
 
 	nsplits = nsplits*loc_p_ct->count;
+	return p_crack_block;
+}
+
+
+//掩码切割
+struct crack_block *csplit::split_mask(struct crack_task *pct,unsigned &nsplits)
+{
+	nsplits = 1;
+	struct crack_block *p_crack_block = (crack_block *)malloc(sizeof(struct crack_block)*pct->count);
+
+	p_crack_block[0].algo    = pct->algo;//算法
+	p_crack_block[0].charset = pct->charset;//字符集
+	p_crack_block[0].type    = pct->type;
+	p_crack_block[0].special = pct->special;
+	p_crack_block[0].hash_idx= 0;
+
+	new_guid( p_crack_block[0].guid, sizeof(p_crack_block[0].guid) );
+	memcpy( p_crack_block[0].john, pct->hashes[0].hash, sizeof(struct crack_hash) );
+		
+	p_crack_block[0].maskLength = pct->maskLength;
+	for(int i=0; i<18; i++)
+	{
+		p_crack_block[0].masks[i] = pct->masks[i];
+		if(	p_crack_block[0].masks[i] =='?')
+			p_crack_block[0].masks[i]  = -1;
+	}
+
+
+	if(pct->count>1)//多个
+	{
+		for(int j=1; j<pct->count; j++)
+		{
+			memcpy( &p_crack_block[nsplits*j],p_crack_block, sizeof(struct crack_block));
+
+			memcpy( p_crack_block[nsplits*j].john, pct->hashes[j].hash, sizeof(struct crack_hash) );
+			new_guid( p_crack_block[nsplits*j].guid,  sizeof(p_crack_block[0].guid));
+			p_crack_block[nsplits*j].hash_idx = j;
+	
+			for(int i=0; i<18; i++)
+			{
+				p_crack_block[0].masks[i] = pct->masks[i];
+				if(	p_crack_block[0].masks[i] =='?')
+					p_crack_block[0].masks[i]  = -1;
+			}
+		}		
+	}
+
 	return p_crack_block;
 }
 
