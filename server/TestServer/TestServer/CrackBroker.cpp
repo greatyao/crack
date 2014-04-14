@@ -616,18 +616,6 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 	int index = pCB->hash_idx;
 	switch(pReq->status){
 
-		case WI_STATUS_LOCK:
-		/*	pCB->m_status = WI_STATUS_RUNNING;
-			((CCrackTask *)(pCB->task))->m_running_num +=1;
-			
-			updateReadyQueue(pCB);
-		*/
-			pCB->m_status = WI_STATUS_LOCK;
-			((CCrackTask *)(pCB->task))->m_runing_num +=1;
-
-			checkReadyQueue((CCrackTask *)(pCB->task));
-
-			break;
 		case WI_STATUS_UNLOCK:
 			CLog::Log(LOG_LEVEL_WARNING, "**** Reuse WorkItem [guid=%s] ****\n",pReq->guid);
 			
@@ -644,7 +632,7 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 			//updateReadyQueue(pCB);
 
 			pCB->m_status = WI_STATUS_RUNNING;
-			((CCrackTask *)(pCB->task))->m_runing_num +=1;
+		//	((CCrackTask *)(pCB->task))->m_runing_num +=1;
 			checkReadyQueue((CCrackTask *)(pCB->task));
 
 
