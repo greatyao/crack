@@ -153,21 +153,6 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 			return ERR_NO_SUPPORT_CHARSET;
 		}
 		sprintf(cmd, fmt, start, end, charsets[charset], others, item->john);
-		//struct maphashtarget a;
-		a.algo = algo;
-		memcpy(a.hash,item->john,sizeof(item->john));
-		if(algo==algo_mssql_2005||algo==algo_mssql_2012)
-		{
-			int i=0;
-			char c;
-			while(a.hash[i])
-			{
-				c=a.hash[i];
-				a.hash[i]=tolower(c);
-				i++;
-			}
-		}
-		this->MapTargetHash.insert(pair<string,maphashtarget>(item->guid,a));
 		break;
 	case dict:
 	   	sprintf(cmd,fmt,others,item->john,"~/dic.1");
@@ -177,7 +162,21 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 		CLog::Log(LOG_LEVEL_NOMAL, "#######   crack type: %d  ###########\n",type);
         break;
 	}
-
+	//struct maphashtarget a;
+	a.algo = algo;
+	memcpy(a.hash,item->john,sizeof(item->john));
+	if(algo==algo_mssql_2005||algo==algo_mssql_2012)
+	{
+		int i=0;
+		char c;
+		while(a.hash[i])
+		{
+			c=a.hash[i];
+			a.hash[i]=tolower(c);
+			i++;
+		}
+	}
+	this->MapTargetHash.insert(pair<string,maphashtarget>(item->guid,a));
 	int pid = this->Exec(item->guid, path, cmd, MonitorThread, true, true, false);
 	
 	if(pid > 0){
