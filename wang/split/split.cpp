@@ -629,10 +629,12 @@ struct crack_block *csplit::split_mask(struct crack_task *pct,unsigned &nsplits)
 	memcpy( p_crack_block[0].john, pct->hashes[0].hash, sizeof(struct crack_hash) );
 		
 	p_crack_block[0].maskLength = pct->maskLength;
-	for(int i=0; p_crack_block[0].masks[i]!=0; i++)
+	memcpy(p_crack_block[0].masks, pct->masks, sizeof(pct->masks));
+	for(int i=0; i < sizeof(p_crack_block[0].masks); i++)
 	{
-		p_crack_block[0].masks[i] = pct->masks[i];
-		if(	p_crack_block[0].masks[i] =='?')
+		if(	p_crack_block[0].masks[i] == 0)
+			break;
+		else if(p_crack_block[0].masks[i] =='?')
 			p_crack_block[0].masks[i]  = -1;
 	}
 
@@ -647,11 +649,14 @@ struct crack_block *csplit::split_mask(struct crack_task *pct,unsigned &nsplits)
 			new_guid( p_crack_block[nsplits*j].guid,  sizeof(p_crack_block[0].guid));
 			p_crack_block[nsplits*j].hash_idx = j;
 	
-			for(int i=0; i<18; i++)
+			memcpy(p_crack_block[j].masks, pct->masks, sizeof(pct->masks));
+			for(int i=0; i<sizeof(p_crack_block[0].masks); i++)
 			{
-				p_crack_block[0].masks[i] = pct->masks[i];
-				if(	p_crack_block[0].masks[i] =='?')
-					p_crack_block[0].masks[i]  = -1;
+				//p_crack_block[j].masks[i] = pct->masks[i];
+				if(	p_crack_block[j].masks[i] == 0)
+					break;
+				else if(	p_crack_block[j].masks[i] =='?')
+					p_crack_block[j].masks[i]  = -1;
 			}
 		}		
 	}
