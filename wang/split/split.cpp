@@ -661,6 +661,7 @@ struct crack_block *csplit::split_mask(struct crack_task *pct,unsigned &nsplits)
 		}		
 	}
 
+	nsplits = nsplits*pct->count;
 	return p_crack_block;
 }
 
@@ -693,6 +694,7 @@ struct crack_block *csplit::split_dic(struct crack_task *pct,unsigned &nsplits)
 		}		
 	}
 
+	nsplits = nsplits*pct->count;
 	return p_crack_block;
 }
 
