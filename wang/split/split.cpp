@@ -234,6 +234,10 @@ struct crack_block *csplit::split_default(struct crack_task *pct,unsigned &nspli
 	{
 		return split_mask(pct,nsplits);
 	}
+	else if((pct->type==dict))
+	{
+		return split_dic(pct,nsplits);
+	}
 
 	struct crack_task * loc_p_ct = pct;
 	string loc_s_charset;
@@ -372,6 +376,10 @@ struct crack_block *csplit::split_easy(struct crack_task *pct,unsigned &nsplits)
 	{
 		return split_mask(pct,nsplits);
 	}
+	else if((pct->type==dict))
+	{
+		return split_dic(pct,nsplits);
+	}
 
 	struct crack_task * loc_p_ct = pct;
 	string loc_s_charset;
@@ -469,6 +477,10 @@ struct crack_block *csplit::split_normal(struct crack_task *pct,unsigned &nsplit
 	if((pct->type==mask))
 	{
 		return split_mask(pct,nsplits);
+	}
+	else if((pct->type==dict))
+	{
+		return split_dic(pct,nsplits);
 	}
 
 	struct crack_task * loc_p_ct = pct;
@@ -617,7 +629,7 @@ struct crack_block *csplit::split_mask(struct crack_task *pct,unsigned &nsplits)
 	memcpy( p_crack_block[0].john, pct->hashes[0].hash, sizeof(struct crack_hash) );
 		
 	p_crack_block[0].maskLength = pct->maskLength;
-	for(int i=0; i<18; i++)
+	for(int i=0; p_crack_block[0].masks[i]!=0; i++)
 	{
 		p_crack_block[0].masks[i] = pct->masks[i];
 		if(	p_crack_block[0].masks[i] =='?')
@@ -641,6 +653,38 @@ struct crack_block *csplit::split_mask(struct crack_task *pct,unsigned &nsplits)
 				if(	p_crack_block[0].masks[i] =='?')
 					p_crack_block[0].masks[i]  = -1;
 			}
+		}		
+	}
+
+	return p_crack_block;
+}
+
+struct crack_block *csplit::split_dic(struct crack_task *pct,unsigned &nsplits)
+{
+	nsplits = 1;
+	struct crack_block *p_crack_block = (crack_block *)malloc(sizeof(struct crack_block)*pct->count);
+
+	p_crack_block[0].algo    = pct->algo;//算法
+	p_crack_block[0].charset = pct->charset;//字符集
+	p_crack_block[0].type    = pct->type;
+	p_crack_block[0].special = pct->special;
+	p_crack_block[0].hash_idx= 0;
+
+	new_guid( p_crack_block[0].guid, sizeof(p_crack_block[0].guid) );
+	memcpy( p_crack_block[0].john, pct->hashes[0].hash, sizeof(struct crack_hash) );
+		
+	p_crack_block[0].dict_idx = pct->dict_idx;
+	if(pct->count>1)//多个
+	{
+		for(int j=1; j<pct->count; j++)
+		{
+			memcpy( &p_crack_block[nsplits*j],p_crack_block, sizeof(struct crack_block));
+
+			memcpy( p_crack_block[nsplits*j].john, pct->hashes[j].hash, sizeof(struct crack_hash) );
+			new_guid( p_crack_block[nsplits*j].guid,  sizeof(p_crack_block[0].guid));
+			p_crack_block[nsplits*j].hash_idx = j;
+	
+			p_crack_block[j].dict_idx = pct->dict_idx;
 		}		
 	}
 
