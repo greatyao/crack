@@ -187,13 +187,6 @@ struct crack_status
 	unsigned int remainTime;	//剩余时间
 };
 
-#define WORK_ITEM_AVAILABLE		0	//workitem的起始状态，可供其他计算单元使用
-#define WORK_ITEM_LOCK			1	//workitem已经被一个计算单元占用，但是不确定计算单元的解密任务是否进行，此时不能被其他计算单元使用
-#define WORK_ITEM_UNLOCK		2	//计算单元通知服务端unlock该资源，重新设置为avaiable，以供其他计算节点使用
-#define WORK_ITEM_WORKING		3	//计算单元正在对该workitem进行解密任务
-#define WORK_ITEM_CRACKED		4	//计算单元完成解密任务，同时破解出密码
-#define WORK_ITEM_UNCRACKED		5	//计算单元完成解密任务，但没有破解出密码
-
 struct crack_result
 {
 	char guid[40];			//workitem/crack_block的GUID

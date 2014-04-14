@@ -2,6 +2,7 @@
 #include "resourceslotpool.h"
 #include "CLog.h"
 #include "algorithm_types.h"
+#include "macros.h"
 #include "Client.h"
 #include "CrackManager.h"
 
@@ -103,7 +104,7 @@ void *clauncher::Thread(void*par)//扫描线程
 					
 					crack_result result;
 					strcpy(result.guid, rs[0]->m_guid);
-					result.status = lauched ? WORK_ITEM_WORKING : WORK_ITEM_UNLOCK;
+					result.status = lauched ? WI_STATUS_RUNNING : WI_STATUS_UNLOCK;
 					Client::Get().ReportResultToServer(&result);
 					
 					if(!lauched)	pool.SetToFailed(rs, k);

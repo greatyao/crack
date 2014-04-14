@@ -11,6 +11,7 @@
 #include "coordinator.h"
 #include "resourceslotpool.h"
 #include "CLog.h"
+#include "macros.h"
 #include "Client.h"
 #include "CrackManager.h"
 #include "algorithm_types.h"
@@ -71,7 +72,7 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 			{
 				crack_result result;
 				strcpy(result.guid, item.guid);
-				result.status = WORK_ITEM_UNLOCK;
+				result.status = WI_STATUS_UNLOCK;
 				Client::Get().ReportResultToServer(&result);
 				continue;
 			}
@@ -87,10 +88,10 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 			crack_result result;
 			strcpy(result.guid, rs[0]->m_guid);
 			if(rs[0]->m_is_recovered){
-				result.status = WORK_ITEM_CRACKED;
+				result.status = WI_STATUS_CRACKED;
 				strncpy(result.password, rs[0]->m_password, sizeof(result.password));
 			} else{
-				result.status = WORK_ITEM_UNCRACKED;
+				result.status = WI_STATUS_NO_PWD;
 			}
 			//TODO:需要考虑如果服务器宕机，需要将解密结果持久化:-)
 			Client::Get().ReportResultToServer(&result);
