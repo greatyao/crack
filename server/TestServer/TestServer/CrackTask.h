@@ -131,9 +131,9 @@ public:
 	unsigned int m_runing_num;
 
 
-	unsigned int m_start_time;
+	unsigned int m_start_time;  //最近一次开始时间
 
-//	unsigned int m_running_time;  //已经运行时间
+	unsigned int m_running_time;  //已经运行时间
 
 	unsigned int m_remain_time;   //还剩时间
 

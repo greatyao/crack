@@ -34,7 +34,7 @@ int CCrackTask::Init(crack_task *pCrackTask)
 
 	m_start_time = 0;
 
-	//m_running_time = 0;
+	m_running_time = 0;
 	m_remain_time = 0;
 
 	return 0;
@@ -167,7 +167,7 @@ void CCrackTask::calcProgressByBlock(){
 
 		}else {
 
-			fprogress +=1;
+			fprogress +=100;  //设置了其他的状态的进度按照100来计算
 		}
 
 	}
@@ -272,6 +272,7 @@ int CCrackTask::updateStatusToRunning(){
 	
 	m_status = CT_STATUS_RUNNING;
 	m_start_time = time_last;
+	
 
 	//设置每个HASH为运行状态
 	for(int i = 0;i < count ;i ++ ){
@@ -318,6 +319,7 @@ int CCrackTask::updateStatusToStop(){
 	CB_MAP::iterator iter_block;
 	unsigned char john[196];
 
+
 	if ((m_status != CT_STATUS_RUNNING) && (m_status != CT_STATUS_PAUSED)){
 		
 		CLog::Log(LOG_LEVEL_WARNING,"Task Current is Status %d，Can't Set to Ready\n",m_status);
@@ -325,6 +327,12 @@ int CCrackTask::updateStatusToStop(){
 
 	}
 	
+	
+	//计算运行时间
+	if (m_status == CT_STATUS_RUNNING)
+		this->m_running_time = 0;
+
+
 	m_status = CT_STATUS_READY;
 
 	//为了通知计算节点设置
@@ -412,6 +420,7 @@ int CCrackTask::updateStatusToPause(){
 	CCrackHash *pCCH = NULL;
 	unsigned char john[196];
 	CCrackBlock *pCb = NULL;
+	time_t mytime = time(NULL);
 
 	if (m_status != CT_STATUS_RUNNING){
 		
@@ -419,6 +428,10 @@ int CCrackTask::updateStatusToPause(){
 		return NOT_CONVERT_TO_PAUSED;
 
 	}
+
+	//计算运行时间
+	this->m_running_time += (mytime-this->m_start_time);
+
 	
 	m_status = CT_STATUS_PAUSED;
 
@@ -467,6 +480,7 @@ int CCrackTask::updateStatusToFinish(struct crack_result *result,int hash_index)
 	int ret = 0;
 	unsigned char tempStatus = m_status;
 	CCrackHash *pCCH = m_crackhash_list[hash_index];
+	time_t mytime = time(NULL);
 
 	switch(result->status){
 		
@@ -487,6 +501,9 @@ int CCrackTask::updateStatusToFinish(struct crack_result *result,int hash_index)
 				this->m_bsuccess = true;
 				this->m_progress =100.0;
 				this->m_status = CT_STATUS_FINISHED;
+				//计算运行时间
+				this->m_running_time +=(mytime-this->m_start_time);
+				this->m_remain_time = 0;
 			}
 
 		/*	m_status = CT_STATUS_FINISHED;
@@ -525,6 +542,9 @@ int CCrackTask::updateStatusToFinish(struct crack_result *result,int hash_index)
 
 					this->m_status = CT_STATUS_FINISHED;
 					this->m_progress = 100.0;
+					//计算运行时间
+					this->m_running_time +=(mytime-this->m_start_time);
+					this->m_remain_time = 0;
 
 				}
 			}
@@ -562,6 +582,7 @@ int CCrackTask::updateStatusToFail(){
 
 	int ret = 0;
 	unsigned char tempStatus = m_status;
+	time_t mytime = time(NULL);
 
 	if (m_status != CT_STATUS_RUNNING){
 		
@@ -570,6 +591,8 @@ int CCrackTask::updateStatusToFail(){
 
 	}
 	//......
+	this->m_running_time +=(mytime-this->m_start_time);
+	this->m_remain_time = 0;
 
 	m_status = CT_STATUS_FAILURE;
 	return ret;

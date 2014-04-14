@@ -748,24 +748,50 @@ int CCrackBroker::getResultFromTaskNew(CCrackTask *pCT,struct task_result_info *
 int CCrackBroker::getStatusFromTask(CCrackTask *pCT,task_status_info *pRes){
 
 	int ret = 0;
-	time_t mytime;
-	mytime = time(NULL);
+	time_t mytime = time(NULL);
 
 	pRes->m_fini_number = pCT->m_finish_num;
 	pRes->m_split_number = pCT->m_split_num;
 
 	pRes->m_remain_time = pCT->m_remain_time;
-	//pRes->m_running_time = mytime-pCT->m_start_time;
+
+	pRes->m_running_time = pCT->m_running_time;
+
 	if (pCT->m_status == CT_STATUS_RUNNING){
+
+		pRes->m_running_time = (pCT->m_running_time + (mytime-pCT->m_start_time));
+
+
+	}
+
+	//pRes->m_running_time = mytime-pCT->m_start_time;
+	/*if (pCT->m_status == CT_STATUS_RUNNING){
 		
 		pRes->m_running_time = mytime-pCT->m_start_time;
 
-	}else{
+	//系统分任务的状态，根据状态对剩余时间和运行时间进行设置
+	else if ((pCT->m_status == CT_STATUS_FINISHED) ||(pCT->m_status == CT_STATUS_FAILURE)){ //完成状态
+		
+		pRes->m_remain_time = 0;
+		pRes->m_running_time = pCT->m_runing_num;
+
+	}else if (pCT->m_status == CT_STATUS_READY){ //就绪状态
+
+		pRes->m_running_time = 0;
+	
+	}else if (pCT->m_status ==  CT_STATUS_PAUSED){ //暂停状态
+
+		pRes->m_running_time = pCT->m_running_time;
+
+	}
+
+	*/
+/*	}else{
 
 		pCT->m_start_time = mytime;
 		pRes->m_running_time = 0;
 	}
-
+*/
 	pRes->m_algo = pCT->algo;
 	//get the current block progress 
 	pCT->calcProgressByBlock();
