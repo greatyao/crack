@@ -276,13 +276,10 @@ void CDlgTaskStatus::OnBnClickedBtnRefresh()
 
 	//m_tasklist.SetRedraw(FALSE);
 	m_ListStatus.DeleteAllItems();  
-  
-
-
+ 
 	for(i = 0;i < count ;i ++ ){
 
 		p = &pres[i];
-
 
 		m_ListStatus.InsertItem(i,"");
 		m_ListStatus.SetItemText(i,1,(char *)p->guid);
@@ -309,15 +306,14 @@ void CDlgTaskStatus::OnBnClickedBtnRefresh()
 		else
 		m_ListStatus.SetItemText(i,3,tmpbuf);
 
-
-		 t_sec = p->m_remain_time;
-		 t_sec_s = t_sec%60 ;
-		 t_sec_m = (t_sec/60)%60 ;
-		 t_sec_h = t_sec/(60*60) ;
+		t_sec = p->m_remain_time;
+		t_sec_s = t_sec%60 ;
+		t_sec_m = (t_sec/60)%60 ;
+		t_sec_h = t_sec/(60*60) ;
 		if(t_sec_h>0)
-			sprintf(tmpbuf,"%d小时%d分%d秒",t_sec_h,t_sec_m,t_sec_s);
+			sprintf(tmpbuf,"%d时%d分%d秒",t_sec_h,t_sec_m,t_sec_s);
 		else if(t_sec_m>0)
-			sprintf(tmpbuf,"%d分钟%d秒",t_sec_m,t_sec_s);
+			sprintf(tmpbuf,"%d分%d秒",t_sec_m,t_sec_s);
 		else
 			sprintf(tmpbuf,"%d秒",t_sec_s);
 		if(t_sec==-1)
@@ -325,7 +321,7 @@ void CDlgTaskStatus::OnBnClickedBtnRefresh()
 		else
 		m_ListStatus.SetItemText(i,4,tmpbuf);
 
-		sprintf(tmpbuf,"%.0f%%",(p->m_progress)*100.0);
+		sprintf(tmpbuf,"%.1f%%",(p->m_progress));
 		m_ListStatus.SetItemText(i,5,tmpbuf);
 		
 		wsprintfA(tmpbuf,"%d",p->m_split_number);
