@@ -124,6 +124,10 @@ private:
 
 	int getBlockFromCrackBlock(CCrackBlock *pCB,struct crack_block *pRes);
 
+	void updateReadyQueue(CCrackBlock *pCB);
+
+	void checkReadyQueue(CCrackTask *pCT);
+
 public :
 	
 	CCriticalSection m_cracktask_cs;

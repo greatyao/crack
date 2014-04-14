@@ -67,6 +67,8 @@ public:
 
 	void calcProgressByBlock();
 
+	void RefreshRemainTime();
+
 	void * Alloc(int size);
 	void Free(void *p);
 

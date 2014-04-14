@@ -126,7 +126,8 @@ CCrackBlock *CCrackTask::GetAReadyWorkItem(){
 		if (iter_block->second->m_status == WI_STATUS_READY){
 
 			pCB = iter_block->second;
-			pCB->m_status = WI_STATUS_RUNNING;
+	//		pCB->m_status = WI_STATUS_RUNNING;
+			pCB->m_status = WI_STATUS_LOCK;  //工作项首先被计算节点锁定，然后根据处理状态返回Unlock,Running
 			m_runing_num ++;
 			break;
 		}
@@ -453,7 +454,7 @@ int CCrackTask::updateStatusToPause(){
 	}
 
 	//设置子任务为准备运行状态
-		CB_MAP::iterator iter_block;
+	CB_MAP::iterator iter_block;
 	for(iter_block = m_crackblock_map.begin();iter_block != m_crackblock_map.end();iter_block++){
 	
 		pCb = iter_block->second;
@@ -484,7 +485,7 @@ int CCrackTask::updateStatusToFinish(struct crack_result *result,int hash_index)
 
 	switch(result->status){
 		
-		case WORK_ITEM_CRACKED:
+		case WI_STATUS_CRACKED:
 			
 			pCCH->m_progress = 100.0;
 			memcpy(pCCH->m_result,result->password,sizeof(result->password));
@@ -506,26 +507,9 @@ int CCrackTask::updateStatusToFinish(struct crack_result *result,int hash_index)
 				this->m_remain_time = 0;
 			}
 
-		/*	m_status = CT_STATUS_FINISHED;
-			this->m_bsuccess = true;
-			this->m_finish_num +=1;
-			memcpy(this->m_result,result->password,32);
-			if (this->m_finish_num == this->m_split_num ){
-				
-				this->m_progress = 100.0;
-			}else{
-
-				//设置block 为不需要运行
-
-				setCrackBlockStatus(WI_STATUS_NOT_NEED);
-
-			}
-			
-			ret = 1;
-			*/
-
+		
 			break;
-		case WORK_ITEM_UNCRACKED:
+		case WI_STATUS_NO_PWD:
 			
 			//当前hash 是否解密完成，未解密完成，继续解密;解密完成，设置状态
 			
@@ -548,22 +532,6 @@ int CCrackTask::updateStatusToFinish(struct crack_result *result,int hash_index)
 
 				}
 			}
-				
-
-		/*	this->m_finish_num +=1;
-			if (this->m_status != CT_STATUS_FINISHED){
-								
-				if (this->m_finish_num == this->m_split_num){
-
-					this->m_bsuccess = false;
-					this->m_progress = 100.0;
-					this->m_status = CT_STATUS_FINISHED;
-					ret = 1;
-				}
-					
-			}
-			*/
-
 			break;
 		default :
 
@@ -661,6 +629,44 @@ int CCrackTask::checkBlockOfHash(int hash_index){
 		}
 	}
 	return ret;
+}
+
+
+
+void CCrackTask::RefreshRemainTime(){
+
+
+	CB_MAP::iterator iter_block;
+	CCrackBlock *pCB = NULL;
+	unsigned int max_remain_time = 0;
+
+	for (iter_block = m_crackblock_map.begin() ; iter_block != m_crackblock_map.end(); iter_block++){
+
+		pCB = iter_block->second;
+
+		
+		if (max_remain_time < pCB->m_remaintime){
+
+			max_remain_time = pCB->m_remaintime;
+
+			CLog::Log(LOG_LEVEL_WARNING,"CrackBlock GUID %s,Remain time : %d\n",pCB->guid,pCB->m_remaintime);
+
+		}
+
+
+
+		/*
+		if((pCB->hash_idx == hash_index) && ((pCB->m_status == WI_STATUS_READY) || (pCB->m_status ==WI_STATUS_RUNNING))){
+
+			ret = 0;
+			break;
+		}
+		*/
+	}
+
+	this->m_remain_time = max_remain_time;
+
+
 }
 
 void * CCrackTask::Alloc(int size){
