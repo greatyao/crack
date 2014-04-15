@@ -1,4 +1,5 @@
 #include "CrackHash.h"
+#include "macros.h"
 #include <string.h>
 
 CCrackHash::CCrackHash(void)
