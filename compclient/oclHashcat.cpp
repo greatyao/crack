@@ -37,7 +37,7 @@ static const char* charsets[] = {
 static struct hash_parameter all_support_hashes[] = 
 {
 /*	{algo_md4,			{"-m 900 -a 3 --increment-min=%d --increment-max=%d %s %s %s"}},*/
-	{algo_md5,			{"-m 0 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s"}},
+	{algo_md5,			{"-m 0 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s", NULL,"-m 0 -a 3 %s %s %s"}},
 //	{algo_md5md5,		"-p md5md5 -b%d:%d:%s %s %s"},
 	{algo_md5unix,		{"-m 500 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s"}},
 //	{algo_mediawiki,	"-p mediawiki -b%d:%d:%s %s %s"},
@@ -114,6 +114,7 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 	const char* fmt;
 	unsigned short platformId = deviceIds[0] >> 8;
         unsigned short ids[16] = {0};
+	char local_mask[36]={0};
 	char cmd[4096];
         char others[128];
 	int i,j;
@@ -155,8 +156,39 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 		sprintf(cmd, fmt, start, end, charsets[charset], others, item->john);
 		break;
 	case dict:
+		//unsigned char a = item->dict_idx;
 	   	sprintf(cmd,fmt,others,item->john,"/home/gputest/dic.1");//Fixed:must absolute path
 		//sprintf(cmd, fmt, start, end, charsets[charset], others, item->john);
+		break;
+	case mask:
+		//printf("orginal mask %s \n",item->masks);
+		if(item->maskLength>18||item->maskLength<1)
+			return ERR_INVALID_PARAM;
+		for(unsigned short i=0;i < item->maskLength;i++)
+		{
+			if((int)item->masks[i]== -1)
+			{
+				switch(item->charset){
+					case charset_num:
+						sprintf(local_mask,"%s%s",local_mask,"?d");
+						break;
+					case charset_lalpha:
+						sprintf(local_mask,"%s%s",local_mask,"?l");
+						break;
+					case charset_ualpha:
+						sprintf(local_mask,"%s%s",local_mask,"?u");
+						break;
+					default:
+						sprintf(local_mask,"%s%s",local_mask,"?a");
+						break;
+				}
+			}
+			else{
+		//		printf("###%c### \n",item->masks[i]);
+				sprintf(local_mask,"%s%c",local_mask,item->masks[i]);
+			}
+		}
+		sprintf(cmd,fmt,others,item->john,local_mask);
 		break;
 	default:
 		CLog::Log(LOG_LEVEL_NOMAL, "#######   crack type: %d  ###########\n",type);
@@ -242,8 +274,8 @@ void *oclHashcat::MonitorThread(void *p)
 		//CLog::Log(LOG_LEVEL_NOMAL,"read[%d]\n", n);
 		s = buffer;
 		
-		//if(n>0)
-		//	CLog::Log(LOG_LEVEL_NOMAL,"%s\n", buffer);
+		if(n>0)
+			CLog::Log(LOG_LEVEL_NOMAL,"%s\n", buffer);
 		
 		if(algo==algo_mssql_2000)
 			idx = s.rfind(s_hash_with_comma.substr(0,14));//mssql_2000:
