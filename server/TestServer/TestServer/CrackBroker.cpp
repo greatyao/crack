@@ -630,14 +630,8 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 			break;
 		case WI_STATUS_RUNNING:
 
-			//pCB->m_status = WI_STATUS_RUNNING;
-			//updateReadyQueue(pCB);
-
 			pCB->m_status = WI_STATUS_RUNNING;
-		//	((CCrackTask *)(pCB->task))->m_runing_num +=1;
 			checkReadyQueue((CCrackTask *)(pCB->task));
-
-
 			break;
 		case WI_STATUS_CRACKED:
 			CLog::Log(LOG_LEVEL_WARNING, "**** WorkItem [guid=%s] password=\"%s\" ****\n",pReq->guid,pReq->password);

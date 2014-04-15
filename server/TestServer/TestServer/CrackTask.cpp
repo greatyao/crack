@@ -494,7 +494,7 @@ int CCrackTask::updateStatusToFinish(struct crack_result *result,int hash_index)
 			setCrackBlockStatus(WI_STATUS_NOT_NEED,hash_index);
 			
 
-			this->m_finish_num +=1;
+			//this->m_finish_num +=1;
 
 			//判断任务Task 是否结束
 			ret = setFinishByHash();
@@ -514,14 +514,16 @@ int CCrackTask::updateStatusToFinish(struct crack_result *result,int hash_index)
 			
 			//当前hash 是否解密完成，未解密完成，继续解密;解密完成，设置状态
 			
-			this->m_finish_num +=1;
+			this->m_finish_num +=1;	
 
+			//ret =1 , hash 中的所有block 都已结束; ret=0, hash 中包含未计算完成的block 
 			ret = checkBlockOfHash(hash_index);
 			if (ret == 1){
 				
 				pCCH->m_status = HASH_STATUS_NO_PASS;
 				pCCH->m_progress = 100.0;
 
+				//ret = 1, 任务中所有的hash 都已计算完成;ret = 0, 任务中的hash 并没有全部计算完成
 				ret = setFinishByHash();
 				if (ret == 1){
 
@@ -578,13 +580,31 @@ int CCrackTask::setCrackBlockStatus(char status,int hash_index){
 
 		pCB = iter_block->second;
 
-		if((pCB->hash_idx == hash_index) && ((pCB->m_status == WI_STATUS_READY) || (pCB->m_status ==WI_STATUS_RUNNING))){
+	/*	if((pCB->hash_idx == hash_index) && ((pCB->m_status == WI_STATUS_READY) || (pCB->m_status ==WI_STATUS_RUNNING))){
 
 			pCB->m_status = status;
 			this->m_runing_num +=1;
 
 		}
-	
+	*/
+		if (pCB->hash_idx == hash_index){
+			
+			if (pCB->m_status == WI_STATUS_READY){
+
+				pCB->m_status = status;
+				this->m_runing_num +=1;
+				m_finish_num +=1;
+
+
+			}else if ((pCB->m_status == WI_STATUS_RUNNING) ||(pCB->m_status == WI_STATUS_LOCK)){
+
+				pCB->m_status = status;
+				m_finish_num +=1;
+				
+			}
+
+
+		}
 	}
 	return ret;
 
@@ -623,7 +643,7 @@ int CCrackTask::checkBlockOfHash(int hash_index){
 
 		pCB = iter_block->second;
 
-		if((pCB->hash_idx == hash_index) && ((pCB->m_status == WI_STATUS_READY) || (pCB->m_status ==WI_STATUS_RUNNING))){
+		if((pCB->hash_idx == hash_index) && ((pCB->m_status == WI_STATUS_READY) || (pCB->m_status ==WI_STATUS_RUNNING) || (pCB->m_status ==WI_STATUS_LOCK))){
 
 			ret = 0;
 			break;
