@@ -173,27 +173,30 @@ void CDlgTaskStatus::OnNMDblclkListTask(NMHDR *pNMHDR, LRESULT *pResult)
 
 	int num = ret/sizeof(task_result_info);
 	int i = 0;
+	const char* status_msg[] = {"就绪", "完成1", "运行", "完成2", "错误"};
 
 	CString temp, buffer("");
 	for(i=0;i < num;i ++ ){
-
 		p = &pres[i];
-		CLog::Log(LOG_LEVEL_WARNING,"Get Task Result : %s ,%d,%s\n",p->john,p->status,p->password);
 		
-		if(p->password[0])
-		{
-			temp.Format("Hash : %s, status :%d ,password : %s\n",p->john,p->status,p->password);
-			buffer += temp;
-		}
+		CString st("未知");
+		if(p->status >= HASH_STATUS_READY || p->status <= HASH_STATUS_FAILURE)
+			st = status_msg[p->status];
+
+		CLog::Log(LOG_LEVEL_WARNING,"Hash:%s, status:%s, password: %s\n",p->john, st, p->password);
 		
+		if(p->status == HASH_STATUS_FINISH)
+			temp.Format("哈希值：%s, 状态：%s , 密码:%s\n", p->john, st, p->password);
+		else if(p->status == HASH_STATUS_NO_PASS)
+			temp.Format("哈希值：%s, 状态：%s , 未解出密码\n", p->john, st);
+		else
+			temp.Format("哈希值：%s, 状态：%s\n", p->john, st);
+		buffer += temp;
 	}
 
 	g_packmanager._free(pres);
 
-	if(buffer[0]==0)
-		AfxMessageBox("没有解密结果");
-	else
-		AfxMessageBox(buffer);
+	AfxMessageBox(buffer);
 
 	*pResult = 0;
 }
