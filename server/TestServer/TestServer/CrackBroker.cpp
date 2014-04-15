@@ -191,11 +191,13 @@ int	CCrackBroker::StartTask(struct task_start_req *pReq){
 		pCT = iter_task->second;
 		//Task status --> Running , the block status --> ready
 		ret = pCT->SetStatus(CT_STATUS_RUNNING);
+		
+		//任务被放入循环队列队尾，等待调度
+		if(ret == 0){	//必须确保SetStatus执行成功
+			m_cracktask_ready_queue.push_back(pCT->guid);
+			CLog::Log(LOG_LEVEL_WARNING,"CrackTask: Set %s Ready and Start\n", pCT->guid);
+		}
 	}
-	//任务被放入循环队列队尾，等待调度
-	m_cracktask_ready_queue.push_back(pCT->guid);
-
-	CLog::Log(LOG_LEVEL_WARNING,"CrackTask :%d %d %s %d %s %d %d\n",pCT->algo,pCT->charset,pCT->filename,pCT->type,pCT->guid,pCT->startLength,pCT->endLength);
 //	m_cracktask_cs.Unlock();
 	
 	return ret;
