@@ -114,7 +114,8 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 	const char* fmt;
 	unsigned short platformId = deviceIds[0] >> 8;
         unsigned short ids[16] = {0};
-	char local_mask[36]={0};
+	char local_mask[128]={0};
+	char local_mask2[128]={0};
 	char cmd[4096];
         char others[128];
 	int i,j;
@@ -161,7 +162,6 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 		//sprintf(cmd, fmt, start, end, charsets[charset], others, item->john);
 		break;
 	case mask:
-		//printf("orginal mask %s \n",item->masks);
 		if(item->maskLength>18||item->maskLength<1)
 			return ERR_INVALID_PARAM;
 		for(unsigned short i=0;i < item->maskLength;i++)
@@ -178,17 +178,31 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 					case charset_ualpha:
 						sprintf(local_mask,"%s%s",local_mask,"?u");
 						break;
+					case charset_lalphanum:
+						sprintf(local_mask,"%s%s",local_mask,"?1");
+						break;
+					case charset_ualphanum:
+						sprintf(local_mask,"%s%s",local_mask,"?1");
+						break;
+					case charset_alphanum:
+						sprintf(local_mask,"%s%s",local_mask,"?1");
+                                                break;
 					default:
 						sprintf(local_mask,"%s%s",local_mask,"?a");
 						break;
 				}
 			}
 			else{
-		//		printf("###%c### \n",item->masks[i]);
 				sprintf(local_mask,"%s%c",local_mask,item->masks[i]);
 			}
 		}
-		sprintf(cmd,fmt,others,item->john,local_mask);
+		if(item->charset==charset_lalphanum)
+			sprintf(local_mask2,"--custom-charset1=?l?d %s", local_mask);
+		if(item->charset==charset_ualphanum)
+			sprintf(local_mask2,"--custom-charset1=?u?d %s", local_mask);
+		if(item->charset==charset_alphanum)
+                        sprintf(local_mask2,"--custom-charset1=?u?l?d %s", local_mask);
+		sprintf(cmd,fmt,others,item->john,local_mask2);
 		break;
 	default:
 		CLog::Log(LOG_LEVEL_NOMAL, "#######   crack type: %d  ###########\n",type);
@@ -274,8 +288,8 @@ void *oclHashcat::MonitorThread(void *p)
 		//CLog::Log(LOG_LEVEL_NOMAL,"read[%d]\n", n);
 		s = buffer;
 		
-		if(n>0)
-			CLog::Log(LOG_LEVEL_NOMAL,"%s\n", buffer);
+		//if(n>0)
+		//	CLog::Log(LOG_LEVEL_NOMAL,"%s\n", buffer);
 		
 		if(algo==algo_mssql_2000)
 			idx = s.rfind(s_hash_with_comma.substr(0,14));//mssql_2000:
