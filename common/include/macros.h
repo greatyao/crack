@@ -21,17 +21,17 @@ struct control_header
 enum
 {
 	//// 控制端发出的命令
-	COMMAND_ACTIVED = 0x00,			// 服务端可以激活开始工作
-	COMMAND_REMOVE,					// 程序退出
-	COMMAND_REPLAY_HEARTBEAT,		// 回复心跳包
-	COMMAND_COMP_HEARTBEAT,			// 回复心跳包
+	CMD_ACTIVED = 0x00,			// 服务端可以激活开始工作
+	CMD_REMOVE,					// 程序退出
+	CMD_REPLAY_HEARTBEAT,		// 回复心跳包
+	CMD_COMP_HEARTBEAT,			// 回复心跳包
 	
 	//
 	//
 	//// 服务端发出的标识
-	TOKEN_AUTH = 100,				// 要求验证
-	TOKEN_HEARTBEAT,				// 心跳包
-	TOKEN_LOGIN,					// 上线包
+	CMD_AUTH = 100,				// 要求验证
+	CMD_HEARTBEAT,				// 心跳包
+	CMD_LOGIN,					// 上线包
 	//
 	////获取客户端
 	////踢人

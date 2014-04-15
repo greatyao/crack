@@ -185,7 +185,7 @@ int CPackManager::DoLoginPack(client_login_req req){
 
 	CLog::Log(LOG_LEVEL_WARNING,"Send TOKEN LOGIN ...\n");
 	LockSocket();
-	ret = m_sockclient.Write(TOKEN_LOGIN,0,&req,sizeof(client_login_req));
+	ret = m_sockclient.Write(CMD_LOGIN,0,&req,sizeof(client_login_req));
 	if (ret < 0){
 		UnLockSocket();
 		CLog::Log(LOG_LEVEL_WARNING,"Send TOKEN LOGIN Error\n");
@@ -217,7 +217,7 @@ int CPackManager::DoKeeplivePack(){
 
 	CLog::Log(LOG_LEVEL_WARNING,"Send HeartBeat Req...\n");
 	LockSocket();
-	ret = m_sockclient.Write(TOKEN_HEARTBEAT,0,NULL,0);
+	ret = m_sockclient.Write(CMD_HEARTBEAT,0,NULL,0);
 	if (ret < 0){
 
 		UnLockSocket();

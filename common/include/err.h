@@ -19,5 +19,6 @@
 #define ERR_CHILDEXIT			-14		//子进程已经结束
 #define ERR_NOENTRY				-15		//配置文件中没有该字段的相关信息
 #define ERR_DOWNLOADFILE		-16		//下载文件错误
+#define ERR_NO_SUPPORT_TYPE		-17		//不支持该破解类型
 
 #endif

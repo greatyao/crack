@@ -81,7 +81,7 @@ int client_login(void *pclient, unsigned char * pdata, UINT len){
 
 	//产生应答报文，并发送
 
-	int m = Write(*(SOCKET*)pclient, TOKEN_LOGIN, 0, NULL,0,true);
+	int m = Write(*(SOCKET*)pclient, CMD_LOGIN, 0, NULL,0,true);
 	if (m < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Login :Send Response Error %d \n",ip,port,m);
 		
@@ -1000,9 +1000,9 @@ int client_quit(void *pclient,unsigned char *pdata,UINT len){
 //函数映射表出始化
 static FUNC_MAP::value_type func_value_type[] ={
 
-	FUNC_MAP::value_type(TOKEN_HEARTBEAT,client_keeplive),
+	FUNC_MAP::value_type(CMD_HEARTBEAT,client_keeplive),
 
-	FUNC_MAP::value_type(TOKEN_LOGIN,client_login),
+	FUNC_MAP::value_type(CMD_LOGIN,client_login),
 	FUNC_MAP::value_type(CMD_GET_A_WORKITEM,comp_get_a_workitem),
 	FUNC_MAP::value_type(CMD_WORKITEM_STATUS,comp_get_workitem_status),
 	FUNC_MAP::value_type(CMD_WORKITEM_RESULT,comp_get_workitem_res),

@@ -107,7 +107,7 @@ void* Client::MonitorThread(void* p)
 			sleep(10);
 			
 			Lock lk(&client->mutex);
-			unsigned char cmd = TOKEN_HEARTBEAT;
+			unsigned char cmd = CMD_HEARTBEAT;
 			int n = client->Write(cmd, NULL, 0);
 			if(n == ERR_CONNECTIONLOST) 
 				break;
@@ -116,7 +116,7 @@ void* Client::MonitorThread(void* p)
 			short status;
 			int m = client->Read(&cmd, &status, buf, sizeof(buf));
 			
-			if(cmd == COMMAND_COMP_HEARTBEAT)
+			if(cmd == CMD_COMP_HEARTBEAT)
 			{
 				keeplive_compclient* ka = (keeplive_compclient*)buf;
 				CLog::Log(LOG_LEVEL_NOMAL, "Client: Special Hearbreak cmd %d [%d,%d]\n", cmd, ka->tasks, ka->blocks);
@@ -188,7 +188,7 @@ int Client::Connect(const char* ip, unsigned short port)
 	//struct timeval timeout = {3, 0};
 	//setsockopt(sck, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 	
-	unsigned char cmd = TOKEN_LOGIN;
+	unsigned char cmd = CMD_LOGIN;
 	if(linfo.m_osinfo[0] == 0)
 	{
 		FILE* f = fopen("/etc/issue", "r");
