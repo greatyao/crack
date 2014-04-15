@@ -58,7 +58,7 @@ int CCrackBroker::ClientKeepLive2(const char *ip, void* s, unsigned char* cmd, v
 	//不是计算节点，直接发送简单的心跳回应包
 	if(pCI == NULL || pCI->m_type != COMPUTE_TYPE_CLIENT)
 	{
-		*cmd = COMMAND_REPLAY_HEARTBEAT;
+		*cmd = CMD_REPLAY_HEARTBEAT;
 		return 0;
 	}
 
@@ -72,7 +72,7 @@ int CCrackBroker::ClientKeepLive2(const char *ip, void* s, unsigned char* cmd, v
 		//对ka->guids进行赋值
 	}
 
-	*cmd = COMMAND_COMP_HEARTBEAT;
+	*cmd = CMD_COMP_HEARTBEAT;
 	*data = ka;
 	return len;
 }
