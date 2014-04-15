@@ -803,20 +803,10 @@ int CCrackBroker::getStatusFromTask(CCrackTask *pCT,task_status_info *pRes){
 int CCrackBroker::getBlockFromCrackBlock(CCrackBlock *pCB,struct crack_block *pRes){
 	
 	int ret = 0;
-	
-	pRes->algo = pCB->algo;
-	pRes->charset = pCB->charset;
-	pRes->end = pCB->end;
-	pRes->end2 = pCB->end2;
-	memcpy(pRes->guid,pCB->guid,40);
-	memcpy(pRes->john,pCB->john,sizeof(struct crack_hash));
-	
-	pRes->special = pCB->special;
-	pRes->start = pCB->start;
-	pRes->start2 = pCB->start2;
-	pRes->type = pCB->type;
+	crack_block* parent = pCB;
+	memcpy(pRes, parent, sizeof(crack_block));
 	pRes->task = pCB->task;
-
+	
 	return ret;
 }
 
