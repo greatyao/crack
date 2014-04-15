@@ -135,7 +135,8 @@ struct crack_block
 		
 		struct{
 			unsigned short maskLength;	//长度
-			char masks[18];				//掩码值(字符串138??????表示前3位为138，后6位为指定的charset值)
+			char masks[9];				//掩码值(字符串138??????表示前3位为138，后6位为指定的charset值)
+			char masks2[9];				//终结掩码值 (aa?????-az?????)
 		};
 	};
 		
