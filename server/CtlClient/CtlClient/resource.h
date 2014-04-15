@@ -18,10 +18,6 @@
 #define IDC_COMBO_CHARSET               1002
 #define IDC_COMBO3                      1003
 #define IDC_COMBO_TYPE                  1003
-#define IDC_RADIO1                      1004
-#define IDC_RADIO_IS_FILE               1004
-#define IDC_RADIO2                      1005
-#define IDC_RADIO_NO_FILE               1005
 #define IDC_EDIT1                       1006
 #define IDC_EDIT_LEN_MIN                1006
 #define IDC_EDIT2                       1007
