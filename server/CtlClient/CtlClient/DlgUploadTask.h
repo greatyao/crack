@@ -35,7 +35,6 @@ public:
 	CComboBox m_combocharset;
 	CComboBox m_dectype;
 
-
 	CString m_startlength;
 	CString m_endlength;
 	CString m_filename;
@@ -43,7 +42,6 @@ public:
 	afx_msg void OnBnClickedButton1();
 	afx_msg void OnBnClickedOk();
 	
-	CButton m_btndec;
 	CEdit m_EditLenMin;
 	CEdit m_EditLenMax;
 	afx_msg void OnNMCustomdrawSlider2(NMHDR *pNMHDR, LRESULT *pResult);

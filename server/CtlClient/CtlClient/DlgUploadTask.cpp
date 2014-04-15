@@ -137,10 +137,6 @@ VOID CDlgUploadTask::ComboInit(){
 	m_comboalgo.SetCurSel(0);
 	m_combocharset.SetCurSel(0);
 	m_dectype.SetCurSel(0);
-
-	m_btndec.SetCheck(TRUE);
-	return ;
-
 }
 
 BOOL CDlgUploadTask::OnInitDialog(){
