@@ -376,7 +376,7 @@ void CDlgTaskStatus::OnBnClickedBtnStart()
 
 				CLog::Log(LOG_LEVEL_WARNING,"开始任务  %s  失败，错误代码 : %d\n",req.guid,ret);
 			}
-
+			m_ListStatus.SetCheck(i,0);
 		}
 	}
 }
@@ -403,7 +403,7 @@ void CDlgTaskStatus::OnBnClickedBtnPause()
 
 				CLog::Log(LOG_LEVEL_WARNING,"开始任务  %s  失败，错误代码 : %d\n",req.guid,ret);
 			}
-
+			m_ListStatus.SetCheck(i,0);
 		}
 	}
 }
@@ -458,7 +458,7 @@ void CDlgTaskStatus::OnBnClickedBtnStop()
 
 				CLog::Log(LOG_LEVEL_WARNING,"开始任务  %s  失败，错误代码 : %d\n",req.guid,ret);
 			}
-
+			m_ListStatus.SetCheck(i,0);
 		}
 	}
 }
