@@ -134,9 +134,15 @@ struct crack_block
 		};
 		
 		struct{
-			unsigned short maskLength;	//长度
-			char masks[9];				//掩码值(字符串138??????表示前3位为138，后6位为指定的charset值)
-			char masks2[9];				//终结掩码值 (aa?????-az?????)
+			unsigned short maskLength:8;	//长度
+			unsigned short flag:8;			//0表示task中给定的算法类型就是掩码；1表示task中给定的算法类型是暴力破解中切分出来的
+			union{
+				char masks[18];				//掩码值(字符串138??????表示前3位为138，后6位为指定的charset值)
+				struct{
+					char masks1[9];				//起始掩码值 (aa?????-az?????)
+					char masks2[9];				//终结掩码值 (aa?????-az?????)
+				};
+			};
 		};
 	};
 		
