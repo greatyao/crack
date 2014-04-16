@@ -704,6 +704,7 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 	int len = s_charsets.length();
 	int fenshu = 1;
 	int step = 1;
+	int totalStep = 1;
 	const int MAX_D = 4;
 	nsplits = 0;
 	for(int i = pct->startLength; i <= pct->endLength; i++)
@@ -742,6 +743,7 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 		{
 			fenshu = ceil(1.0*ll/one);
 			step = ceil(1.0*len/fenshu);
+			totalStep = len;
 		}
 		
 		//ÑÚÂë
@@ -797,10 +799,13 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 			cb_result.push_back(m_cb);
 			nsplits++;
 
-			if(++aSplit >= fenshu) break;
+			if(++aSplit >= fenshu || aStep >= totalStep ) break;
 		}while(1);
 
-		if(d < MAX_D)	fenshu *= len;
+		if(d < MAX_D){
+			fenshu *= len;
+			totalStep *= len;
+		}
 		d++;
 		if(d > MAX_D) d = MAX_D;
 
