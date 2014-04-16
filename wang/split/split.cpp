@@ -705,20 +705,28 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 	int fenshu = 1;
 	int step = 1;
 	int totalStep = 1;
-	const int MAX_D = 4;
+	const int MAX_D = (len>=52) ? 3 : 4;
 	nsplits = 0;
 	for(int i = pct->startLength; i <= pct->endLength; i++)
 	{
-
+		int rLength = pct->endLength - i + 1;
 		double ll = (double)pow((double)len, i);
 		if(ll < one)continue;
 
-		if(flag == false)
+		if(flag == false || rLength >= MAX_D)
 		{
 			//第一份，暴力破解
 			crack_block m_cb;
-			m_cb.start = pct->startLength;
-			m_cb.end   = i -1;
+			if(flag == false)
+			{
+				m_cb.start = pct->startLength;
+				m_cb.end   = i -1;
+			}
+			else
+			{
+				m_cb.start = i-1;
+				m_cb.end   = i-1;
+			}
 
 			m_cb.type   = bruteforce;
 			m_cb.algo   = pct->algo;
@@ -737,11 +745,14 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 			#endif
 			
 			flag = true;
+			if(rLength > MAX_D)
+				continue;
 		}
 
 		if(fenshu == 1)
 		{
 			fenshu = ceil(1.0*ll/one);
+			if(fenshu >= len) fenshu = (len+2)/3;
 			step = ceil(1.0*len/fenshu);
 			totalStep = len;
 		}
