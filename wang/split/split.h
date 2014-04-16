@@ -27,7 +27,9 @@ private:
 	
 	string make_character_table(enum crack_charset);//生成字符集数组
 	bool init_bf(unsigned len_min,unsigned len_max,char *character_set);//初始化
-	
+		
+	struct crack_block *split_mask(struct crack_task *pct,unsigned &nsplits);
+	struct crack_block *split_dic(struct crack_task *pct,unsigned &nsplits);
 public:
 	csplit();
 	~csplit();
@@ -37,11 +39,6 @@ public:
 	struct crack_block *split_default(struct crack_task *pct,unsigned &nsplits);
 	struct crack_block *split_easy(struct crack_task *pct,unsigned &nsplits);
 	struct crack_block *split_normal(struct crack_task *pct,unsigned &nsplits);
-	
-	struct crack_block *split_mask(struct crack_task *pct,unsigned &nsplits);
-	struct crack_block *split_dic(struct crack_task *pct,unsigned &nsplits);
-
-	
 	struct crack_block *split_intelligent(struct crack_task *pct,unsigned &nsplits);
 
 	void release_splits(char *p);//释放

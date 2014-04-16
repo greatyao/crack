@@ -702,6 +702,18 @@ struct crack_block *csplit::split_dic(struct crack_task *pct,unsigned &nsplits)
 	return p_crack_block;
 }
 
+static void helper(const string& s, char* masks, int d, int idx)
+{
+	int len = s.length();
+	//printf("helper %d\n", idx);
+	for(int i = d-1; i>=0; i--)
+	{
+		int shang = idx % len;
+		masks[i] = s[shang];
+		idx /= len;
+	}
+}
+
 //智能高级切割
 struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &nsplits)
 {
@@ -711,115 +723,154 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 		return 0;
 	}
 
+	if((pct->type==mask))
+	{
+		return split_mask(pct,nsplits);
+	}
+	else if((pct->type==dict))
+	{
+		return split_dic(pct,nsplits);
+	}
+
 	//生成字符集字符表
 	string s_charsets = make_character_table((crack_charset)pct->charset);
-	//计算密码穷举数量
-	Big_Int nCombination = compute_combinations(s_charsets.length(),pct->endLength,pct->startLength);
-	//定义每份切割的密码量
-	Big_Int nOneSplits("1FFFFFFFF00",16);
-	//定义最大份数
-	Big_Int nMaxSplits("1000",10);
-
-	//密码空间比每份切割小，则切一份
-	if(nOneSplits>=nCombination)
-	{
-		nsplits = 1;
-	}
-	else
-	{
-		Big_Int temp;
-		temp = nCombination/nOneSplits;
-		if(temp>nMaxSplits)
-		{
-			printf("切割份数太多\n");
-			return 0;
-		}
-		else
-		{
-			nsplits = temp.toUlong()+1;
-		}	
-	}
-
-	Big_Int nTemp(0);
 
 	//保存切割结果
 	vector <crack_block> cb_result;
 
-	#ifdef _DEBUG
-	printf("max %d\n",cb_result.max_size());
-	#endif
-
-	//不管怎么切，第一份始终为暴力破解
-	if(nsplits==1)//只切一份
+	bool flag = false;//是否第一份切割标记
+	int d = 1;
+	double one = 188.0e12 /(double)speed_algorithm[pct->algo];//每份长度
+	int len = s_charsets.length();
+	int fenshu = 1;
+	int step = 1;
+	const int MAX_D = 4;
+	nsplits = 0;
+	for(int i = pct->startLength; i <= pct->endLength; i++)
 	{
-		crack_block m_cb;
-		
-		m_cb.algo    = pct->algo;//算法
-		m_cb.charset = pct->charset;//字符集
-		m_cb.type    = pct->type;
-		m_cb.special = pct->special;
-		m_cb.hash_idx = 0;
 
-		new_guid( m_cb.guid, sizeof(m_cb.guid) );
-		memcpy( m_cb.john, pct->hashes[0].hash, sizeof(struct crack_hash) );
+		double ll = (double)pow((double)len, i);
+		if(ll < one)continue;
 
-		//开始结束长度
-		m_cb.start = pct->startLength;
-		m_cb.end   = pct->endLength;
-		//开始结束索引		
-		m_cb.start2 = 0;
-		m_cb.end2   = s_charsets.length()-1;
-
-		//保存结果
-		cb_result.push_back(m_cb);
-	}
-	else{
-		string s_first = integer_to_string(s_charsets,nOneSplits);
-		//处理第一份暴力破解数据		
-		crack_block m_cb;
-		
-		m_cb.algo    = pct->algo;//算法
-		m_cb.charset = pct->charset;//字符集
-		m_cb.type    = pct->type;
-		m_cb.special = pct->special;
-		m_cb.hash_idx = 0;
-
-		new_guid( m_cb.guid, sizeof(m_cb.guid) );
-		memcpy( m_cb.john, pct->hashes[0].hash, sizeof(struct crack_hash) );
-
-		//开始结束长度
-		m_cb.start = pct->startLength;
-		m_cb.end   = s_first.length()-1;
-		//开始结束索引		
-		m_cb.start2 = 0;
-		m_cb.end2   = s_charsets.length()-1;
-
-		//保存结果
-		cb_result.push_back(m_cb);
-
-		//累加
-		nTemp = nTemp + compute_combinations(s_charsets.length(), s_first.length()-1,pct->startLength);
-		nsplits = 1;
-		//切N份
-		while(nTemp<nCombination)
+		if(flag == false)
 		{
-			//掩码
-			if(nTemp+nOneSplits>=nCombination)//最后一份
-			{
-			}
-			else{
+			//第一份，暴力破解
+			crack_block m_cb;
+			m_cb.start = pct->startLength;
+			m_cb.end   = i -1;
 
+			m_cb.type   = bruteforce;
+			m_cb.algo   = pct->algo;
+			m_cb.charset= pct->charset;
+			m_cb.special= pct->special;
+			m_cb.hash_idx = 0;
+
+			new_guid( m_cb.guid, sizeof(m_cb.guid) );
+			memcpy( m_cb.john, pct->hashes[0].hash, sizeof(struct crack_hash) );
+
+
+			nsplits++;
+			cb_result.push_back(m_cb);
+			#ifdef _DEBUG
+			printf("第%d份 暴力破解[%d, %d]\n", nsplits, m_cb.start, m_cb.end);
+			#endif
+			
+			flag = true;
+		}
+
+		if(fenshu == 1)
+		{
+			fenshu = ceil(1.0*ll/one);
+			step = ceil(1.0*len/fenshu);
+		}
+		
+		//掩码
+		crack_block m_cb = {0};
+		m_cb.flag = 1;
+		m_cb.type = mask;
+		m_cb.maskLength = i;
+
+		m_cb.algo    = pct->algo;//算法
+		m_cb.charset = pct->charset;//字符集
+		m_cb.special = pct->special;
+		m_cb.hash_idx= 0;
+
+		new_guid( m_cb.guid, sizeof(m_cb.guid) );
+		memcpy( m_cb.john, pct->hashes[0].hash, sizeof(struct crack_hash) );
+	
+		#ifdef _DEBUG
+		printf("掩码破解 长度%d, 份数%d 步长%d\n", i, fenshu, step);
+		#endif
+		
+
+		//for(int j = 0; j < fenshu; j++)
+		int aStep = 0;
+		int aSplit = 0;
+		do
+		{
+			memset(m_cb.masks1, 0, sizeof(m_cb.masks1));
+			memset(m_cb.masks2, 0, sizeof(m_cb.masks2));
+
+			//前面的
+			if((aStep % len) + step < len)
+			{
+				helper(s_charsets, m_cb.masks1, d, aStep);
+				helper(s_charsets, m_cb.masks2, d, aStep+step-1); 
+				aStep += step;
 			}
-			nTemp=nTemp+nOneSplits;
-			//暂未实现
+			else
+			{
+				helper(s_charsets, m_cb.masks1, d, aStep);
+				aStep = aStep/len*len+len;
+				helper(s_charsets, m_cb.masks2, d, aStep-1); 
+			}
+			#ifdef _DEBUG
+			printf("第%d份:掩码破解 【%s-%s】\n", nsplits+1,  m_cb.masks1, m_cb.masks2);
+			#endif
+
+			//将后面的设成？
+			int maskLen = i < sizeof(m_cb.masks1) ? i : sizeof(m_cb.masks1);
+			for(int k = d; k <= maskLen; k++)
+			{
+				m_cb.masks1[k] = -1;
+				m_cb.masks2[k] = -1;
+			}
+
 			cb_result.push_back(m_cb);
 			nsplits++;
-		}
+
+			if(++aSplit >= fenshu) break;
+		}while(1);
+
+		if(d < MAX_D)	fenshu *= len;
+		d++;
+		if(d > MAX_D) d = MAX_D;
+
+	}
+
+	if(flag == false)
+	{
+		//切割一份
+		crack_block m_cb;
+		m_cb.type = bruteforce;
+		m_cb.start = pct->startLength;
+		m_cb.end = pct->endLength;
+
+		m_cb.algo   = pct->algo;
+		m_cb.charset= pct->charset;
+		m_cb.special= pct->special;
+		m_cb.hash_idx = 0;
+
+		new_guid( m_cb.guid, sizeof(m_cb.guid) );
+		memcpy( m_cb.john, pct->hashes[0].hash, sizeof(struct crack_hash) );
+		
+		cb_result.push_back(m_cb);
+		nsplits++;
 	}
 
 	struct crack_block *p_crack_block = (crack_block *)malloc(sizeof(struct crack_block)*nsplits*pct->count);
 	//vector 写入p_crack_block
-	for(int i=0; i<cb_result.size(); i++)
+	for(size_t i=0; i<cb_result.size(); i++)
 	{		
 		crack_block m_cb = cb_result.back();
 		memcpy(&p_crack_block[i],&m_cb,sizeof(struct crack_block));
