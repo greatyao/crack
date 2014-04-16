@@ -96,15 +96,17 @@ BOOL CDlgTaskStatus::OnInitDialog()
 	//初始化CListCtrl
 	ListView_SetExtendedListViewStyle(m_ListStatus.m_hWnd,LVS_EX_GRIDLINES| LVS_EX_FULLROWSELECT|LVS_EX_CHECKBOXES );
 
+
 	m_ListStatus.InsertColumn(0, _T("选择"), LVCFMT_LEFT, 40);
 	m_ListStatus.InsertColumn(1, _T("状态"), LVCFMT_LEFT, 70);
-	m_ListStatus.InsertColumn(2, _T("任务GUID"), LVCFMT_LEFT, 160);
+	m_ListStatus.InsertColumn(2, _T("GUID"), LVCFMT_LEFT, 160);
 	m_ListStatus.InsertColumn(3, _T("算法"), LVCFMT_LEFT, 60);
-	m_ListStatus.InsertColumn(4, _T("已用时间"), LVCFMT_LEFT, 70);
-	m_ListStatus.InsertColumn(5, _T("剩余时间"), LVCFMT_LEFT, 70);
-	m_ListStatus.InsertColumn(6, _T("进度"), LVCFMT_LEFT, 60);
-	m_ListStatus.InsertColumn(7, _T("切割份数"), LVCFMT_LEFT, 70);
-	m_ListStatus.InsertColumn(8, _T("完成份数"), LVCFMT_LEFT, 70);
+	m_ListStatus.InsertColumn(4, _T("进度"), LVCFMT_LEFT, 60);
+	m_ListStatus.InsertColumn(5, _T("速度"), LVCFMT_LEFT, 60);
+	m_ListStatus.InsertColumn(6, _T("剩余时间"), LVCFMT_LEFT, 70);
+	m_ListStatus.InsertColumn(7, _T("已用时间"), LVCFMT_LEFT, 70);
+	m_ListStatus.InsertColumn(8, _T("切割份数"), LVCFMT_LEFT, 70);
+	m_ListStatus.InsertColumn(9, _T("完成份数"), LVCFMT_LEFT, 70);
 
 	SetTimer(1,3000,NULL);//启动定时器1,定时时间是10秒
 
@@ -295,22 +297,45 @@ void CDlgTaskStatus::OnBnClickedBtnRefresh()
 
 		p = &pres[i];
 
+		//0选择
 		m_ListStatus.InsertItem(i,"");
-		m_ListStatus.SetItemText(i,2,(char *)p->guid);
 
+		//1状态
+		memset(tmpbuf,0,128);
+		GetStatusStrByCmd(p->status,tmpbuf);
+		m_ListStatus.SetItemText(i,1,tmpbuf);
+
+		//2任务GUID
+		m_ListStatus.SetItemText(i,2,(char *)p->guid);
 		if(sFlags.Find((char*)p->guid,0)>=0)
 		{
 			m_ListStatus.SetCheck(i,1);
 		}
 
-		//算法
+		//3算法
 		if( (p->m_algo>algo_wpa)||(p->m_algo<algo_md4) )
 			sprintf(tmpbuf,"%s","无法识别");
 		else
 			sprintf(tmpbuf,"%s",crack_algorithm_string[p->m_algo]);
 		m_ListStatus.SetItemText(i,3,tmpbuf);
 
-		unsigned int t_sec = p->m_running_time;
+		
+		//4进度
+		sprintf(tmpbuf,"%.1f%%",(p->m_progress));
+		m_ListStatus.SetItemText(i,4,tmpbuf);
+
+		//5速度
+		if(p->m_speed>1000000.0)
+			sprintf(tmpbuf,"%.2fM c/s",(p->m_speed/1000000.0));
+		else if(p->m_speed>1000.0)
+			sprintf(tmpbuf,"%.2fK c/s",(p->m_speed/1000.0));
+		else
+			sprintf(tmpbuf,"%.0f c/s",(p->m_speed));
+		m_ListStatus.SetItemText(i,5,tmpbuf);
+
+		
+		//6 剩余时间
+		unsigned int t_sec = p->m_remain_time;
 		unsigned int t_sec_s = t_sec%60 ;
 		unsigned int t_sec_m = (t_sec/60)%60 ;
 		unsigned int t_sec_h = t_sec/(60*60) ;
@@ -321,11 +346,12 @@ void CDlgTaskStatus::OnBnClickedBtnRefresh()
 		else
 			sprintf(tmpbuf,"%d秒",t_sec_s);
 		if(t_sec==-1)
-		m_ListStatus.SetItemText(i,4,"∞");
+		m_ListStatus.SetItemText(i,6,"∞");
 		else
-		m_ListStatus.SetItemText(i,4,tmpbuf);
+		m_ListStatus.SetItemText(i,6,tmpbuf);
 
-		t_sec = p->m_remain_time;
+		//7 已用时间
+		t_sec = p->m_running_time;
 		t_sec_s = t_sec%60 ;
 		t_sec_m = (t_sec/60)%60 ;
 		t_sec_h = t_sec/(60*60) ;
@@ -336,22 +362,17 @@ void CDlgTaskStatus::OnBnClickedBtnRefresh()
 		else
 			sprintf(tmpbuf,"%d秒",t_sec_s);
 		if(t_sec==-1)
-		m_ListStatus.SetItemText(i,5,"∞");
+		m_ListStatus.SetItemText(i,7,"∞");
 		else
-		m_ListStatus.SetItemText(i,5,tmpbuf);
-
-		sprintf(tmpbuf,"%.1f%%",(p->m_progress));
-		m_ListStatus.SetItemText(i,6,tmpbuf);
-		
-		wsprintfA(tmpbuf,"%d",p->m_split_number);
 		m_ListStatus.SetItemText(i,7,tmpbuf);
 		
-		wsprintfA(tmpbuf,"%d",p->m_fini_number);
+		//8 切割份数
+		wsprintfA(tmpbuf,"%d",p->m_split_number);
 		m_ListStatus.SetItemText(i,8,tmpbuf);
 		
-		memset(tmpbuf,0,128);
-		GetStatusStrByCmd(p->status,tmpbuf);
-		m_ListStatus.SetItemText(i,1,tmpbuf);
+		//9 完成份数
+		wsprintfA(tmpbuf,"%d",p->m_fini_number);
+		m_ListStatus.SetItemText(i,9,tmpbuf);
 	}
 	g_packmanager._free(pres);
 }
