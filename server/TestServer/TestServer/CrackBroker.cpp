@@ -584,8 +584,6 @@ int CCrackBroker::GetWIStatus(struct crack_status *pReq){
 	pCB->m_speed = pReq->speed;
 	pCB->m_remaintime = pReq->remainTime;
 
-	CLog::Log(LOG_LEVEL_WARNING,"CrackBlock GUID %s,Remain time : %d\n",pReq->guid,pReq->remainTime);
-
 	pCT = (CCrackTask *)(pCB->task);
 	
 	pCT->RefreshRemainTime();

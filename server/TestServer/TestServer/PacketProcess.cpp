@@ -608,7 +608,7 @@ int cc_task_file_download_start(void *pclient,unsigned char *pdata,UINT len){
 				break;
 
 			}else{
-				CLog::Log(LOG_LEVEL_WARNING,"file download data block .len : %d OK\n",readLen);
+				//CLog::Log(LOG_LEVEL_WARNING,"file download data block .len : %d OK\n",readLen);
 				readLen = 0;
 			}
 		}		
@@ -798,7 +798,7 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 				break;
 
 			}else{	
-				CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get Task File Upload writelen %d OK\n",ip,port,writeFileLen);					
+				//CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get Task File Upload writelen %d OK\n",ip,port,writeFileLen);					
 			}
 		}
 	}
