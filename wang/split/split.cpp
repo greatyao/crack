@@ -330,24 +330,12 @@ struct crack_block *csplit::split_default(struct crack_task *pct,unsigned &nspli
 		if(i==0)//第一个
 		{
 			p_crack_block[i].start = loc_p_ct->startLength;
-			p_crack_block[i].start2 = 0;//索引
 		}
 		else
 		{
 			p_crack_block[i].start = loc_p_ct->endLength;
-			p_crack_block[i].start2 = (i)*(loc_s_charset.length()/nsplits);
 		}
 		p_crack_block[i].end = loc_p_ct->endLength;
-
-		//索引2
-		if( (i+1)==nsplits)//最后一个
-		{
-			p_crack_block[i].end2 = loc_s_charset.length()-1;
-		}
-		else
-		{
-			p_crack_block[i].end2 = (i+1)*(loc_s_charset.length()/nsplits);
-		}
 	}
 
 	if(loc_p_ct->count>1)//多个
@@ -424,31 +412,15 @@ struct crack_block *csplit::split_easy(struct crack_task *pct,unsigned &nsplits)
 		if(i==0)//第一个
 		{
 			p_crack_block[i].start = loc_p_ct->startLength;
-			//p_crack_block[i].start2 = 0;//索引
-			p_crack_block[i].start2 = -1;
 		}
 		else
 		{
 			p_crack_block[i].start = k_pos+i;
-			//p_crack_block[i].start2 = 0;
-			p_crack_block[i].start2 = -1;
 		}
 		if(k_pos>loc_p_ct->endLength)
 			p_crack_block[i].end = loc_p_ct->endLength;
 		else
-		p_crack_block[i].end = k_pos+i;
-
-		//索引2
-		if( (i+1)==nsplits)//最后一个
-		{
-			//p_crack_block[i].end2 = loc_s_charset.length()-1;
-			p_crack_block[i].end2 = -1;//
-		}
-		else
-		{
-			//p_crack_block[i].end2 = loc_s_charset.length()-1;
-			p_crack_block[i].end2 = -1;//
-		}
+			p_crack_block[i].end = k_pos+i;
 	}
 
 	if(loc_p_ct->count>1)//多个
@@ -576,24 +548,12 @@ struct crack_block *csplit::split_normal(struct crack_task *pct,unsigned &nsplit
 		if(i==0)//第一个
 		{
 			p_crack_block[i].start = loc_p_ct->startLength;
-			p_crack_block[i].start2 = 0;//索引
-		}
+	}
 		else
 		{
 			p_crack_block[i].start = loc_p_ct->endLength;
-			p_crack_block[i].start2 = (i)*(loc_s_charset.length()/nsplits);
 		}
 		p_crack_block[i].end = loc_p_ct->endLength;
-
-		//索引2
-		if( (i+1)==nsplits)//最后一个
-		{
-			p_crack_block[i].end2 = loc_s_charset.length()-1;
-		}
-		else
-		{
-			p_crack_block[i].end2 = (i+1)*(loc_s_charset.length()/nsplits);
-		}
 	}
 
 	if(loc_p_ct->count>1)//多个
