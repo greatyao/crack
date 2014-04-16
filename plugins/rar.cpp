@@ -70,6 +70,7 @@ int rar_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 	fd = fopen(filename, "rb");
 	if (fd==NULL)
 	{
+		fclose(fd);
 		if (!hashline) printf("Cannot open file %s\n", filename);
 		return 1;
 	}
@@ -79,6 +80,7 @@ int rar_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 	if ( (signature[0]!=0x52) || (signature[1]!=0x61) || (signature[2]!=0x72) || 
 		(signature[3]!=0x21) || (signature[4]!=0x1a) || (signature[5]!=0x07))
 	{
+		fclose(fd);
 		if (!hashline) printf("Not a RAR3 archive: %s", filename);
 		return 1;
 	}
@@ -196,6 +198,7 @@ int rar_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 out:
 	if ((goodtogo==0)&&(best<1))
 	{
+		fclose(fd);
 		printf("No crackable archive files found, exiting...%s\n","");
 		return 1;
 	}

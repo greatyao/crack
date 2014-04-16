@@ -296,6 +296,7 @@ int msoffice_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 	fd=fopen(filename,"rb");
 	if (!fd)
 	{
+		fclose(fd);
 		return 1;
 	}
 	fseek(fd,0,SEEK_END);
@@ -308,6 +309,7 @@ int msoffice_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 	{
 		//printf("No header signature found!\n");
 		free(buf);
+		fclose(fd);
 		return 1;
 	}
 	index+=24;
@@ -315,6 +317,7 @@ int msoffice_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 	{
 		//printf("Minor version wrong!\n");
 		free(buf);
+		fclose(fd);
 		return 1;
 	}
 	index+=2;
@@ -322,6 +325,7 @@ int msoffice_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 	{
 		//printf("Major version wrong!\n");
 		free(buf);
+		fclose(fd);
 		return 1;
 	}
 	else
@@ -332,6 +336,7 @@ int msoffice_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 		{
 			//printf("Bad sector size!\n");
 			free(buf);
+			fclose(fd);
 			return 1;
 		}
 	}
@@ -369,6 +374,7 @@ int msoffice_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 	if (!stream)
 	{
 		//printf("No stream found!\n");
+		fclose(fd);
 		return 1;
 	}
 
@@ -394,6 +400,7 @@ int msoffice_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 			//printf("External provider not supported!\n");
 			free(buf);
 			free(stream);
+			fclose(fd);
 			return 1;
 		}
 		index+=4;
@@ -446,6 +453,7 @@ int msoffice_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 			//printf("External provider not supported!\n");
 			free(buf);
 			free(stream);
+			fclose(fd);
 			return 1;
 		}
 		index+=4;
@@ -457,6 +465,7 @@ int msoffice_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 			//printf("Expected XML data, got garbage!\n");
 			free(buf);
 			free(stream);
+			fclose(fd);
 			return 1;
 		}
 		startptr = (char*)memmem(stream,strlen(stream+8),"<p:encryptedKey",15);
@@ -465,6 +474,7 @@ int msoffice_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 			//printf("no encryptedKey parameters in XML!\n");
 			free(buf);
 			free(stream);
+			fclose(fd);
 			return 1;
 		}
 		startptr += 15;
@@ -476,6 +486,7 @@ int msoffice_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 			//printf("no spinCount parameters in XML!\n");
 			free(buf);
 			free(stream);
+			fclose(fd);
 			return 1;
 		}
 		token += 11;
@@ -498,6 +509,7 @@ int msoffice_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 			//printf("no keyBits parameters in XML!\n");
 			free(buf);
 			free(stream);
+			fclose(fd);
 			return 1;
 		}
 		token += 9;
@@ -520,6 +532,7 @@ int msoffice_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 			//printf("no saltSize parameters in XML!\n");
 			free(buf);
 			free(stream);
+			fclose(fd);
 			return 1;
 		}
 		token += 10;
@@ -542,6 +555,7 @@ int msoffice_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 			//printf("no hashAlgorithm parameters in XML!\n");
 			free(buf);
 			free(stream);
+			fclose(fd);
 			return 1;
 		}
 		token += 15;
@@ -561,6 +575,7 @@ int msoffice_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 			//printf("Unknown hash algorithm used!\n");
 			free(buf);
 			free(stream);
+			fclose(fd);
 			return 1;
 		}
 		free(token1);
@@ -572,6 +587,7 @@ int msoffice_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 			//printf("no saltValue parameters in XML!\n");
 			free(buf);
 			free(stream);
+			fclose(fd);
 			return 1;
 		}
 		token += 11;
@@ -594,6 +610,7 @@ int msoffice_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 			//printf("no encryptedVerifierHashInput parameters in XML!\n");
 			free(buf);
 			free(stream);
+			fclose(fd);
 			return 1;
 		}
 		token += 28;
@@ -616,6 +633,7 @@ int msoffice_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 			//printf("no encryptedVerifierHashValue parameters in XML!\n");
 			free(buf);
 			free(stream);
+			fclose(fd);
 			return 1;
 		}
 		token += 28;

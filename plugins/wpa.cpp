@@ -60,16 +60,19 @@ int wpa_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 	fd = fopen(filename,"rb");
 	if (fd<0)
 	{
+		fclose(fd);
 		return 1;
 	}
 
 	err = fread(&hccap,1,0x188,fd);
 	if (hccap.eapol_size>256)
 	{
+		fclose(fd);
 		return 1;
 	}
 	if (hccap.keyver!=1)
 	{
+		fclose(fd);
 		return 1;
 	}
 

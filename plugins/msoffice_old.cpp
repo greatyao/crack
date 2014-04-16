@@ -306,6 +306,7 @@ int msoffice_old_parse_hash(char *hashline, char *filename, struct crack_hash* h
 	fd=fopen(filename,"rb");
 	if (!fd)
 	{
+		fclose(fd);
 		return 1;
 	}
 	fseek(fd,0,SEEK_END);
@@ -317,6 +318,7 @@ int msoffice_old_parse_hash(char *hashline, char *filename, struct crack_hash* h
 	{
 		//printf("No header signature found!\n");
 		free(buf);
+		fclose(fd);
 		return 1;
 	}
 	index+=24;
@@ -324,6 +326,7 @@ int msoffice_old_parse_hash(char *hashline, char *filename, struct crack_hash* h
 	{
 		//printf("Minor version wrong!\n");
 		free(buf);
+		fclose(fd);
 		return 1;
 	}
 	index+=2;
@@ -331,6 +334,7 @@ int msoffice_old_parse_hash(char *hashline, char *filename, struct crack_hash* h
 	{
 		//printf("Major version wrong!\n");
 		free(buf);
+		fclose(fd);
 		return 1;
 	}
 	else
@@ -341,6 +345,7 @@ int msoffice_old_parse_hash(char *hashline, char *filename, struct crack_hash* h
 		{
 			//printf("Bad sector size!\n");
 			free(buf);
+			fclose(fd);
 			return 1;
 		}
 	}
@@ -375,6 +380,7 @@ int msoffice_old_parse_hash(char *hashline, char *filename, struct crack_hash* h
 			if (1 == parse_xls(stream,datasize))
 			{
 				free(stream);
+				fclose(fd);
 				return 1;
 			}
 			break;
@@ -386,6 +392,7 @@ int msoffice_old_parse_hash(char *hashline, char *filename, struct crack_hash* h
 			if (1 == parse_doc(stream,datasize))
 			{
 				free(stream);
+				fclose(fd);
 				return 1;
 			}
 			break;
@@ -396,6 +403,7 @@ int msoffice_old_parse_hash(char *hashline, char *filename, struct crack_hash* h
 	if (!stream)
 	{
 		//printf("No stream found!\n");
+		fclose(fd);
 		return 1;
 	}
 

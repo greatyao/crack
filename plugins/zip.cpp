@@ -66,6 +66,7 @@ int zip_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 	fd = fopen(filename, "rb");
 	if (fd==NULL)
 	{
+		fclose(fd);
 		if (!hashline) printf("Cannot open file %s\n", filename);
 		return 1;
 	}
@@ -73,6 +74,7 @@ int zip_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 	fileoffset+=4;
 	if (u321 != 0x04034b50)
 	{
+		fclose(fd);
 		if (!hashline) printf("Not a ZIP file: %s!\n", filename);
 		return 1;
 	}
@@ -164,7 +166,7 @@ int zip_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 				case 1: winzip_key_size = 128;winzip_salt_size = 8;break;
 				case 2: winzip_key_size = 192;winzip_salt_size = 12;break;
 				case 3: winzip_key_size = 256;winzip_salt_size = 16;break;
-				default: if (!hashline) printf("Unknown AES encryption key length (0x%02x) quitting...\n",buf[8]&255);return 1;
+				default: if (!hashline) printf("Unknown AES encryption key length (0x%02x) quitting...\n",buf[8]&255);fclose(fd);return 1;
 				}
 				if (!hashline) printf("Encrypted using strong AES%d encryption\n",winzip_key_size);
 			}
@@ -227,6 +229,7 @@ int zip_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 
 	if ((cur==0)&&(has_winzip_encryption==0))
 	{
+		fclose(fd);
 		if (!hashline) printf("File %s is not a password-protected ZIP archive\n", filename);
 		return 1;
 	}
