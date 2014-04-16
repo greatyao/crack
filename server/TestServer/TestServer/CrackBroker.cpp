@@ -261,6 +261,13 @@ int CCrackBroker::DeleteTask(struct task_delete_req *pReq){
 		
 		pCT = iter_task->second;
 		
+		//如果任务正在运行的话，不允许删除
+		if (pCT->m_status == CT_STATUS_RUNNING){
+
+			CLog::Log(LOG_LEVEL_WARNING,"Can't Delete Task With GUID %s,Task is Running.\n",pReq->guid);
+			return RUN_NOT_DELETE;
+
+		}
 		//Task status --> Running , the block status --> ready
 		//保守的删除方法，给wi 状态留有余地
 	//	ret = pCT->SetStatus(CT_STATUS_DELETED);

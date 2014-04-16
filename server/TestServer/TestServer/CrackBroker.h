@@ -46,6 +46,9 @@
 
 #define NOT_READY_WORKITEM STANDARD_ERR+91
 
+
+#define RUN_NOT_DELETE STANDARD_ERR+90
+
 struct MapLessCompare{
 	bool operator()(const char * str1,const char *str2) const
 	{
