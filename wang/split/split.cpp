@@ -21,11 +21,11 @@ unsigned long speed_algorithm[]=
 	1284,//algo_md5,             //MD5 plugin
 	361,//algo_md5md5,          //md5(md5(pass)) plugin
 	1,//algo_md5unix,         //MD5(Unix) plugin (shadow files)
-	1,//algo_mediawiki,       //md5(salt.'-'.md5(password)) plugin (Wikimedia)
+	200,//algo_mediawiki,       //md5(salt.'-'.md5(password)) plugin (Wikimedia)
 	702,//algo_oscommerce,      //md5(salt,password) plugin (osCommerce)
-	1,//algo_ipb2,            //md5(md5(salt).md5(pass)) plugin (IPB > 2.x)
+	100,//algo_ipb2,            //md5(md5(salt).md5(pass)) plugin (IPB > 2.x)
 	1282,//algo_joomla,          //md5(password,salt) plugin (joomla)
-	1,//algo_vbulletin,       //md5(md5(pass).salt) plugin
+	160,//algo_vbulletin,       //md5(md5(pass).salt) plugin
 	14,//algo_desunix,         //DES(Unix) plugin (.htpasswd)
 	400,//algo_sha1,            //SHA1 plugin
 	1,//algo_sha1sha1,        //sha1(sha1(pass)) plugin
@@ -700,12 +700,12 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 
 	bool flag = false;//是否第一份切割标记
 	int d = 1;
-	double one = 8.0e8 *(double)speed_algorithm[pct->algo];//每份长度
+	double one = 3600*1e6 *(double)speed_algorithm[pct->algo];//每份长度(即每小时的运算量)
 	int len = s_charsets.length();
 	int fenshu = 1;
 	int step = 1;
 	int totalStep = 1;
-	const int MAX_D = (len>=52) ? 3 : 4;
+	const int MAX_D = (len>=36) ? 3 : 4;
 	nsplits = 0;
 	for(int i = pct->startLength; i <= pct->endLength; i++)
 	{
