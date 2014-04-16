@@ -117,6 +117,9 @@ int HashKill::Launcher(const crack_block* item, bool gpu, unsigned short* device
 	const char* hash = item->john;
 	const char* fmt;
 	int i, j;
+	
+	if(type != bruteforce && type != dict)
+		return ERR_NO_SUPPORT_TYPE;
 
 	for(i = 0; i < SUPPORT_HASH_NUM; i++)
 	{
@@ -275,7 +278,10 @@ void *HashKill::MonitorThread(void *p)
 					int idx3 = s.find("\n", idx2);
 					if(idx2 != string::npos){
 						string s2 = s.substr(idx2, idx3-idx2);
-						if(sscanf(s2.c_str(), "%*s %*s %s", temp) == 1)
+						if(sscanf(s2.c_str(), "%*[^\t]\t%*[^\t]\t%s", temp) == 1 || 
+							sscanf(s2.c_str(), "%*s %*s %*s %*s %s", temp) == 1 || 
+							sscanf(s2.c_str(), "%*s %*s %*s %s", temp) == 1 || 
+							sscanf(s2.c_str(), "%*s %*s %s", temp) == 1)
 						{
 							cracked = true;
 							strcpy(text, temp);
