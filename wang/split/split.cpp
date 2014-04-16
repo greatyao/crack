@@ -1,6 +1,9 @@
 #include "split.h"
 #include "guidgenerator.h"
 
+#include <vector>
+using namespace std;
+
 const unsigned long split_combinations = 0xFFFFFFFF;
 const unsigned long split_multiple     = 500;
 const unsigned long max_password_length= 20; 
@@ -613,7 +616,7 @@ struct crack_block *csplit::split_normal(struct crack_task *pct,unsigned &nsplit
 }
 
 
-//掩码切割
+//掩码切割，切一份
 struct crack_block *csplit::split_mask(struct crack_task *pct,unsigned &nsplits)
 {
 	nsplits = 1;
@@ -665,6 +668,7 @@ struct crack_block *csplit::split_mask(struct crack_task *pct,unsigned &nsplits)
 	return p_crack_block;
 }
 
+//字典切割，默认切一份
 struct crack_block *csplit::split_dic(struct crack_task *pct,unsigned &nsplits)
 {
 	nsplits = 1;
@@ -697,6 +701,151 @@ struct crack_block *csplit::split_dic(struct crack_task *pct,unsigned &nsplits)
 	nsplits = nsplits*pct->count;
 	return p_crack_block;
 }
+
+//智能高级切割
+struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &nsplits)
+{
+	//检测输入错误
+	if( (pct==0)||(pct->count<1) ) 
+	{
+		return 0;
+	}
+
+	//生成字符集字符表
+	string s_charsets = make_character_table((crack_charset)pct->charset);
+	//计算密码穷举数量
+	Big_Int nCombination = compute_combinations(s_charsets.length(),pct->endLength,pct->startLength);
+	//定义每份切割的密码量
+	Big_Int nOneSplits("1FFFFFFFF00",16);
+	//定义最大份数
+	Big_Int nMaxSplits("1000",10);
+
+	//密码空间比每份切割小，则切一份
+	if(nOneSplits>=nCombination)
+	{
+		nsplits = 1;
+	}
+	else
+	{
+		Big_Int temp;
+		temp = nCombination/nOneSplits;
+		if(temp>nMaxSplits)
+		{
+			printf("切割份数太多\n");
+			return 0;
+		}
+		else
+		{
+			nsplits = temp.toUlong()+1;
+		}	
+	}
+
+	Big_Int nTemp(0);
+
+	//保存切割结果
+	vector <crack_block> cb_result;
+
+	#ifdef _DEBUG
+	printf("max %d\n",cb_result.max_size());
+	#endif
+
+	//不管怎么切，第一份始终为暴力破解
+	if(nsplits==1)//只切一份
+	{
+		crack_block m_cb;
+		
+		m_cb.algo    = pct->algo;//算法
+		m_cb.charset = pct->charset;//字符集
+		m_cb.type    = pct->type;
+		m_cb.special = pct->special;
+		m_cb.hash_idx = 0;
+
+		new_guid( m_cb.guid, sizeof(m_cb.guid) );
+		memcpy( m_cb.john, pct->hashes[0].hash, sizeof(struct crack_hash) );
+
+		//开始结束长度
+		m_cb.start = pct->startLength;
+		m_cb.end   = pct->endLength;
+		//开始结束索引		
+		m_cb.start2 = 0;
+		m_cb.end2   = s_charsets.length()-1;
+
+		//保存结果
+		cb_result.push_back(m_cb);
+	}
+	else{
+		string s_first = integer_to_string(s_charsets,nOneSplits);
+		//处理第一份暴力破解数据		
+		crack_block m_cb;
+		
+		m_cb.algo    = pct->algo;//算法
+		m_cb.charset = pct->charset;//字符集
+		m_cb.type    = pct->type;
+		m_cb.special = pct->special;
+		m_cb.hash_idx = 0;
+
+		new_guid( m_cb.guid, sizeof(m_cb.guid) );
+		memcpy( m_cb.john, pct->hashes[0].hash, sizeof(struct crack_hash) );
+
+		//开始结束长度
+		m_cb.start = pct->startLength;
+		m_cb.end   = s_first.length()-1;
+		//开始结束索引		
+		m_cb.start2 = 0;
+		m_cb.end2   = s_charsets.length()-1;
+
+		//保存结果
+		cb_result.push_back(m_cb);
+
+		//累加
+		nTemp = nTemp + compute_combinations(s_charsets.length(), s_first.length()-1,pct->startLength);
+		nsplits = 1;
+		//切N份
+		while(nTemp<nCombination)
+		{
+			//掩码
+			if(nTemp+nOneSplits>=nCombination)//最后一份
+			{
+			}
+			else{
+
+			}
+			nTemp=nTemp+nOneSplits;
+			//暂未实现
+			cb_result.push_back(m_cb);
+			nsplits++;
+		}
+	}
+
+	struct crack_block *p_crack_block = (crack_block *)malloc(sizeof(struct crack_block)*nsplits*pct->count);
+	//vector 写入p_crack_block
+	for(int i=0; i<cb_result.size(); i++)
+	{		
+		crack_block m_cb = cb_result.back();
+		memcpy(&p_crack_block[i],&m_cb,sizeof(struct crack_block));
+		cb_result.pop_back();
+	}
+
+	//count
+	if(pct->count>1)//多个
+	{
+		for(int i=1; i<pct->count; i++)
+		{
+			memcpy( &p_crack_block[nsplits*i],p_crack_block, sizeof(struct crack_block)*nsplits);
+			for(unsigned j=0; j<nsplits; j++)
+			{
+				memcpy( p_crack_block[nsplits*i+j].john, pct->hashes[i].hash, sizeof(struct crack_hash) );
+
+				new_guid( p_crack_block[nsplits*i+j].guid,  sizeof(p_crack_block[nsplits*i+j].guid));
+				p_crack_block[nsplits*i+j].hash_idx = i;
+			}
+		}		
+	}
+
+	nsplits = nsplits*pct->count;
+	return p_crack_block;
+}
+
 
 void csplit::release_splits(char *p)
 {
