@@ -124,9 +124,6 @@ struct crack_block
 		struct{
 			unsigned short start;	//开始长度
 			unsigned short end;		//结束长度
-			//以下两个是索引
-			unsigned short start2;	//55555-99999:start2=5,end2=9	000-55555:start2=0,end2=5
-			unsigned short end2;
 		};
 		
 		struct{
@@ -200,18 +197,5 @@ struct crack_result
 	unsigned int status;	//workitem的结果状态
 	char password[32];		//如果解密成功，存放密码
 };
-
-struct hash_list_s
-{
-    char *username;
-    char *hash;
-    char *salt;
-    char *salt2;
-    struct hash_list_s *prev;
-    struct hash_list_s *next;
-    struct hash_list_s *indexprev;
-    struct hash_list_s *indexnext;
-};
-
 
 #endif
