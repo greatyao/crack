@@ -752,7 +752,7 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 		if(fenshu == 1)
 		{
 			fenshu = ceil(1.0*ll/one);
-			if(fenshu >= len) fenshu = (len+2)/3;
+			if(fenshu >= len) fenshu = (len+3)/4;
 			step = ceil(1.0*len/fenshu);
 			totalStep = len;
 		}
@@ -800,7 +800,7 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 
 			//将后面的设成？
 			int maskLen = i < sizeof(m_cb.masks1) ? i : sizeof(m_cb.masks1);
-			for(int k = d; k <= maskLen; k++)
+			for(int k = d; k < maskLen; k++)
 			{
 				m_cb.masks1[k] = -1;
 				m_cb.masks2[k] = -1;
