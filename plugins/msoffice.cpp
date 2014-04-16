@@ -636,9 +636,13 @@ int msoffice_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 	free(stream);
 	free(buf);
 
-	strcpy(hash->hash, atoh(verifierhashvalue,64));
-	strcpy(hash->salt, atoh(docsalt,32));
-	strcpy(hash->salt2, atoh(verifierhashinput,32));
+	char* pp; 
+	strcpy(hash->hash, pp=atoh(verifierhashvalue,64));
+	free(pp);
+	strcpy(hash->salt, pp=atoh(docsalt,32));
+	free(pp);
+	strcpy(hash->salt2, pp=atoh(verifierhashinput,32));
+	free(pp);
 
 	return 0;
 }
