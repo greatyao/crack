@@ -700,7 +700,7 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 
 	bool flag = false;//是否第一份切割标记
 	int d = 1;
-	double one = 188.0e12 /(double)speed_algorithm[pct->algo];//每份长度
+	double one = 8.0e8 *(double)speed_algorithm[pct->algo];//每份长度
 	int len = s_charsets.length();
 	int fenshu = 1;
 	int step = 1;

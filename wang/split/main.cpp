@@ -15,7 +15,7 @@ int main(int c,char *v[])
 	ct->startLength = 4;
 	ct->endLength = 12;
 	ct->count = 2;
-	ct->algo = algo_md5md5;
+	ct->algo = algo_md5;
 	strcpy(ct->hashes[0].hash, "ABCD");
 	strcpy(ct->hashes[1].hash, "1234");
 
