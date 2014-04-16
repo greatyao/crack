@@ -122,7 +122,7 @@ char* atoh(unsigned char *src, size_t size)
 {
 	int i = 0;
 
-	char *dest = (char*)malloc(size);
+	char *dest = (char*)malloc(size+1);
 	
 	while(i<size)
 	{
