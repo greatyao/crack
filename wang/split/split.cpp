@@ -832,9 +832,8 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 	//vector Ğ´Èëp_crack_block
 	for(size_t i=0; i<cb_result.size(); i++)
 	{		
-		crack_block m_cb = cb_result.back();
+		crack_block m_cb = cb_result[i];
 		memcpy(&p_crack_block[i],&m_cb,sizeof(struct crack_block));
-		cb_result.pop_back();
 	}
 
 	//count
