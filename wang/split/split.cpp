@@ -755,15 +755,12 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 		m_cb.special = pct->special;
 		m_cb.hash_idx= 0;
 
-		new_guid( m_cb.guid, sizeof(m_cb.guid) );
 		memcpy( m_cb.john, pct->hashes[0].hash, sizeof(struct crack_hash) );
 	
 		#ifdef _DEBUG
 		printf("掩码破解 长度%d, 份数%d 步长%d\n", i, fenshu, step);
 		#endif
-		
 
-		//for(int j = 0; j < fenshu; j++)
 		int aStep = 0;
 		int aSplit = 0;
 		do
@@ -796,6 +793,7 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 				m_cb.masks2[k] = -1;
 			}
 
+			new_guid( m_cb.guid, sizeof(m_cb.guid) );
 			cb_result.push_back(m_cb);
 			nsplits++;
 
@@ -835,6 +833,7 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 		crack_block m_cb = cb_result[i];
 		memcpy(&p_crack_block[i],&m_cb,sizeof(struct crack_block));
 	}
+	cb_result.clear();
 
 	//count
 	if(pct->count>1)//多个
