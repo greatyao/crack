@@ -70,7 +70,6 @@ int rar_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 	fd = fopen(filename, "rb");
 	if (fd==NULL)
 	{
-		fclose(fd);
 		if (!hashline) printf("Cannot open file %s\n", filename);
 		return 1;
 	}

@@ -296,7 +296,6 @@ int msoffice_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 	fd=fopen(filename,"rb");
 	if (!fd)
 	{
-		fclose(fd);
 		return 1;
 	}
 	fseek(fd,0,SEEK_END);

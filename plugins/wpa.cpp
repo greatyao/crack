@@ -60,7 +60,6 @@ int wpa_parse_hash(char *hashline, char *filename, struct crack_hash* hash)
 	fd = fopen(filename,"rb");
 	if (fd<0)
 	{
-		fclose(fd);
 		return 1;
 	}
 

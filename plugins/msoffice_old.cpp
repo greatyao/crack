@@ -306,7 +306,6 @@ int msoffice_old_parse_hash(char *hashline, char *filename, struct crack_hash* h
 	fd=fopen(filename,"rb");
 	if (!fd)
 	{
-		fclose(fd);
 		return 1;
 	}
 	fseek(fd,0,SEEK_END);
