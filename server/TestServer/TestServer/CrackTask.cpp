@@ -33,7 +33,7 @@ int CCrackTask::Init(crack_task *pCrackTask)
 	m_file = NULL;
 
 	m_start_time = 0;
-
+	m_speed = 0;
 	m_running_time = 0;
 	m_remain_time = 0;
 
@@ -165,6 +165,7 @@ void CCrackTask::calcProgressByBlock(){
 	CB_MAP::iterator iter_block;
 	CCrackBlock *pCB = NULL;
 	float fprogress = 0.0;
+	float speed = 0;
 
 	for (iter_block = m_crackblock_map.begin();iter_block != m_crackblock_map.end();iter_block++){
 
@@ -172,10 +173,8 @@ void CCrackTask::calcProgressByBlock(){
 		if (pCB->m_status == WI_STATUS_RUNNING){
 			
 			fprogress += pCB->m_progress;
-	/*
-	WI_STATUS_WAITING = 1,	//分配好工作项后，工作项的初始状态 
-	WI_STATUS_READY,		//任务启动
-	*/
+			if(speed < pCB->m_speed)
+				speed = pCB->m_speed;
 		}else if ((pCB->m_status == WI_STATUS_WAITING) || (pCB->m_status == WI_STATUS_READY )||
 			(pCB->m_status == WI_STATUS_LOCK)||(pCB->m_status == WI_STATUS_UNLOCK)){
 			
@@ -190,6 +189,7 @@ void CCrackTask::calcProgressByBlock(){
 
 	int blocknum = m_crackblock_map.size();
 	this->m_progress = fprogress/blocknum;	
+	this->m_speed = speed;
 
 }
 

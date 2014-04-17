@@ -120,6 +120,9 @@ public:
 	//解密进度0.0 ~ 100.0
 	float	m_progress;
 
+	//解密速度
+	float	m_speed;
+
 	//解密成功后，保存解密后结果
 	unsigned char m_result[32];
 

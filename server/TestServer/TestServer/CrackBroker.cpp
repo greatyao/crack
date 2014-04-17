@@ -794,6 +794,7 @@ int CCrackBroker::getStatusFromTask(CCrackTask *pCT,task_status_info *pRes){
 	//get the current block progress 
 	pCT->calcProgressByBlock();
 	pRes->m_progress = pCT->m_progress;
+	pRes->m_speed = pCT->m_speed;
 	pRes->status = pCT->m_status;
 	memcpy(pRes->guid,pCT->guid,40);
 	return ret;
