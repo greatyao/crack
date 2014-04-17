@@ -900,3 +900,25 @@ void csplit::release_splits(char *p)
 		free(p);
 	}
 }
+
+struct crack_block *csplit::split_task(struct crack_task *pct,unsigned &nsplits)
+{
+	if( (pct==0)||(pct->count<1) ) 
+	{
+		return 0;
+	}
+
+	if((pct->type==mask))
+	{
+		return split_mask(pct,nsplits);
+	}
+	else if((pct->type==dict))
+	{
+		return split_dic(pct,nsplits);
+	}
+
+	if(pct->special == 1)
+		return split_easy(pct, nsplits);
+
+	return split_intelligent(pct, nsplits);
+}

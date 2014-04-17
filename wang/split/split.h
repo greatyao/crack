@@ -41,6 +41,8 @@ public:
 	struct crack_block *split_normal(struct crack_task *pct,unsigned &nsplits);
 	struct crack_block *split_intelligent(struct crack_task *pct,unsigned &nsplits);
 
+	struct crack_block *split_task(struct crack_task *pct,unsigned &nsplits);
+
 	void release_splits(char *p);//ÊÍ·Å
 
 };
