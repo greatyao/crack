@@ -587,6 +587,7 @@ struct crack_block *csplit::split_mask(struct crack_task *pct,unsigned &nsplits)
 	p_crack_block[0].type    = pct->type;
 	p_crack_block[0].special = pct->special;
 	p_crack_block[0].hash_idx= 0;
+	p_crack_block[0].flag	 = 0;
 
 	new_guid( p_crack_block[0].guid, sizeof(p_crack_block[0].guid) );
 	memcpy( p_crack_block[0].john, pct->hashes[0].hash, sizeof(struct crack_hash) );
@@ -700,33 +701,34 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 
 	bool flag = false;//是否第一份切割标记
 	int d = 1;
+	int factor = 36;
 	double one = 3600*1e6 *(double)speed_algorithm[pct->algo];//每份长度(即每小时的运算量)
 	int len = s_charsets.length();
-	int fenshu = 1;
+	__int64 totalSplit = 1;
 	int step = 1;
-	int totalStep = 1;
+	int totalStep = len;
 	const int MAX_D = (len>=36) ? 3 : 4;
+	const int MAX_SPLIT = 1000000;
 	nsplits = 0;
-	for(int i = pct->startLength; i <= pct->endLength; i++)
+	int start = pct->startLength;
+	int end = pct->endLength;
+	if(speed_algorithm[pct->algo] == 1)
+		one *= len;
+	one *= factor;
+	for(int i = start; i <= end; i++)
 	{
-		int rLength = pct->endLength - i + 1;
+		int rLength = end - i + 1;
 		double ll = (double)pow((double)len, i);
 		if(ll < one)continue;
 
-		if(flag == false || rLength >= MAX_D)
+		
+		if(i-1 >= start && (flag == false))
 		{
 			//第一份，暴力破解
 			crack_block m_cb;
-			if(flag == false)
-			{
-				m_cb.start = pct->startLength;
-				m_cb.end   = i -1;
-			}
-			else
-			{
-				m_cb.start = i-1;
-				m_cb.end   = i-1;
-			}
+			
+			m_cb.start = start;
+			m_cb.end   = i -1;
 
 			m_cb.type   = bruteforce;
 			m_cb.algo   = pct->algo;
@@ -742,19 +744,33 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 			cb_result.push_back(m_cb);
 			#ifdef _DEBUG
 			printf("第%d份 暴力破解[%d, %d]\n", nsplits, m_cb.start, m_cb.end);
-			#endif
-			
-			flag = true;
-			if(rLength > MAX_D)
-				continue;
+			#endif			
 		}
+		flag = true;
 
-		if(fenshu == 1)
+		if(totalSplit == 1)
 		{
-			fenshu = ceil(1.0*ll/one);
-			if(fenshu >= len) fenshu = (len+3)/4;
-			step = ceil(1.0*len/fenshu);
-			totalStep = len;
+			totalSplit = ceil(1.0*ll/one);
+			printf("估算%llu\n", totalSplit);
+			int k;
+			for(k = 1; k <= MAX_D; k++)
+			{
+				if(pow((double)len, k) >= totalSplit) break;
+			}
+
+			if(k == MAX_D+1)
+			{
+				step = 4;
+				d = MAX_D;
+				totalStep = pow((double)len, d);
+				totalSplit = totalStep/step;
+			}
+			else
+			{
+				d = k;
+				totalStep = pow((double)len, d);
+				step = ceil(1.0*totalStep / totalSplit);
+			}
 		}
 		
 		//掩码
@@ -771,7 +787,7 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 		memcpy( m_cb.john, pct->hashes[0].hash, sizeof(struct crack_hash) );
 	
 		#ifdef _DEBUG
-		printf("掩码破解 长度%d, 份数%d 步长%d\n", i, fenshu, step);
+		printf("掩码破解 长度%d, 份数%d 步长%d\n", i, (int)totalSplit, step);
 		#endif
 
 		int aStep = 0;
@@ -807,14 +823,17 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 			}
 
 			new_guid( m_cb.guid, sizeof(m_cb.guid) );
-			cb_result.push_back(m_cb);
 			nsplits++;
+			cb_result.push_back(m_cb);
 
-			if(++aSplit >= fenshu || aStep >= totalStep ) break;
+			if(nsplits * pct->count > MAX_SPLIT)
+				break;
+
+			if(++aSplit >= (int)totalSplit || aStep >= totalStep ) break;
 		}while(1);
 
 		if(d < MAX_D){
-			fenshu *= len;
+			totalSplit *= len;
 			totalStep *= len;
 		}
 		d++;
@@ -827,8 +846,8 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 		//切割一份
 		crack_block m_cb;
 		m_cb.type = bruteforce;
-		m_cb.start = pct->startLength;
-		m_cb.end = pct->endLength;
+		m_cb.start = start;
+		m_cb.end = end;
 
 		m_cb.algo   = pct->algo;
 		m_cb.charset= pct->charset;
@@ -842,7 +861,9 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 		nsplits++;
 	}
 
-	struct crack_block *p_crack_block = (crack_block *)malloc(sizeof(struct crack_block)*nsplits*pct->count);
+	unsigned int size = sizeof(struct crack_block)*nsplits*pct->count;
+	printf("cost %dM memory\n", size >> 20);
+	struct crack_block *p_crack_block = (crack_block *)malloc(size);
 	//vector 写入p_crack_block
 	for(size_t i=0; i<cb_result.size(); i++)
 	{		
