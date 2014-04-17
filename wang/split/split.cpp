@@ -285,10 +285,19 @@ struct crack_block *csplit::split_easy(struct crack_task *pct,unsigned &nsplits)
 		{
 			p_crack_block[i].start = k_pos+i;
 		}
+		
+		//
+		if(nsplits==1)
+		{
+			p_crack_block[i].end = loc_p_ct->endLength;
+		}
+		else
+		{
 		if(k_pos>loc_p_ct->endLength)
 			p_crack_block[i].end = loc_p_ct->endLength;
 		else
 			p_crack_block[i].end = k_pos+i;
+		}
 	}
 
 	if(loc_p_ct->count>1)//¶à¸ö
