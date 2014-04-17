@@ -81,7 +81,7 @@ int CCrackTask::SplitTaskFile(char *pguid){
 	}
 
 	//出始化相关工作项
-	pCrackBlock = split.split_easy(this,splitnum);
+	pCrackBlock = split.split_task(this,splitnum);
 	if (!pCrackBlock){
 		CLog::Log(LOG_LEVEL_WARNING,"split default Error\n");
 		release_hashes_from_load(this);
