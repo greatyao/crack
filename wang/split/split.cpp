@@ -8,9 +8,6 @@ const unsigned long split_combinations = 0xFFFFFFFF;
 const unsigned long split_multiple     = 500;
 const unsigned long max_password_length= 20; 
 
-#define Big_Int BigInt::Rossi
-
-
 //数值表示每秒能跑的兆密码量
 //最小为1
 //如果是0，则不切割
@@ -69,146 +66,30 @@ unsigned long speed_algorithm[]=
 	1,//algo_wpa,             //WPA-PSK plugin
 };
 
-
-void debug(Big_Int d)
-{
-	#ifdef _DEBUG
-	string s2 = d.toStrDec();
-	printf("%s\n",s2.c_str());
-	#endif
-}
-
 csplit::csplit()
 {
-	Big_Int zero(0);
-	m_zero = zero;
-	Big_Int one(1);
-	m_one  = one;
 }
+
 csplit::~csplit()
 {
 }
 
 
-Big_Int csplit::compute_combinations(unsigned characters,unsigned len_max,unsigned len_min)
+double csplit::compute_combinations(unsigned characters,unsigned len_max,unsigned len_min)
 {
 	if( (len_max<len_min)||(len_max>max_password_length)||(characters<1) )
 	{
-		return m_zero;
+		return 0;
 	}
 
-	Big_Int total_combinations = m_zero;
+	double total_combinations = 0;
 
-	for(unsigned i=len_min; i<=len_max; i++)
+	for(int i=len_min; i<=len_max; i++)
 	{
-		Big_Int k(characters);
-		Big_Int counter(1);
-		for(unsigned j=0; j<i; j++)
-		{
-			counter = counter *k;
-		}
-		total_combinations = total_combinations+counter;
+		total_combinations += (double)pow((double)characters, i);
 	}
 
 	return total_combinations;
-}
-
-Big_Int csplit::compute_power(Big_Int x,unsigned y)
-{
-	Big_Int total(1);
-	for(unsigned i=0; i<y; i++)
-	{
-		total = total*x;
-	}
-	return total;
-}
-
-Big_Int csplit::compute_power(unsigned x,unsigned y)
-{
-	Big_Int total(1);
-	Big_Int b_x(x);
-	for(unsigned i=0; i<y; i++)
-	{
-		total = total*b_x;
-	}
-	return total;
-}
-//1 base
-Big_Int csplit::string_to_integer(const string & s_charset,const string &password)
-{
-	const char *p_pwd = password.c_str();
-	size_t len_pwd = password.length();
-
-	Big_Int v(0);
-	Big_Int base(s_charset.length());
-
-	string s_character_set = s_charset;
-	for(size_t i=0; i<len_pwd; i++)
-	{
-		size_t pos = s_character_set.find(p_pwd[i]);
-		Big_Int bit(pos);
-		if(i==(len_pwd-1))
-			v = v + (bit);
-		else
-			v = v + (bit)*compute_power(base,len_pwd-i-1);		
-	}
-
-	return v+compute_combinations(s_charset.length(),len_pwd-1);
-}
-
-string csplit::integer_to_string(const string & s_charset,Big_Int integer)
-{
-	Big_Int table_base[max_password_length];//4 20 84 340 1364...... 
- 
-	Big_Int base(s_charset.length());
-	string s;						
-	const char *m_character_set = s_charset.c_str();
-
-	//初始化
-	table_base[0] = base;
-	for(int i=1; i<max_password_length; i++)
-	{
-		table_base[i] = table_base[i-1]+compute_power(base,i+1);
-	}
-
-	//确定位数
-	int bits=1;
-	if(integer>=base)
-	for(int i=1; i<max_password_length; i++)
-	{
-		if( (integer>=table_base[i-1])&&(integer<table_base[i]) )
-		{
-			bits = i+1;
-			break;
-		}
-	}
-
-	if(bits>1) integer = integer - compute_combinations(s_charset.length(),bits-1);
-
-	for(int i=bits; i>0; i--)
-	{
-		Big_Int byte = integer/compute_power(base,i-1);
-		unsigned long ub = byte.toUlong();
-		s.append(1,m_character_set[ub]);
-
-		integer = integer - compute_power(base,i-1)*byte;
-	}
-
-	return s;
-}
-Big_Int csplit::get_step_length(const string & s_charset,unsigned len_max)
-{
-	if(s_charset.length()==0)
-	{
-		return m_zero;
-	}
-
-	Big_Int r(0);
-	for(unsigned i=0; i<len_max; i++)
-	{
-		r=r+compute_power(s_charset.length(),i);
-	}
-	return r;
 }
 
 string csplit::make_character_table(enum crack_charset k)
@@ -241,7 +122,7 @@ struct crack_block *csplit::split_easy(struct crack_task *pct,unsigned &nsplits)
 
 	struct crack_task * loc_p_ct = pct;
 	string loc_s_charset;
-	Big_Int loc_total_combinations;
+	double loc_total_combinations;
 
 	loc_s_charset = make_character_table((crack_charset)loc_p_ct->charset);
 	loc_total_combinations = compute_combinations(loc_s_charset.length(),loc_p_ct->endLength,loc_p_ct->startLength);
@@ -253,13 +134,13 @@ struct crack_block *csplit::split_easy(struct crack_task *pct,unsigned &nsplits)
 	{
 		nsplits = 1;
 	}
-	else if(loc_p_ct->startLength<=10)
+	else if(loc_p_ct->startLength<=k_pos)
 	{
-		nsplits =  1+loc_p_ct->endLength-10;
+		nsplits =  1+loc_p_ct->endLength-k_pos;
 	}
 	else
 	{
-		nsplits = loc_p_ct->endLength-10;			
+		nsplits = loc_p_ct->endLength-k_pos;			
 	}
 
 	//分配数据空间
@@ -606,6 +487,7 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 	unsigned int size = sizeof(struct crack_block)*nsplits*pct->count;
 	printf("cost %dM memory\n", size >> 20);
 	struct crack_block *p_crack_block = (crack_block *)malloc(size);
+	if(p_crack_block == NULL) return NULL;
 	//vector 写入p_crack_block
 	for(size_t i=0; i<cb_result.size(); i++)
 	{		
