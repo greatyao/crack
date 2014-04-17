@@ -3,7 +3,6 @@
 #include "stdafx.h"
 #include "PacketProcess.h"
 #include "CLog.h"
-#include "Common.h"
 #include "zlib.h"
 #include "ServerResp.h"
 #include "guidgenerator.h"

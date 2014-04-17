@@ -5,7 +5,6 @@
 #include "CLog.h"
 #include "zlib.h"
 #include "algorithm_types.h"
-#include "Common.h"
 #include "PacketProcess.h"
 
 static unsigned char pack_flag[5] = {'G', '&', 'C', 'P', 'U'};
