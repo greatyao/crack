@@ -88,9 +88,16 @@ int CCrackTask::SplitTaskFile(char *pguid){
 		//Free(p);
 		return SPLIT_HASH_ERR;
 	}
+	CLog::Log(LOG_LEVEL_NOMAL,"Wonderful! We split task by %d blocks\n", splitnum);		
 	
 	//根据crack_block 创建 CCrackBlock 对象
-	pCb = new CCrackBlock[splitnum];
+	pCb = new (std::nothrow)CCrackBlock[splitnum];
+	if(pCb == NULL){
+		release_hashes_from_load(this);
+		split.release_splits((char *)pCrackBlock);
+		CLog::Log(LOG_LEVEL_ERROR, "Out of memory: CANNOT allocat %d object\n", splitnum);
+		return  SPLIT_HASH_ERR;
+	}
 	for (int i = 0 ; i < splitnum;i ++ ){
 		
 		pCb[i].Init(&pCrackBlock[i]);
@@ -98,7 +105,14 @@ int CCrackTask::SplitTaskFile(char *pguid){
 		
 		m_crackblock_map.insert(CB_MAP::value_type(pCb[i].guid,&pCb[i]));
 		if(this->special == 0)
-			CLog::Log(LOG_LEVEL_WARNING,"Crack Block is %s,%s %d,%d\n",pCb[i].john, pCb[i].guid ,pCb[i].start,pCb[i].end);
+		{
+			if(pCb[i].type == bruteforce)
+				CLog::Log(LOG_LEVEL_WARNING,"crack_block %s [%d,%d] %s\n",pCb[i].guid, pCb[i].start, pCb[i].end, pCb[i].john);
+			else if(pCb[i].type == dict)
+				CLog::Log(LOG_LEVEL_WARNING,"crack_block %s [dict=%d] %s\n",pCb[i].guid, pCb[i].dict_idx, pCb[i].john);
+			if(pCb[i].type == mask && pCb[i].flag == 0)
+				CLog::Log(LOG_LEVEL_WARNING,"crack_block %s [%d, %s] %s\n",pCb[i].guid, pCb[i].maskLength, pCb[i].masks, pCb[i].john);
+		}
 	}
 
 	//释放资源
