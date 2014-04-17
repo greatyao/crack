@@ -36,9 +36,7 @@ public:
 public:
 	//nsplits保存切割以后的份数
 	//返回指针数组,需要手工释放
-	struct crack_block *split_default(struct crack_task *pct,unsigned &nsplits);
 	struct crack_block *split_easy(struct crack_task *pct,unsigned &nsplits);
-	struct crack_block *split_normal(struct crack_task *pct,unsigned &nsplits);
 	struct crack_block *split_intelligent(struct crack_task *pct,unsigned &nsplits);
 
 	struct crack_block *split_task(struct crack_task *pct,unsigned &nsplits);
