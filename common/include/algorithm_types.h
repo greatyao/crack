@@ -118,6 +118,7 @@ struct crack_block
 	unsigned char charset;	//解密字符集
 	unsigned char type;		//解密类型
 	unsigned char special;//是否是文件解密（pdf+office+rar+zip）
+	int hash_idx;				//指向所属的hash
 	char guid[40];			//服务端的workitem的GUID
 	char john[sizeof(struct crack_hash)];		//原始Hash格式：hash值+盐
 	union{
@@ -143,12 +144,12 @@ struct crack_block
 		};
 	};
 		
-#if defined(WIN32) || defined(WIN64)	
+#if defined(WIN64) || defined(X64)	
 	struct crack_task* task;	//指向所属的task
 #else
-	unsigned int task;
+	struct crack_task* task;
+	int padding;
 #endif
-	int hash_idx;				//指向所属的hash
 };
 
 //解密任务
@@ -174,7 +175,13 @@ struct crack_task
 	unsigned char filename[256];	//用户传过来的文件名
 	char guid[40];			//用户端的任务的GUID
 	int count;				//需要解密的Hash个数（如果是文件=1）
+	char padding[4];		//对齐需要	
+#if defined(WIN64) || defined(X64)
 	struct crack_hash* hashes;			//这里需要动态申请
+#else
+	struct crack_hash* hashes;			//这里需要动态申请
+	char padding2[4];					//对齐需要	
+#endif
 	
 };
 

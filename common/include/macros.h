@@ -81,7 +81,12 @@ enum
 
 struct file_info
 {
+#if defined(WIN64) || defined(X64)
 	void* f;			//文件fd
+#else
+	void* f;			//文件fd
+	int padding;		//
+#endif	
 	unsigned int len;	//文件长度
 	unsigned int offset;//文件游标
 };

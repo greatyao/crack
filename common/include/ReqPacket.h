@@ -1,17 +1,6 @@
-
-
 #ifndef _REQ_PACKET_H_
 #define _REQ_PACKET_H_
 
-/*
-//ĞÄÌøĞÅÏ¢
-struct client_keeplive_req {
-
-	unsigned char m_guid[40];
-	
-};
-
-*/
 
 struct task_start_req {
 
@@ -24,9 +13,6 @@ struct task_stop_req {
 
 	unsigned char guid[40];
 };
-
-
-
 
 struct task_pause_req {
 
@@ -61,22 +47,27 @@ struct file_upload_req {
 
 };
 
-
 struct file_upload_start_req {
-
-
 	unsigned char guid[40];
-	void *f;
+#if defined(WIN64) || defined(X64)
+	void* f;
+#else
+	void* f;
+	int padding;
+#endif
 	unsigned int len;
 	unsigned int offset;
 
 };
 
-
 struct file_upload_end_req{
-
 	unsigned char guid[40];
-	void *f;
+#if defined(WIN64) || defined(X64)
+	void* f;
+#else
+	void* f;
+	int padding;
+#endif
 	unsigned int len;
 	unsigned int offset;
 
