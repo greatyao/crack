@@ -296,7 +296,9 @@ int Client::DownloadFile(const char* filename, const char* path)
 	char file[512];
 	sprintf(file, "%s/%s", path, filename);
 	FILE* fd = fopen(file, "w");
-	file_info fi = {info.f, 4096, 0};
+	file_info fi = {0};
+	fi.f = info.f;
+	fi.len = 4096; 
 	unsigned int total = 0;
 	bool failed = false;
 	while(1)
@@ -496,7 +498,7 @@ int Client::GetWorkItemFromServer(crack_block* item)
 		return m;
 	
 	int n = Read(&cmd, &status, buffer, sizeof(buffer));
-	CLog::Log(LOG_LEVEL_NOMAL, "Client: Read workitem %d %d\n", cmd, n);
+	CLog::Log(LOG_LEVEL_NOMAL, "Client: Read workitem %d %d %d\n", cmd, n, sizeof(*item));
 	
 #if 1	
 	if(cmd == CMD_GET_A_WORKITEM && status == 0)
