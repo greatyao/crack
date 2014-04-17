@@ -10,6 +10,7 @@ ifeq ($(LC_MACH_NAME), i686)
 ARCH = x86
 else
 ARCH = x86_64
+CPPFLAGS+=-DX64
 endif
 
 ifeq ($(LC_OS_NAME), cygwin)
