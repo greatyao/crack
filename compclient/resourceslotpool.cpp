@@ -384,3 +384,26 @@ void ResourcePool::SetToRecover(resourceslot* plots[], int n, bool cracked, cons
 	for(int i = 0; i < n; i++)
 		SetToRecover(plots[i], cracked, passwd);
 }
+
+void ResourcePool::SaveOneDone(struct crack_result* result)
+{
+	struct crack_result* cp = new struct crack_result(*result);
+	m_done_results.push_back(cp);
+}
+
+void ResourcePool::ReportDoneAgain(int (*report)(struct crack_result* result))
+{
+	for(vector <struct crack_result *>::iterator it = m_done_results.begin();
+		it != m_done_results.end(); )
+	{
+		if(report(*it) <= 0)
+			it ++;
+		else
+			it = m_done_results.erase(it);
+	}
+}
+
+int ResourcePool::GetDoneSize()const
+{
+	return m_done_results.size();
+}

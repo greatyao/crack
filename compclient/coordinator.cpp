@@ -29,6 +29,11 @@ ccoordinator::~ccoordinator()
 	}
 }
 
+static int Report(struct crack_result* result)
+{
+	return Client::Get().ReportResultToServer(result);
+}
+
 void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 {
 	ccoordinator *p = (ccoordinator*)par;
@@ -44,6 +49,14 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 		if(p->m_bStop) break;
 			
 		sleep(3);
+		
+		//资源池中上次还未成功上报的任务
+		if(Client::Get().Connected() && pool.GetDoneSize() > 0)
+		{
+			CLog::Log(LOG_LEVEL_NOTICE, "ccoordinator: Server online and Submit %d results\n", pool.GetDoneSize());
+			pool.ReportDoneAgain(&Report);
+		}
+		
 		//从资源池获取可用的计算单元
 		ResourcePool::Lock(pool.GetMutex());
 		//prsp = pool.CoordinatorQuery(status, crack_device);
@@ -94,7 +107,11 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 				result.status = WI_STATUS_NO_PWD;
 			}
 			//TODO:需要考虑如果服务器宕机，需要将解密结果持久化:-)
-			Client::Get().ReportResultToServer(&result);
+			if(Client::Get().ReportResultToServer(&result) <= 0)
+			{
+				CLog::Log(LOG_LEVEL_NOTICE, "ccoordinator: Server offline and Save result[guid=%s]\n", rs[0]->m_guid);
+				pool.SaveOneDone(&result);
+			}
 			pool.SetToReady(rs, k);
 		}
 	}

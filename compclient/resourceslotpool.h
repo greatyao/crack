@@ -47,6 +47,7 @@ enum{
 }; 
 
 struct crack_block;
+struct crack_result;
 
 typedef struct _resourceslotpool
 {
@@ -57,7 +58,6 @@ typedef struct _resourceslotpool
 	unsigned short  m_progress;				//workitem对应的进度
 	bool	 	    m_b_islocked;			//互斥锁
 	bool 		    m_is_recovered;			//密码是否恢复成功
-	string		    m_string_pars;			//解密单元参数
 	char		    m_password[32];			//如果解密成功，这里保存密码明文
 	crack_block*	m_item;					//解密的workitem，需要动态分配
 	unsigned short  m_shared;				//是否与其他device的共享
@@ -70,7 +70,7 @@ private:
 	pthread_mutex_t mutex;
 	
 	vector <struct _resourceslotpool *> m_rs_pool;//存放所有的计算资源
-	vector <struct _resourceslotpool *> m_done_pool;//存放计算结束的资源，必要时清空
+	vector <struct crack_result *> m_done_results;//存放计算结束的资源，必要时清空
 
 	unsigned m_base_coordinator;
 	unsigned m_base_launcher;
@@ -112,6 +112,10 @@ public:
 	
 	struct _resourceslotpool* QueryByGuid(const char* guid);
 	int QueryByGuid(resourceslot* plots[], int n, const char* guid);
+	
+	void SaveOneDone(struct crack_result* result);
+	void ReportDoneAgain(int (*report)(struct crack_result* result));
+	int GetDoneSize()const;
 		
 	/***************************************************************
 	处理接口

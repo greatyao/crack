@@ -299,12 +299,14 @@ int Client::DownloadFile(const char* filename, const char* path)
 	file_info fi = {0};
 	fi.f = info.f;
 	fi.len = 4096; 
+	int step = info.len / 40960 * 40960 / 10;
+	if(step < 4096) step = 4096;
 	unsigned int total = 0;
 	bool failed = false;
 	while(1)
 	{
 		fi.offset = total;
-		if(fi.offset % (40960) == 0 || fi.offset >= info.len)
+		if(fi.offset % step == 0 || fi.offset >= info.len)
 			CLog::Log(LOG_LEVEL_NOMAL, " %d VS %d\n", fi.offset, info.len);
 		if(fi.offset >= info.len)
 			break;
@@ -477,12 +479,14 @@ int Client::ReportResultToServer(crack_result* result)
 	
 	unsigned char cmd = CMD_WORKITEM_RESULT;
 	int m = Write(cmd, result, sizeof(*result));
-	if(m == ERR_CONNECTIONLOST)
+	if(m <= 0)
 		return m;
 	
 	short status;
 	char buf[1024];
-	Read(&cmd, &status, buf, sizeof(buf));
+	int n = Read(&cmd, &status, buf, sizeof(buf));
+	if(n < 0)
+		return n;
 	return m;
 }
 
@@ -532,3 +536,9 @@ int Client::GetWorkItemFromServer(crack_block* item)
 	return sizeof(*item);
 #endif
 }
+
+bool Client::Connected()const
+{
+	return connected == 2;
+}
+

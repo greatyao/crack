@@ -43,6 +43,8 @@ public:
 	//是否从服务器上取workitem（根据心跳包里面）
 	bool WillFetchItemFromServer()const;
 	
+	bool Connected()const;
+	
 private:
 	Client();
 	~Client();
