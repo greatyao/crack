@@ -227,7 +227,7 @@ void *HashKill::MonitorThread(void *p)
 	bool cracked = false;
 	char buffer[2048] = {0};
 	int n;
-	string s;
+	string s, lastS = "";
 	int idx, idx2;
 	int progress, ncount;
 	char temp[128];	
@@ -245,7 +245,8 @@ void *HashKill::MonitorThread(void *p)
 			continue;
 		}
 		buffer[n] = 0;
-		s = buffer;
+		s = lastS + buffer;
+		lastS = buffer;
 				
 		idx = s.rfind("Progress:");//进度标志
 		if(idx != string::npos){
@@ -259,7 +260,7 @@ void *HashKill::MonitorThread(void *p)
 					unsigned int ct = t1-t0;
 					unsigned rt = (progress==0) ? 0xFFFFFFFF : (unsigned)(100.0/progress*ct)-ct;
 					float speed = GetSpeed(temp);
-					CLog::Log(LOG_LEVEL_NOMAL,"%d %g %d %d\n", progress, speed, ct, rt);
+					//CLog::Log(LOG_LEVEL_NOMAL,"%d %g %d %d\n", progress, speed, ct, rt);
 					hashkill->UpdateStatus(guid, progress, speed, ct, rt);
 					if(hashkill->statusFunc)
 							hashkill->statusFunc(guid, progress, speed, rt);
