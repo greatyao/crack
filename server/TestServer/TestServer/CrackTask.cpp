@@ -508,7 +508,7 @@ int CCrackTask::updateStatusToFinish(struct crack_result *result,int hash_index)
 			setCrackBlockStatus(WI_STATUS_NOT_NEED,hash_index);
 			
 
-			//this->m_finish_num +=1;
+			this->m_finish_num +=1;
 
 			//判断任务Task 是否结束
 			ret = setFinishByHash();
