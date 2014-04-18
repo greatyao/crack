@@ -196,12 +196,20 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 				sprintf(local_mask,"%s%c",local_mask,item->masks[i]);
 			}
 		}
-		if(item->charset==charset_lalphanum)
+		if(item->charset==charset_num)
+			sprintf(local_mask2,"%s",local_mask);
+		else if(item->charset==charset_lalpha)
+			sprintf(local_mask2,"%s",local_mask);
+		else if(item->charset==charset_ualpha)
+			sprintf(local_mask2,"%s",local_mask);
+		else if(item->charset==charset_lalphanum)
 			sprintf(local_mask2,"--custom-charset1=?l?d %s", local_mask);
-		if(item->charset==charset_ualphanum)
+		else if(item->charset==charset_ualphanum)
 			sprintf(local_mask2,"--custom-charset1=?u?d %s", local_mask);
-		if(item->charset==charset_alphanum)
+		else if(item->charset==charset_alphanum)
                         sprintf(local_mask2,"--custom-charset1=?u?l?d %s", local_mask);
+		else
+			sprintf(local_mask2,"%s", local_mask);
 		sprintf(cmd,fmt,others,item->john,local_mask2);
 		break;
 	default:
@@ -270,6 +278,7 @@ void *oclHashcat::MonitorThread(void *p)
 	s_hash_with_comma = iter->second.hash;
 	s_hash_with_comma.append(":");
 	algo = iter->second.algo;
+	string lastS="";
 
 	while(1)
 	{
@@ -286,7 +295,8 @@ void *oclHashcat::MonitorThread(void *p)
 		}
 		buffer[n] = 0;
 		//CLog::Log(LOG_LEVEL_NOMAL,"read[%d]\n", n);
-		s = buffer;
+		s = lastS + buffer;
+		lastS= buffer;
 		
 		//if(n>0)
 		//	CLog::Log(LOG_LEVEL_NOMAL,"%s\n", buffer);
@@ -296,9 +306,11 @@ void *oclHashcat::MonitorThread(void *p)
 		else
 			idx = s.rfind(s_hash_with_comma);
 		if(idx != string::npos){
+		//	CLog::Log(LOG_LEVEL_ERROR,"###### %s\n",s.c_str());
 			idx2 = s.find("\n",idx);
 			if(idx2 != string::npos){
 				string s2=s.substr(idx,idx2-idx);
+		//		CLog::Log(LOG_LEVEL_ERROR,"@@@@@@ %s\n",s2.c_str());
 				idx3 = s2.find(":",s_hash_with_comma.length()-1);// fixed here
 				if(idx3>0)
 				{
