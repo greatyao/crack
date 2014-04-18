@@ -330,8 +330,8 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 	__int64 totalSplit = 1;
 	int step = 1;
 	int totalStep = len;
-	const int MAX_D = (len>=36) ? 3 : 4;
-	const int MAX_SPLIT = 1000000;
+	const int MAX_D = (len>36) ? 2 : 3;
+	const int MAX_SPLIT = 50000;
 	nsplits = 0;
 	int start = pct->startLength;
 	int end = pct->endLength;
@@ -374,7 +374,6 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 		if(totalSplit == 1)
 		{
 			totalSplit = ceil(1.0*ll/one);
-			printf("估算%llu\n", totalSplit);
 			int k;
 			for(k = 1; k <= MAX_D; k++)
 			{
@@ -383,10 +382,10 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 
 			if(k == MAX_D+1)
 			{
-				step = 4;
+				step = sqrt((double)len);
 				d = MAX_D;
 				totalStep = pow((double)len, d);
-				totalSplit = totalStep/step;
+				totalSplit = ceil(1.0*totalStep/step);
 			}
 			else
 			{
@@ -395,6 +394,15 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 				step = ceil(1.0*totalStep / totalSplit);
 			}
 		}
+
+		if(nsplits + totalSplit >= MAX_SPLIT)
+		{
+			totalStep = len;
+			step = sqrt((double)len);
+			totalSplit = ceil(1.0*len/step);
+			d = 1;
+		}
+
 		
 		//掩码
 		crack_block m_cb = {0};
@@ -410,7 +418,7 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 		memcpy( m_cb.john, pct->hashes[0].hash, sizeof(struct crack_hash) );
 	
 		#ifdef _DEBUG
-		printf("掩码破解 长度%d, 份数%d 步长%d\n", i, (int)totalSplit, step);
+		printf("掩码破解 长度%d 预计份数%d 步长%d\n", i, (int)totalSplit, step);
 		#endif
 
 		int aStep = 0;
@@ -449,11 +457,13 @@ struct crack_block *csplit::split_intelligent(struct crack_task *pct,unsigned &n
 			nsplits++;
 			cb_result.push_back(m_cb);
 
-			if(nsplits * pct->count > MAX_SPLIT)
-				break;
-
 			if(++aSplit >= (int)totalSplit || aStep >= totalStep ) break;
 		}while(1);
+
+		#ifdef _DEBUG
+		printf("掩码破解 长度%d 实际份数%d\n", i, (int)aSplit);
+		#endif
+
 
 		if(d < MAX_D){
 			totalSplit *= len;
