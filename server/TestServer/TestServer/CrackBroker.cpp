@@ -519,7 +519,7 @@ int CCrackBroker::GetAWorkItem(struct crack_block **pRes){
 		return NOT_READY_WORKITEM;
 	}
 	
-	
+		
 	if (pCT->m_split_num == pCT->m_runing_num){
 
 		m_cracktask_ready_queue.pop_front();
@@ -636,6 +636,12 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 		case WI_STATUS_RUNNING:
 
 			pCB->m_status = WI_STATUS_RUNNING;
+
+			//判断是否是第一个开始运行的Block ,如果是的话更新任务计时器
+			pCT = (CCrackTask *)pCB->task;
+			pCT->startTime();				
+
+
 			checkReadyQueue((CCrackTask *)(pCB->task));
 			break;
 		case WI_STATUS_CRACKED:

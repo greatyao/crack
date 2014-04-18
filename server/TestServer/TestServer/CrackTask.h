@@ -69,6 +69,8 @@ public:
 
 	void RefreshRemainTime();
 
+	void startTime();
+
 	void * Alloc(int size);
 	void Free(void *p);
 

@@ -143,6 +143,7 @@ CCrackBlock *CCrackTask::GetAReadyWorkItem(){
 	//		pCB->m_status = WI_STATUS_RUNNING;
 			pCB->m_status = WI_STATUS_LOCK;  //工作项首先被计算节点锁定，然后根据处理状态返回Unlock,Running
 			m_runing_num ++;
+
 			break;
 		}
 
@@ -275,8 +276,8 @@ int CCrackTask::updateStatusToRunning(){
 	CB_MAP::iterator iter_block;
 	CCrackBlock *pCb = NULL;
 	CCrackHash *pCCH = NULL;
-	time_t time_last;  
-    time_last = time(NULL);  
+//	time_t time_last;  
+ //   time_last = time(NULL);  
 	int tag = 0;
 
 	if ((m_status != CT_STATUS_READY) && (m_status != CT_STATUS_PAUSED)){
@@ -287,7 +288,7 @@ int CCrackTask::updateStatusToRunning(){
 	}
 	
 	m_status = CT_STATUS_RUNNING;
-	m_start_time = time_last;
+	//m_start_time = time_last;
 	
 
 	//设置每个HASH为运行状态
@@ -701,6 +702,20 @@ void CCrackTask::RefreshRemainTime(){
 
 	this->m_remain_time = max_remain_time;
 
+
+}
+
+void CCrackTask::startTime(){
+
+	time_t time_last;
+	
+
+	if (this->m_runing_num == 1){
+		
+		time_last = time(NULL);
+		this->m_start_time = time_last;
+
+	}
 
 }
 
