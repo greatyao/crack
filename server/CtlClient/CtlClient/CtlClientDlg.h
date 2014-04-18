@@ -6,6 +6,7 @@
 #include "dlguploadtask.h"
 #include "dlgtaskstatus.h"
 #include "dlgclientstatus.h"
+#include "ConfigureServer.h"
 
 
 // CCtlClientDlg dialog
@@ -38,4 +39,7 @@ public:
 	CDlgTaskStatus m_dlgtask;
 	CDlgClientStatus m_dlgclient;
 	afx_msg void OnTcnSelchangeTabmain(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnCfgServer();
+	afx_msg void OnAbout();
+	afx_msg void OnExit();
 };

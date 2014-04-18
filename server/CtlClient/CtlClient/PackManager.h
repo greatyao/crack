@@ -16,6 +16,14 @@
 
 class CPackManager
 {
+	int m_nPort;
+	char m_sIp[MAX_PATH];
+
+	void ReadConfigure(void);
+public:
+	int SetConfigure(char *ip,int port);
+	void ReadConfigure(char *ip,int *port);
+
 public:
 	CPackManager(void);
 	~CPackManager(void);

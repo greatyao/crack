@@ -8,6 +8,11 @@ CPackManager g_packmanager;
 
 CPackManager::CPackManager(void)
 {
+	
+	//m_nPort = 6010;
+	//sprintf(m_sIp,"127.0.0.1");
+	ReadConfigure();
+
 	//CLog::InitLogSystem(LOG_TO_FILE,TRUE,"ControlClient.log");
 	CLog::InitLogSystem(LOG_TO_SCREEN,TRUE);
 
@@ -16,6 +21,41 @@ CPackManager::CPackManager(void)
 	m_bThreadHeartBeatRunning = 0;
 	StartClient();
 	StartHeartBeat();
+}
+
+void CPackManager::ReadConfigure(void)
+{
+	char buffer[20];
+	//直接读配置
+	char ini_file[MAX_PATH]={0};
+	GetModuleFileNameA(NULL,ini_file,MAX_PATH);
+	strcat(ini_file,".ini");
+
+	GetPrivateProfileString("config","ip","192.168.18.115",m_sIp,MAX_PATH-1,ini_file);
+	GetPrivateProfileString("config","port","6010",buffer,20,ini_file);
+	m_nPort = atoi(buffer);
+}
+void CPackManager::ReadConfigure(char *ip,int *port)
+{
+	sprintf(ip,"%s",m_sIp);
+	port[0] = m_nPort;
+}
+
+int CPackManager::SetConfigure(char *ip,int port)
+{
+	char buffer[20];
+	//直接读配置
+	char ini_file[MAX_PATH]={0};
+	GetModuleFileNameA(NULL,ini_file,MAX_PATH);
+	strcat(ini_file,".ini");
+
+	WritePrivateProfileString("config","ip",ip,ini_file);
+	sprintf(buffer,"%d",port);
+	WritePrivateProfileString("config","port",buffer,ini_file);
+	
+	m_nPort = port;
+	sprintf(m_sIp,"%s",ip);
+	return 1;
 }
 
 CPackManager::~CPackManager(void)
@@ -110,18 +150,10 @@ int CPackManager::StartClient(void)
 		return 0;
 	}
 
-	char ip[20]="192.168.18.117";
-	//直接读配置
-	char ini_file[MAX_PATH]={0};
-	GetModuleFileNameA(NULL,ini_file,MAX_PATH);
-	strcat(ini_file,".ini");
-
-	GetPrivateProfileString("config","ip","192.168.18.117",ip,MAX_PATH-1,ini_file);
 	m_connected = 1;
-
-	if( m_sockclient.Init(ip,6010)!=0 )
+	if( m_sockclient.Init(m_sIp,m_nPort)!=0 )
 	{
-		CLog::Log(LOG_LEVEL_ERROR,"连接服务器失败\n");
+		CLog::Log(LOG_LEVEL_ERROR,"连接服务器(%s:%d)失败\n",m_sIp,m_nPort);
 		m_connected = 0;
 		return 0;
 	}

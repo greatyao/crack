@@ -123,6 +123,18 @@ BEGIN
     PUSHBUTTON      "获得最新状态",IDC_BTN_CLIENT,307,192,62,14
 END
 
+IDD_DIALOG_SERVER DIALOGEX 0, 0, 211, 78
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "配置服务器"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "确定",IDOK,142,44,50,15
+    GROUPBOX        "配置",IDC_STATIC,7,7,197,64
+    RTEXT           "服务器IP：\r\n\r\n\r\n端口地址：",IDC_STATIC,17,22,41,38
+    EDITTEXT        IDC_EDIT_IP,58,18,129,15,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_PORT,63,44,55,15,ES_AUTOHSCROLL | ES_NUMBER
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -155,8 +167,38 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 220
     END
+
+    IDD_DIALOG_SERVER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 71
+    END
 END
 #endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MENU_MAIN MENU 
+BEGIN
+    POPUP "主菜单(&M)"
+    BEGIN
+        MENUITEM "退出(&X)",                      ID_EXIT
+    END
+    POPUP "配置(&C)"
+    BEGIN
+        MENUITEM "配置服务器(&S)",                   ID_CFG_SERVER
+    END
+    POPUP "帮助(&H)"
+    BEGIN
+        MENUITEM "关于(&A)",                      ID_ABOUT
+    END
+END
 
 #endif    // 中文(中华人民共和国) resources
 /////////////////////////////////////////////////////////////////////////////
@@ -191,6 +233,7 @@ IDD_CTLCLIENT_DIALOG DIALOGEX 0, 0, 435, 258
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_APPWINDOW
 CAPTION "CtlClient"
+MENU IDR_MENU_MAIN
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     CONTROL         "",IDC_TABMAIN,"SysTabControl32",0x0,7,7,421,244

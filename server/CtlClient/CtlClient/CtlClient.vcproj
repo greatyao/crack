@@ -197,6 +197,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ConfigureServer.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\CtlClient.cpp"
 				>
 			</File>
@@ -256,6 +260,10 @@
 			>
 			<File
 				RelativePath="..\..\..\common\CLog.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ConfigureServer.h"
 				>
 			</File>
 			<File

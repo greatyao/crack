@@ -11,6 +11,8 @@
 #define IDD_DLG_UPLOAD                  129
 #define IDD_DLG_TASK_STATUS             130
 #define IDD_DLG_CLIENT_STATUS           131
+#define IDR_MENU_MAIN                   133
+#define IDD_DIALOG_SERVER               134
 #define IDC_TABMAIN                     1000
 #define IDC_COMBO1                      1001
 #define IDC_COMBO_ALG                   1001
@@ -20,8 +22,10 @@
 #define IDC_COMBO_TYPE                  1003
 #define IDC_EDIT1                       1006
 #define IDC_EDIT_LEN_MIN                1006
+#define IDC_EDIT_IP                     1006
 #define IDC_EDIT2                       1007
 #define IDC_EDIT_LEN_MAX                1007
+#define IDC_EDIT_PORT                   1007
 #define IDC_EDIT3                       1008
 #define IDC_EDIT_FILE_PATH              1008
 #define IDC_BUTTON1                     1009
@@ -43,13 +47,19 @@
 #define IDC_STATIC_LEN_MIN              1022
 #define IDC_COMBO4                      1023
 #define IDC_COMBO_SEL                   1023
+#define ID_32771                        32771
+#define ID_CFG_SERVER                   32772
+#define ID_32773                        32773
+#define ID_ABOUT                        32774
+#define ID_32775                        32775
+#define ID_EXIT                         32776
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        133
-#define _APS_NEXT_COMMAND_VALUE         32771
+#define _APS_NEXT_RESOURCE_VALUE        135
+#define _APS_NEXT_COMMAND_VALUE         32777
 #define _APS_NEXT_CONTROL_VALUE         1024
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

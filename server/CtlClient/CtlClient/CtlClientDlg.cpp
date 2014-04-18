@@ -64,6 +64,9 @@ BEGIN_MESSAGE_MAP(CCtlClientDlg, CDialog)
 	ON_WM_QUERYDRAGICON()
 	//}}AFX_MSG_MAP
 	ON_NOTIFY(TCN_SELCHANGE, IDC_TABMAIN, &CCtlClientDlg::OnTcnSelchangeTabmain)
+	ON_COMMAND(ID_CFG_SERVER, &CCtlClientDlg::OnCfgServer)
+	ON_COMMAND(ID_ABOUT, &CCtlClientDlg::OnAbout)
+	ON_COMMAND(ID_EXIT, &CCtlClientDlg::OnExit)
 END_MESSAGE_MAP()
 
 
@@ -208,4 +211,23 @@ void CCtlClientDlg::OnTcnSelchangeTabmain(NMHDR *pNMHDR, LRESULT *pResult)
 	default:;
 	}  
 	*pResult = 0;
+}
+
+void CCtlClientDlg::OnCfgServer()
+{
+	CConfigureServer dlg; 
+	dlg.DoModal(); 
+	AfxMessageBox("配置ip和端口完成");
+}
+
+void CCtlClientDlg::OnAbout()
+{
+	// TODO: 在此添加命令处理程序代码
+	AfxMessageBox("更多信息，请联系开发人员");
+}
+
+void CCtlClientDlg::OnExit()
+{
+	// TODO: 在此添加命令处理程序代码
+	AfxMessageBox("点击对话框右上角的 X 即可");
 }
