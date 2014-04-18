@@ -39,18 +39,18 @@ static struct hash_parameter all_support_hashes[] =
 /*	{algo_md4,			{"-m 900 -a 3 --increment-min=%d --increment-max=%d %s %s %s"}},*/
 	{algo_md5,			{"-m 0 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s",NULL,"-m 0 -a 3 %s %s %s"}},
 //	{algo_md5md5,		"-p md5md5 -b%d:%d:%s %s %s"},
-	{algo_md5unix,		{"-m 500 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s",NULL,"-m 0 -a 3 %s %s %s"}},
+	{algo_md5unix,		{"-m 500 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 500 -a 3 %s %s %s",NULL,"-m 500 -a 3 %s %s %s"}},
 //	{algo_mediawiki,	"-p mediawiki -b%d:%d:%s %s %s"},
-	{algo_oscommerce,	{"-m 21 -a 3 --increment-min=%d --increment-max=%d %s %s %s",  "-m 0 -a 3 %s %s %s",NULL,"-m 0 -a 3 %s %s %s"}},
+	{algo_oscommerce,	{"-m 21 -a 3 --increment-min=%d --increment-max=%d %s %s %s",  "-m 21 -a 3 %s %s %s",NULL,"-m 21 -a 3 %s %s %s"}},
 //	{algo_ipb2,			"-p ipb2 -b%d:%d:%s %s %s"},
-	{algo_joomla,		{"-m 11 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s",NULL,"-m 0 -a 3 %s %s %s"}},
+	{algo_joomla,		{"-m 11 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 11 -a 3 %s %s %s",NULL,"-m 11 -a 3 %s %s %s"}},
 //	{algo_vbulletin,    "-p vbulletin -b%d:%d:%s %s %s"},
-	{algo_desunix,      {"-m 1500 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s",NULL,"-m 0 -a 3 %s %s %s"}},
-	{algo_sha1,         {"-m 100 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s",NULL,"-m 0 -a 3 %s %s %s"}},//finished
+	{algo_desunix,      {"-m 1500 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 1500 -a 3 %s %s %s",NULL,"-m 1500 -a 3 %s %s %s"}},
+	{algo_sha1,         {"-m 100 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 100 -a 3 %s %s %s",NULL,"-m 100 -a 3 %s %s %s"}},//finished
 //	{algo_sha1sha1,     "-p sha1sha1 -b%d:%d:%s %s %s"},
-	{algo_sha256,       {"-m 1400 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s",NULL,"-m 0 -a 3 %s %s %s"}},
+	{algo_sha256,       {"-m 1400 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 1400 -a 3 %s %s %s",NULL,"-m 1400 -a 3 %s %s %s"}},
 //	{algo_sha256unix,   "-p sha256unix -b%d:%d:%s %s %s"},
-	{algo_sha512,       {"-m 1700 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s",NULL,"-m 0 -a 3 %s %s %s"}},
+	{algo_sha512,       {"-m 1700 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 1700 -a 3 %s %s %s",NULL,"-m 1700 -a 3 %s %s %s"}},
 //	{algo_sha512unix,   "-p sha512unix -b%d:%d:%s %s %s"},
 //	{algo_msoffice_old, "-p msoffice-old -b%d:%d:%s %s %s"},
 //	{algo_msoffice,     "-p msoffice -b%d:%d:%s %s %s"},
@@ -61,26 +61,26 @@ static struct hash_parameter all_support_hashes[] =
 //	{algo_bfunix,       "-p bfunix -b%d:%d:%s %s %s"},
 //	{algo_dmg,          "-p dmg -b%d:%d:%s %s %s"},
 //	{algo_drupal7,      "-p drupa17 -b%d:%d:%s %s %s"},
-	{algo_lm,           {"-m 3000 -a 3 --increment-min=%d --incremnet-max=%d %s %s %s", "-m 0 -a 3 %s %s %s",NULL,"-m 0 -a 3 %s %s %s"}},
+	{algo_lm,           {"-m 3000 -a 3 --increment-min=%d --incremnet-max=%d %s %s %s", "-m 3000 -a 3 %s %s %s",NULL,"-m 3000 -a 3 %s %s %s"}},
 //	{algo_luks,         "-p luks -b%d:%d:%s %s %s"},
-	{algo_mscash,       {"-m 1100 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s",NULL,"-m 0 -a 3 %s %s %s"}},
-	{algo_mscash2,      {"-m 2100 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s",NULL,"-m 0 -a 3 %s %s %s"}},
-	{algo_mssql_2000,   {"-m 131 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s",NULL,"-m 0 -a 3 %s %s %s"}},
-	{algo_mssql_2005,   {"-m 132 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s",NULL,"-m 0 -a 3 %s %s %s"}},
-	{algo_mssql_2012,   {"-m 1731 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s",NULL,"-m 0 -a 3 %s %s %s"}},
+	{algo_mscash,       {"-m 1100 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 1100 -a 3 %s %s %s",NULL,"-m 1100 -a 3 %s %s %s"}},
+	{algo_mscash2,      {"-m 2100 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 2100 -a 3 %s %s %s",NULL,"-m 2100 -a 3 %s %s %s"}},
+	{algo_mssql_2000,   {"-m 131 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 131 -a 3 %s %s %s",NULL,"-m 131 -a 3 %s %s %s"}},
+	{algo_mssql_2005,   {"-m 132 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 132 -a 3 %s %s %s",NULL,"-m 132 -a 3 %s %s %s"}},
+	{algo_mssql_2012,   {"-m 1731 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 1731 -a 3 %s %s %s",NULL,"-m 1731 -a 3 %s %s %s"}},
 //	{algo_mysql5,       "-p mssql5 -b%d:%d:%s %s %s"},
-	{algo_nsldap,       {"-m 101 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s",NULL,"-m 0 -a 3 %s %s %s"}},
-	{algo_nsldaps,      {"-m 111 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s",NULL,"-m 0 -a 3 %s %s %s"}},
-	{algo_ntlm,         {"-m 1000 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s",NULL,"-m 0 -a 3 %s %s %s"}},
+	{algo_nsldap,       {"-m 101 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 101 -a 3 %s %s %s",NULL,"-m 101 -a 3 %s %s %s"}},
+	{algo_nsldaps,      {"-m 111 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 111 -a 3 %s %s %s",NULL,"-m 111 -a 3 %s %s %s"}},
+	{algo_ntlm,         {"-m 1000 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 1000 -a 3 %s %s %s",NULL,"-m 1000 -a 3 %s %s %s"}},
 //	{algo_o5logon,      "-p o5logon -b%d:%d:%s %s %s"},
 //	{algo_oracle_old,   "-m 3100 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},//something wrong with oclhashcat
 //	{algo_oracle11g,    "-m 112 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},//wrong with hash-length inputed
 //	{algo_osx_old,      "-p osx-old -b%d:%d:%s %s %s"},
-	{algo_osxlion,      {"-m 1722 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s",NULL,"-m 0 -a 3 %s %s %s"}},
-	{algo_phpbb3,       {"-m 400 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s",NULL,"-m 0 -a 3 %s %s %s"}},
+	{algo_osxlion,      {"-m 1722 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 1722 -a 3 %s %s %s",NULL,"-m 1722 -a 3 %s %s %s"}},
+	{algo_phpbb3,       {"-m 400 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 400 -a 3 %s %s %s",NULL,"-m 400 -a 3 %s %s %s"}},
 //	{algo_pixmd5,       "-p pixmd5 -b%d:%d:%s %s %s"},
 //	{algo_privkey,      "-p privkey -b%d:%d:%s %s %s"},
-	{algo_ripemd160,    {"-m 6000 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s",NULL,"-m 0 -a 3 %s %s %s"}},
+	{algo_ripemd160,    {"-m 6000 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 6000 -a 3 %s %s %s",NULL,"-m 6000 -a 3 %s %s %s"}},
 //	{algo_sapg,         "-p sapg -b%d:%d:%s %s %s"},
 //	{algo_sl3,          "-p sl3 -b%d:%d:%s %s %s"},
 //	{algo_smf,          "-p smf -b%d:%d:%s %s %s"},
@@ -116,6 +116,7 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
         unsigned short ids[16] = {0};
 	char local_mask[128]={0};
 	char local_mask2[128]={0};
+	char charset_mask[128]={0};
 	char cmd[4096];
         char others[128];
 	int i,j;
@@ -164,57 +165,134 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 	case mask:
 		if(item->maskLength>18||item->maskLength<1)
 			return ERR_INVALID_PARAM;
-		for(unsigned short i=0;i < item->maskLength;i++)
+		if(item->flag==0)
 		{
-			if((int)item->masks[i]== -1)
+			for(unsigned short i=0;i < item->maskLength;i++)
 			{
-				switch(item->charset){
-					case charset_num:
-						sprintf(local_mask,"%s%s",local_mask,"?d");
-						break;
-					case charset_lalpha:
-						sprintf(local_mask,"%s%s",local_mask,"?l");
-						break;
-					case charset_ualpha:
-						sprintf(local_mask,"%s%s",local_mask,"?u");
-						break;
-					case charset_lalphanum:
-						sprintf(local_mask,"%s%s",local_mask,"?1");
-						break;
-					case charset_ualphanum:
-						sprintf(local_mask,"%s%s",local_mask,"?1");
-						break;
-					case charset_alphanum:
-						sprintf(local_mask,"%s%s",local_mask,"?1");
-                                                break;
-					default:
-						sprintf(local_mask,"%s%s",local_mask,"?a");
-						break;
+				if((int)item->masks[i]== -1)
+				{
+					switch(item->charset){
+						case charset_num:
+							sprintf(local_mask,"%s%s",local_mask,"?d");
+							break;
+						case charset_lalpha:
+							sprintf(local_mask,"%s%s",local_mask,"?l");
+							break;
+						case charset_ualpha:
+							sprintf(local_mask,"%s%s",local_mask,"?u");
+							break;
+						case charset_lalphanum:
+							sprintf(local_mask,"%s%s",local_mask,"?1");
+							break;
+						case charset_ualphanum:
+							sprintf(local_mask,"%s%s",local_mask,"?1");
+							break;
+						case charset_alphanum:
+							sprintf(local_mask,"%s%s",local_mask,"?1");
+                	                                break;
+						default:
+							sprintf(local_mask,"%s%s",local_mask,"?a");
+							break;
+					}
+				}
+				else{
+					sprintf(local_mask,"%s%c",local_mask,item->masks[i]);
 				}
 			}
-			else{
-				sprintf(local_mask,"%s%c",local_mask,item->masks[i]);
+			if(item->charset==charset_num)
+				sprintf(local_mask2,"%s",local_mask);
+			else if(item->charset==charset_lalpha)
+				sprintf(local_mask2,"%s",local_mask);
+			else if(item->charset==charset_ualpha)
+				sprintf(local_mask2,"%s",local_mask);
+			else if(item->charset==charset_lalphanum)
+				sprintf(local_mask2,"--custom-charset1=?l?d %s", local_mask);
+			else if(item->charset==charset_ualphanum)
+				sprintf(local_mask2,"--custom-charset1=?u?d %s", local_mask);
+			else if(item->charset==charset_alphanum)
+        	                sprintf(local_mask2,"--custom-charset1=?u?l?d %s", local_mask);
+			else
+				sprintf(local_mask2,"%s", local_mask);
+			sprintf(cmd,fmt,others,item->john,local_mask2);
+		}
+		else if(item->flag==1){
+			for(unsigned short i=0;i < item->maskLength;i++)
+			{
+				if(item->masks1[i]==item->masks2[i])
+				{
+					if((int)item->masks1[i]==-1)
+					{	
+						switch(item->charset){
+							case charset_num:
+								sprintf(local_mask,"%s%s",local_mask,"?d");
+								break;
+							case charset_lalpha:
+								sprintf(local_mask,"%s%s",local_mask,"?l");
+								break;
+						case charset_ualpha:
+								sprintf(local_mask,"%s%s",local_mask,"?u");
+								break;
+						case charset_lalphanum:
+								sprintf(local_mask,"%s%s",local_mask,"?1");
+								break;
+						case charset_ualphanum:
+								sprintf(local_mask,"%s%s",local_mask,"?1");
+							break;
+						case charset_alphanum:
+								sprintf(local_mask,"%s%s",local_mask,"?1");
+                	                                break;
+						default:
+							sprintf(local_mask,"%s%s",local_mask,"?a");
+							break;
+						}
+				
+					}
+					else{
+						sprintf(local_mask,"%s%c",local_mask,item->masks1[i]);
+					}
+				}
+				else{
+					if(i<item->maskLength-1)
+					{
+					//	if(item->crack_charset)
+						{	
+						}
+						int j=0,k=0;
+						printf("%s\n",item->masks1);
+						printf("%s\n",item->masks2);
+						while((item->masks1[i])!=(crack_charsets[item->charset][j])){j++;}
+						while((item->masks2[i])!=(crack_charsets[item->charset][k])){k++;}
+						printf("%d %d\n",j,k);
+						//crack_charset[item->crack_charset]
+						for(int m=j;m<=k;m++)
+						sprintf(charset_mask,"%s%c",charset_mask,crack_charsets[item->charset][m]);
+						sprintf(local_mask,"%s?2",local_mask);
+					}
+				}
+
 			}
+			//printf("%s\n",local_mask);
 		}
 		if(item->charset==charset_num)
-			sprintf(local_mask2,"%s",local_mask);
+			sprintf(local_mask2,"--custom-charset2=%s --custom-charset1=%s %s",charset_mask,"?d",local_mask);
 		else if(item->charset==charset_lalpha)
-			sprintf(local_mask2,"%s",local_mask);
+			sprintf(local_mask2,"--custom-charset2=%s --custom-charset1=%s %s",charset_mask,"?l",local_mask);
 		else if(item->charset==charset_ualpha)
-			sprintf(local_mask2,"%s",local_mask);
+			sprintf(local_mask2,"--custom-charset2=%s --custom-charset1=%s %s",charset_mask,"?u",local_mask);
 		else if(item->charset==charset_lalphanum)
-			sprintf(local_mask2,"--custom-charset1=?l?d %s", local_mask);
+			sprintf(local_mask2,"--custom-charset2=%s --custom-charset1=%s %s",charset_mask,"?l?d",local_mask);
 		else if(item->charset==charset_ualphanum)
-			sprintf(local_mask2,"--custom-charset1=?u?d %s", local_mask);
+			sprintf(local_mask2,"--custom-charset2=%s --custom-charset1=%s %s",charset_mask,"?u?d",local_mask);
 		else if(item->charset==charset_alphanum)
-                        sprintf(local_mask2,"--custom-charset1=?u?l?d %s", local_mask);
+			sprintf(local_mask2,"--custom-charset2=%s --custom-charset1=%s %s",charset_mask,"?u?l?d",local_mask);
 		else
-			sprintf(local_mask2,"%s", local_mask);
+			sprintf(local_mask2,"--custom-charset2=%s --custom-charset1=%s %s",charset_mask,"?a",local_mask);
+		printf("%s\n",charset_mask);	
 		sprintf(cmd,fmt,others,item->john,local_mask2);
 		break;
 	default:
 		CLog::Log(LOG_LEVEL_NOMAL, "#######   crack type: %d  ###########\n",type);
-        break;
+        break;sprintf(local_mask2,"--custom-charset2=%s --custom-charset1=%s %s",charset_mask,"?1",local_mask);
 	}
 	//struct maphashtarget a;
 	a.algo = algo;
@@ -272,7 +350,7 @@ void *oclHashcat::MonitorThread(void *p)
 	int idx, idx2,idx3;
 	double percent=0.0,tempspeed=0.0;
 	char avgspeed[128]={0};	
-	char text[128]={0};
+	//char text[128]={0};
 	map<string,struct maphashtarget>::iterator iter;
 	iter = ocl_hashcat->MapTargetHash.find(guid);
 	s_hash_with_comma = iter->second.hash;
