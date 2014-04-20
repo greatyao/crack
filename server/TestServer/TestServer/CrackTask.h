@@ -62,6 +62,10 @@ public:
 	int SetStatus(char status);
 
 	CCrackBlock *GetAReadyWorkItem();
+
+
+	CCrackBlock *GetAReadyWorkItem2(char *ipinfo);
+
 	
 	int updateStatusToFinish(struct crack_result *result,int hash_index);
 

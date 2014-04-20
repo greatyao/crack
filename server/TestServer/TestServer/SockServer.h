@@ -18,10 +18,14 @@ public:
 	UINT Initialize(UINT port,UINT maxConnNum);
 
 
-
+	
 
 	INT StartServer(void);
 	INT ShutDown(void);
+
+private:
+
+	//int clientlogin(SOCKET clientsock,unsigned char *pdata,UINT len);  
 
 	
 };

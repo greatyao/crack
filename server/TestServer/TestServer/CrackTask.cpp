@@ -161,6 +161,45 @@ CCrackBlock *CCrackTask::GetAReadyWorkItem(){
 }
 
 
+//新增加的获取block 函数，增加了对block 中的comp_guid 的赋值
+CCrackBlock *CCrackTask::GetAReadyWorkItem2(char *ipinfo){
+
+	CCrackBlock *pCB = NULL;
+	CB_MAP::iterator iter_block;
+	CB_MAP::iterator iter_block_end = m_crackblock_map.end();
+	CB_MAP::iterator iter_block_begin = m_crackblock_map.begin();
+
+	iter_block = cur_crack_block;
+	do{
+		if (iter_block->second->m_status == WI_STATUS_READY){
+
+			pCB = iter_block->second;
+	//		pCB->m_status = WI_STATUS_RUNNING;
+			pCB->m_status = WI_STATUS_LOCK;  //工作项首先被计算节点锁定，然后根据处理状态返回Unlock,Running
+			m_runing_num ++;
+
+			//将计算节点的信息赋值给block,ipinfo内容为ip:port
+			memcpy(pCB->m_comp_guid,ipinfo,strlen(ipinfo));
+
+			
+			break;
+		}
+
+		iter_block++;
+		if(iter_block == iter_block_end)
+			iter_block = iter_block_begin;
+
+	}while(iter_block != cur_crack_block);
+
+	cur_crack_block = ++iter_block;
+	if(cur_crack_block == iter_block_end)
+		cur_crack_block = iter_block_begin;
+	
+	return pCB;
+
+}
+
+
 void CCrackTask::calcProgressByBlock(){
 
 	CB_MAP::iterator iter_block;
@@ -615,6 +654,10 @@ int CCrackTask::setCrackBlockStatus(char status,int hash_index){
 
 				pCB->m_status = status;
 				m_finish_num +=1;
+
+
+				//添加通过心跳通知机制
+
 				
 			}
 

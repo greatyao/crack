@@ -46,6 +46,9 @@ int CCrackBroker::ClientKeepLive2(const char *ip, void* s, unsigned char* cmd, v
 {
 	unsigned int sock = *(unsigned int *)s;
 	CClientInfo *pCI = NULL;
+	CBN_VECTOR tmpcbn;
+	int len = 0;
+	keeplive_compclient* ka = NULL;
 
 	for (int i = 0 ;i < m_client_list.size(); i ++){
 		if(m_client_list[i]->m_clientsock == sock)
@@ -62,15 +65,30 @@ int CCrackBroker::ClientKeepLive2(const char *ip, void* s, unsigned char* cmd, v
 		return 0;
 	}
 
-	int noneed = 0;//不再需要进行解密的workitem数目，需要根据每个计算节点和block/task之间的关系计算得出
-	int len = sizeof(keeplive_compclient)+noneed*sizeof(keeplive_compclient::block_guid);
-	keeplive_compclient* ka = (keeplive_compclient*)Alloc(len);
+
+	//获得需要通知的block列表
+	getBlockByComp(pCI->m_ip,tmpcbn,STATUS_NOTICE_FINISH | STATUS_NOTICE_STOP);
+	int size = tmpcbn.size();
+
+
+	///////////////////////////////
+
+	//int noneed = 0;//不再需要进行解密的workitem数目，需要根据每个计算节点和block/task之间的关系计算得出
+	len = sizeof(keeplive_compclient)+size*sizeof(keeplive_compclient::block_guid);
+	ka = (keeplive_compclient*)Alloc(len);
 	ka->tasks = m_cracktask_ready_queue.size();
-	ka->blocks = noneed;
-	for(int i = 0; i < noneed; i++)
+	ka->blocks = size;
+	for(int i = 0; i < size; i++)
 	{
 		//对ka->guids进行赋值
+		memset(ka->guids[i],0,40);
+		memcpy(ka->guids[i],tmpcbn[i]->m_guid,sizeof(tmpcbn[i]->m_guid));
+	
+		//回收BlockNotice资源
+		delete tmpcbn[i];
 	}
+
+
 
 	*cmd = CMD_COMP_HEARTBEAT;
 	*data = ka;
@@ -207,6 +225,9 @@ int CCrackBroker::StopTask(struct task_stop_req *pReq){
 
 	int ret = 0;
 	CT_MAP::iterator iter_task;
+	CB_MAP::iterator iter_block;
+	CB_MAP::iterator iter_block_end;
+	CCrackBlock *pCB = NULL;
 	CCrackTask *pCT = NULL;
 
 	if (!pReq){
@@ -227,11 +248,35 @@ int CCrackBroker::StopTask(struct task_stop_req *pReq){
 		
 		pCT = iter_task->second;
 		
+		//将正在运行的block 放入待处理映射中
+		iter_block_end = pCT->m_crackblock_map.end();
+		for(iter_block = pCT->m_crackblock_map.begin();iter_block!= iter_block_end;iter_block++){
+			
+			pCB = iter_block->second;
+			if ((pCB->m_status == WI_STATUS_RUNNING) || (pCB->m_status == WI_STATUS_LOCK)){
+				
+				setCompBlockStatus((char *)pCB->m_comp_guid,pCB->guid,STATUS_NOTICE_STOP);
+
+			}
+
+		}
+		//////////////////////////////
+		
 		//Task status --> Running , the block status --> ready
 		ret = pCT->SetStatus(CT_STATUS_READY);
+		
 	}
 	
-	removeFromQueue(pReq->guid);
+	//如果停止任务成功
+	if (ret == 0){
+
+		removeFromQueue(pReq->guid);
+		
+		
+
+
+	}
+	
 	
 	//m_cracktask_cs.Unlock();
 	return ret;
@@ -242,6 +287,9 @@ int CCrackBroker::DeleteTask(struct task_delete_req *pReq){
 	int ret = 0;
 	CT_MAP::iterator iter_task;
 	CCrackTask *pCT = NULL;
+	CB_MAP::iterator iter_block;
+	CB_MAP::iterator iter_block_end;
+	CCrackBlock *pCB = NULL;
 
 	if (!pReq){
 
@@ -271,6 +319,23 @@ int CCrackBroker::DeleteTask(struct task_delete_req *pReq){
 		//Task status --> Running , the block status --> ready
 		//保守的删除方法，给wi 状态留有余地
 	//	ret = pCT->SetStatus(CT_STATUS_DELETED);
+
+
+		//通知正在运行的block停止运行
+		//将正在运行的block 放入待处理映射中
+		iter_block_end = pCT->m_crackblock_map.end();
+		for(iter_block = pCT->m_crackblock_map.begin();iter_block!= iter_block_end;iter_block++){
+			
+			pCB = iter_block->second;
+			if ((pCB->m_status == WI_STATUS_RUNNING) || (pCB->m_status == WI_STATUS_LOCK)){
+				
+				setCompBlockStatus((char *)pCB->m_comp_guid,pCB->guid,STATUS_NOTICE_STOP);
+
+			}
+
+		}
+		//////////////////////////////
+
 
 		//暴力删除,直接删除相关任务，及其hash 和crackblock
 		this->deleteTask((char *)pReq->guid);
@@ -519,7 +584,6 @@ int CCrackBroker::GetAWorkItem(struct crack_block **pRes){
 		return NOT_READY_WORKITEM;
 	}
 	
-		
 	if (pCT->m_split_num == pCT->m_runing_num){
 
 		m_cracktask_ready_queue.pop_front();
@@ -539,6 +603,109 @@ int CCrackBroker::GetAWorkItem(struct crack_block **pRes){
 
 	return ret;
 }
+
+
+//新增加的获取block 的函数，添加了对计算节点和block 之间的对应关系
+int CCrackBroker::GetAWorkItem2(char *ipinfo,struct crack_block **pRes){
+
+	int ret = 0;
+	CT_MAP::iterator iter_task;
+	struct crack_block *pres = NULL;
+	CCrackBlock *pTmpCB = NULL;
+	CCrackTask *pCT = NULL;
+	CCrackBlock *pCB = NULL;
+	CB_MAP::iterator iter_block;
+	CCB_MAP::iterator comp_iter;
+	CBN_VECTOR tmpcbn;
+	CBlockNotice *pBN = NULL;
+
+
+	char *pguid = NULL;
+	int size = 0;
+
+	//CLog::Log(LOG_LEVEL_WARNING,"Enter into CCrackBroker::GetAWorkItem\n");
+
+	pres = (struct crack_block *)Alloc(sizeof(struct crack_block));
+	if (!pres)
+	{	
+		CLog::Log(LOG_LEVEL_WARNING,"Alloc crack block error\n");
+		return ALLOC_CRACK_BLOCK_ERR;
+	}
+	
+//	m_cracktask_cs.Lock();
+	
+	memset(pres,0,sizeof(struct crack_block));
+	
+	size = m_cracktask_ready_queue.size();
+	//CLog::Log(LOG_LEVEL_WARNING,"There is %d task Ready\n", size);
+	if (size < 1){	
+	//	m_cracktask_cs.Unlock();
+		return ALLOC_CRACK_BLOCK_ERR;
+	}
+
+	pguid = m_cracktask_ready_queue.front();
+	//CLog::Log(LOG_LEVEL_WARNING,"Front task guid = %s\n", pguid);
+	if (pguid == NULL){
+
+		CLog::Log(LOG_LEVEL_WARNING,"Running Task is Null\n");
+//		m_cracktask_cs.Unlock();
+		return NO_RUNNING_TASK;
+	}
+
+	iter_task = m_cracktask_map.find(pguid);
+	if (iter_task == m_cracktask_map.end()){
+
+		CLog::Log(LOG_LEVEL_WARNING,"Can't find Task With GUID %s\n",pguid);
+		m_cracktask_ready_queue.pop_front();
+		m_cracktask_ready_queue.push_back(pguid);
+		ret =  NOT_FIND_GUID_TASK;
+//		m_cracktask_cs.Unlock();
+		return ret;
+	}
+
+	pCT = iter_task->second;
+	
+	pCB = pCT->GetAReadyWorkItem2(ipinfo);
+	if (pCB == NULL){
+		
+		CLog::Log(LOG_LEVEL_WARNING,"Can't find A Ready WorkItem from Task %s \n",pguid);
+		m_cracktask_ready_queue.pop_front();
+		m_cracktask_ready_queue.push_back(pguid);
+		return NOT_READY_WORKITEM;
+	}
+	
+	
+
+	if (pCT->m_split_num == pCT->m_runing_num){
+
+		m_cracktask_ready_queue.pop_front();
+
+	}else{
+	
+		m_cracktask_ready_queue.pop_front();
+		m_cracktask_ready_queue.push_back(pguid);
+	}
+
+	getBlockFromCrackBlock(pCB,pres);
+
+	*pRes = pres;
+
+	///设置block 和comp 对应关系
+	//STATUS_NOTICE_RUN
+	ret = 0;
+	ret = setCompBlockStatus(ipinfo,pCB->guid,STATUS_NOTICE_RUN);
+	if (ret < 0 ){
+	
+		CLog::Log(LOG_LEVEL_WARNING,"Add Computer %s and Block %s Map error\n",ipinfo,pguid);
+		
+	}
+	
+//	m_cracktask_cs.Unlock();
+
+	return ret;
+}
+
+
 
 int CCrackBroker::QueryTaskByWI(char* task_guid, const char* block_guid)
 {
@@ -588,19 +755,6 @@ int CCrackBroker::GetWIStatus(struct crack_status *pReq){
 	
 	pCT->RefreshRemainTime();
 
-
-	/*
-
-	CLog::Log(LOG_LEVEL_WARNING,"CrackBlock GUID %s,Remain time : %d\n",pReq->guid,pReq->remainTime);
-
-	if (pCB->m_remaintime >((CCrackTask*)(pCB->task))->m_remain_time){
-			
-		((CCrackTask*)(pCB->task))->m_remain_time = pCB->m_remaintime;
-
-		CLog::Log(LOG_LEVEL_WARNING,"CrackTask GUID %s,Remain time : %d\n",((CCrackTask*)(pCB->task))->guid,((CCrackTask*)(pCB->task))->m_remain_time);
-	}
-
-	*/
 	return ret;
 }
 
@@ -632,6 +786,9 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 			//将任务就绪队列更新
 			updateReadyQueue(pCB);
 
+			//block占用释放，从block--computer 映射中删除
+			deleteCompBlock((char *)pCB->m_comp_guid,pCB->guid);
+
 			break;
 		case WI_STATUS_RUNNING:
 
@@ -648,7 +805,13 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 			CLog::Log(LOG_LEVEL_WARNING, "**** WorkItem [guid=%s] password=\"%s\" ****\n",pReq->guid,pReq->password);
 			pCB->m_status = WI_STATUS_CRACKED;
 			pCT =(CCrackTask *)pCB->task;
-			
+						
+			//解密成功，同一个hash下的block将不需要继续计算
+			setNoticByHash(pCB,index);
+			//删除完成block
+			deleteCompBlock((char *)pCB->m_comp_guid,pCB->guid);
+
+
 		//	m_cracktask_cs.Lock();
 			ret = pCT->updateStatusToFinish(pReq,index);
 			if (ret == 1){
@@ -664,6 +827,10 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 			pCB->m_status = WI_STATUS_NO_PWD;
 			pCT = (CCrackTask *)pCB->task;
 		//	m_cracktask_cs.Lock();
+
+			//删除完成block
+			deleteCompBlock((char *)pCB->m_comp_guid,pCB->guid);
+
 
 			ret = pCT->updateStatusToFinish(pReq,index);
 
@@ -820,7 +987,12 @@ int CCrackBroker::DoClientQuit(char *ip,int port){
 	
 	int ret = 0;
 	int i = 0;
+	int size = 0;
+	CBN_VECTOR tmpcbn;
 	CI_VECTOR::iterator iter_client;
+	CB_MAP::iterator iter_block;
+	CB_MAP::iterator iter_block_end = m_total_crackblock_map.end();
+	CCrackBlock *pCB = NULL;
 	int client_num = m_client_list.size();
 
 	for(i =0;i < client_num;i ++ ){
@@ -838,6 +1010,51 @@ int CCrackBroker::DoClientQuit(char *ip,int port){
 
 		ret = -1;
 	}
+
+	//计算节点退出的话还需要，将计算节点正在计算的block状态出始化
+	getBlockByComp(ip,tmpcbn,STATUS_NOTICE_RUN);
+
+	if (tmpcbn.size() == 0){
+
+		
+		return 0;
+	}
+	
+	//将所有相关block 设置状态为ready,进行重新分配，进度信息清空
+	size = tmpcbn.size();
+	for(i = 0;i < size ;i ++ ){
+		
+		iter_block = m_total_crackblock_map.find(tmpcbn[i]->m_guid);
+
+		//释放资源
+		delete tmpcbn[i];
+
+		if (iter_block == iter_block_end){
+
+			continue;
+
+		}
+
+		pCB = iter_block->second;
+		pCB->m_status = WI_STATUS_READY;
+		pCB->m_progress = 0.0;
+		pCB->m_remaintime =0;
+		pCB->m_speed = 0.0;
+		memset(pCB->m_comp_guid,0,40);
+
+		//将相关任务放入就绪队列
+		((CCrackTask *)(pCB->task))->m_runing_num-=1;
+		updateReadyQueue(pCB);
+		
+		
+
+	}
+
+	
+	
+	
+	
+
 	return ret;
 }
 
@@ -969,6 +1186,283 @@ void CCrackBroker::checkReadyQueue(CCrackTask *pCT){
 
 
 }
+
+
+
+//添加新的block 
+/*
+int CCrackBroker::addNewCompBlock(char *ipinfo,char *blockguid,char status){
+	
+	int ret =0;
+	int size = 0;
+	int tmpi = 0;
+	CCB_MAP::iterator comp_iter;
+	CBlockNotice *pBN = NULL;
+	CBN_VECTOR tmpcbn;
+
+	//被锁定的任务加入到计算节点和block 映射表中
+	comp_iter = m_comp_block_map.find(ipinfo);
+	if (comp_iter == m_comp_block_map.end()){
+		
+		pBN = new CBlockNotice();
+		if (!pBN){
+			
+			CLog::Log(LOG_LEVEL_WARNING,"Create BlockNotice Error.CompIP : %s,Block : %s\n",ipinfo,blockguid);
+			ret = -10;
+			return ret;
+		}
+		
+		memset(pBN->m_guid,0,40);
+		memcpy(pBN->m_guid,blockguid,strlen(blockguid));
+
+		pBN->m_status = status;
+
+		tmpcbn.push_back(pBN);
+
+		m_comp_block_map.insert(CCB_MAP::value_type(ipinfo,tmpcbn));
+
+	}else{
+		
+		tmpcbn = comp_iter->second;
+		size = tmpcbn.size();
+		for(tmpi = 0;tmpi < size ;tmpi ++ ){
+
+			pBN = tmpcbn[tmpi];
+			if (strcmp(pBN->m_guid,blockguid,40) == 0){
+
+				pBN->m_status = status;
+				break;
+			}
+
+		}
+
+		if (tmpi == size){
+
+			pBN = new CBlockNotice();
+			if (!pBN){
+				
+				CLog::Log(LOG_LEVEL_WARNING,"Create BlockNotice Error.CompIP : %s,Block : %s\n",ipinfo,blockguid);
+				ret = -10;
+				return ret;
+			}
+			
+			memset(pBN->m_guid,0,40);
+			memcpy(pBN->m_guid,blockguid,strlen(blockguid));
+
+			pBN->m_status = status;
+
+			tmpcbn.push_back(pBN);
+
+		}
+
+	}
+
+	return ret;
+}
+
+*/
+//从映射表中删除block
+int CCrackBroker::deleteCompBlock(char *ipinfo,char *blockguid){
+
+	int ret =0;
+	int size = 0;
+	int tmpi = 0;
+	CCB_MAP::iterator comp_iter;
+	CBlockNotice *pBN = NULL;
+	CBN_VECTOR tmpcbn;
+
+	//被锁定的任务加入到计算节点和block 映射表中
+	comp_iter = m_comp_block_map.find(ipinfo);
+	if (comp_iter == m_comp_block_map.end()){
+		
+		CLog::Log(LOG_LEVEL_WARNING,"Can't find CompIP : %s in Map\n",ipinfo);
+		ret = -2;
+		return ret;
+	}
+
+	tmpcbn = comp_iter->second;
+	size = tmpcbn.size();
+	for(tmpi = 0; tmpi < size; tmpi ++){
+		
+		pBN = tmpcbn[tmpi];
+		if (strncmp(pBN->m_guid,blockguid,40) == 0){
+
+			break;
+		}
+
+	}
+
+	if (tmpi < size){
+
+		tmpcbn.erase(tmpcbn.begin()+tmpi);
+		delete pBN;
+		
+		if (size == 1){
+			m_comp_block_map.erase(comp_iter);
+		}
+	}
+
+	return ret;
+}
+
+//修改映射表中block状态
+int CCrackBroker::setCompBlockStatus(char *ipinfo,char *blockguid,char status){
+
+	int ret =0;
+	int size = 0;
+	int tmpi = 0;
+	CCB_MAP::iterator comp_iter;
+	CBlockNotice *pBN = NULL;
+	CBN_VECTOR tmpcbn;
+
+	//被锁定的任务加入到计算节点和block 映射表中
+	comp_iter = m_comp_block_map.find(ipinfo);
+	if (comp_iter == m_comp_block_map.end()){
+		
+		pBN = new CBlockNotice();
+		if (!pBN){
+			
+			CLog::Log(LOG_LEVEL_WARNING,"Create BlockNotice Error.CompIP : %s,Block : %s\n",ipinfo,blockguid);
+			ret = -10;
+			return ret;
+		}
+		
+		memset(pBN->m_guid,0,40);
+		memcpy(pBN->m_guid,blockguid,strlen(blockguid));
+
+		pBN->m_status = status;
+
+		tmpcbn.push_back(pBN);
+
+		m_comp_block_map.insert(CCB_MAP::value_type(ipinfo,tmpcbn));
+
+	}else{
+		
+		tmpcbn = comp_iter->second;
+		size = tmpcbn.size();
+		for(tmpi = 0;tmpi < size ;tmpi ++ ){
+
+			pBN = tmpcbn[tmpi];
+			if (strncmp(pBN->m_guid,blockguid,40) == 0){
+
+				pBN->m_status = status;
+				break;
+			}
+
+		}
+
+		if (tmpi == size){
+
+			pBN = new CBlockNotice();
+			if (!pBN){
+				
+				CLog::Log(LOG_LEVEL_WARNING,"Create BlockNotice Error.CompIP : %s,Block : %s\n",ipinfo,blockguid);
+				ret = -10;
+				return ret;
+			}
+			
+			memset(pBN->m_guid,0,40);
+			memcpy(pBN->m_guid,blockguid,strlen(blockguid));
+
+			pBN->m_status = status;
+
+			tmpcbn.push_back(pBN);
+
+		}
+
+	}
+
+	return ret;
+}
+
+
+//得到映射表中的特定状态block 列表
+int CCrackBroker::getBlockByComp(char *ipinfo,CBN_VECTOR cbnvector,char status){
+
+	int ret =0;
+	int size = 0;
+	int tmpi = 0;
+	CCB_MAP::iterator comp_iter;
+	CBlockNotice *pBN = NULL;
+	CBN_VECTOR::iterator cbn_iter;
+	CBN_VECTOR tmpcbn;
+
+	char *p = NULL;
+
+	//被锁定的任务加入到计算节点和block 映射表中
+	comp_iter = m_comp_block_map.find(ipinfo);
+	if (comp_iter == m_comp_block_map.end()){
+		
+		CLog::Log(LOG_LEVEL_WARNING,"Compute Node : %s has no block occupy\n",ipinfo);
+		return ret;
+
+	}else{
+		
+		tmpcbn = comp_iter->second;
+		cbn_iter = tmpcbn.begin();
+
+		while(cbn_iter != tmpcbn.end()){
+
+			pBN = *cbn_iter;
+			
+			if (pBN->m_status & status){  //status 可能是多个状态的组合，例如 STATUS_NOTICE_FINISH | STATUS_NOTICE_STOP
+
+				cbnvector.push_back(pBN);
+				tmpcbn.erase(cbn_iter++);
+			}else{
+
+				cbn_iter++;
+			}
+
+		}
+
+
+		//客户端退出情况
+		if (status == STATUS_NOTICE_RUN){
+
+			m_comp_block_map.erase(comp_iter);
+
+		}else {
+
+			if( tmpcbn.size() == 0){
+				
+				m_comp_block_map.erase(comp_iter);
+
+			}	
+		}
+
+	}
+
+	return ret;
+}
+
+
+int CCrackBroker::setNoticByHash(CCrackBlock *pCB,int index){
+
+	int ret = 0;
+	CCrackTask *pCT = (CCrackTask *)pCB->task;
+	CCrackBlock *pTmp = NULL;
+	CB_MAP::iterator iter_block;
+	CB_MAP::iterator iter_block_end;
+
+	for(iter_block = pCT->m_crackblock_map.begin();iter_block!=iter_block_end;iter_block++){
+		
+		pTmp = iter_block->second;
+		
+		
+		if ((pTmp->hash_idx == index) && ((pTmp->m_status == WI_STATUS_RUNNING) || (pTmp->m_status == WI_STATUS_LOCK))){
+
+			setCompBlockStatus((char *)pTmp->m_comp_guid,pTmp->guid,STATUS_NOTICE_FINISH);
+
+		}
+
+
+
+	}
+
+	return ret;
+}
+
 
 void *CCrackBroker::Alloc(int size){
 	

@@ -11,6 +11,7 @@
 #include "ReqPacket.h"
 #include "ResPacket.h"
 #include "macros.h"
+#include "BlockNotice.h"
 
 
 
@@ -58,9 +59,15 @@ struct MapLessCompare{
 
 //typedef std::map<char *, CCrackBlock *,MapLessCompare > TOTAL_CB_MAP;
 
+typedef std::vector<char *> GUID_VECTOR;
+
+typedef std::vector<CBlockNotice *> CBN_VECTOR;
+
 typedef std::vector<CClientInfo *> CI_VECTOR;
 
 typedef std::map<char *,CCrackTask *,MapLessCompare> CT_MAP;
+
+typedef std::map<char *,CBN_VECTOR,MapLessCompare> CCB_MAP; //computer<----> block 映射
 
 //typedef std::queue<char *> CT_QUEUE;
 typedef std::deque<char *> CT_DEQUE;
@@ -99,6 +106,9 @@ public:
 	//计算节点业务逻辑处理函数
 	int GetAWorkItem(struct crack_block **pRes);
 
+	int GetAWorkItem2(char *ipinfo, struct crack_block **pRes); //增加传入参数计算节点ip地址和端口
+
+
 	int GetWIStatus(struct crack_status *pReq);
 
 	int GetWIResult(struct crack_result *pReq);
@@ -131,6 +141,16 @@ private:
 
 	void checkReadyQueue(CCrackTask *pCT);
 
+
+	///add the block<---->computer op
+	//int addNewCompBlock(char *ipinfo,char *blockguid,char status);
+	int deleteCompBlock(char *ipinfo,char *blockguid);
+	int setCompBlockStatus(char *ipinfo,char *blockguid,char status);
+
+	int getBlockByComp(char *ipinfo,CBN_VECTOR cbnvector,char status);
+
+	int setNoticByHash(CCrackBlock *pCB,int index);
+
 public :
 	
 	CCriticalSection m_cracktask_cs;
@@ -147,6 +167,9 @@ public :
 	CCriticalSection m_total_crackblock_cs;
 
 	CB_MAP m_total_crackblock_map;
+
+	//计算节点和block 的映射
+	CCB_MAP m_comp_block_map;
 
 };
 
