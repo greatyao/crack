@@ -114,7 +114,20 @@ public:
 	int QueryByGuid(resourceslot* plots[], int n, const char* guid);
 	
 	void SaveOneDone(struct crack_result* result);
-	void ReportDoneAgain(int (*report)(struct crack_result* result));
+	
+	template <typename Function> 
+	void ReportDoneAgain(Function func)
+	{
+		typedef vector <struct crack_result *>::iterator iterator;
+		for(iterator it = m_done_results.begin(); it != m_done_results.end(); )
+		{
+			if(func(*it) <= 0)
+				it ++;
+			else
+				it = m_done_results.erase(it);
+		}
+	}
+	
 	int GetDoneSize()const;
 		
 	/***************************************************************

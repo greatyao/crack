@@ -21,6 +21,7 @@
 #include <sys/types.h>
 #include <errno.h>
 #endif
+#include <functional>
 
 static int cpu_num;
 static int gpu_num;
@@ -389,18 +390,6 @@ void ResourcePool::SaveOneDone(struct crack_result* result)
 {
 	struct crack_result* cp = new struct crack_result(*result);
 	m_done_results.push_back(cp);
-}
-
-void ResourcePool::ReportDoneAgain(int (*report)(struct crack_result* result))
-{
-	for(vector <struct crack_result *>::iterator it = m_done_results.begin();
-		it != m_done_results.end(); )
-	{
-		if(report(*it) <= 0)
-			it ++;
-		else
-			it = m_done_results.erase(it);
-	}
 }
 
 int ResourcePool::GetDoneSize()const

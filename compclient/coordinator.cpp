@@ -29,10 +29,10 @@ ccoordinator::~ccoordinator()
 	}
 }
 
-static int Report(struct crack_result* result)
-{
-	return Client::Get().ReportResultToServer(result);
-}
+//static int Report(struct crack_result* result)
+//{
+//	return Client::Get().ReportResultToServer(result);
+//}
 
 void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 {
@@ -54,7 +54,8 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 		if(Client::Get().Connected() && pool.GetDoneSize() > 0)
 		{
 			CLog::Log(LOG_LEVEL_NOTICE, "ccoordinator: Server online and Submit %d results\n", pool.GetDoneSize());
-			pool.ReportDoneAgain(&Report);
+			//pool.ReportDoneAgain(&Report);
+			pool.ReportDoneAgain(bind1st(mem_fun(&Client::ReportResultToServer), &Client::Get()));
 		}
 		
 		//从资源池获取可用的计算单元
