@@ -1286,10 +1286,9 @@ int CCrackBroker::deleteCompBlock(char *ipinfo,char *blockguid){
 	CBlockNotice *pBN = NULL;
 
 	//被锁定的任务加入到计算节点和block 映射表中
-	CLog::Log(LOG_LEVEL_WARNING,"CompIP Map %d %s\n", m_comp_block_map.size(), ipinfo);
-	for(comp_iter = m_comp_block_map.begin(); comp_iter != m_comp_block_map.end(); comp_iter++)
-		CLog::Log(LOG_LEVEL_NOMAL, "ip:%s,  running block %d\n", comp_iter->first.c_str(), comp_iter->second.size());
-
+	//CLog::Log(LOG_LEVEL_WARNING,"CompIP Map %d %s\n", m_comp_block_map.size(), ipinfo);
+	//for(comp_iter = m_comp_block_map.begin(); comp_iter != m_comp_block_map.end(); comp_iter++)
+	//	CLog::Log(LOG_LEVEL_NOMAL, "ip:%s,  running block %d\n", comp_iter->first.c_str(), comp_iter->second.size());
 
 	comp_iter = m_comp_block_map.find(ipinfo);
 	if (comp_iter == m_comp_block_map.end()){
@@ -1412,7 +1411,7 @@ int CCrackBroker::getBlockByComp(char *ipinfo,CBN_VECTOR &cbnvector,char status)
 	comp_iter = m_comp_block_map.find(ipinfo);
 	if (comp_iter == m_comp_block_map.end()){
 		
-		CLog::Log(LOG_LEVEL_WARNING,"Compute Node : %s has no block occupy\n",ipinfo);
+		//CLog::Log(LOG_LEVEL_WARNING,"Compute Node : %s has no block occupy\n",ipinfo);
 		return ret;
 
 	}else{
