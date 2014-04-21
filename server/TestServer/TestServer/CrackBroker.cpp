@@ -739,7 +739,7 @@ int CCrackBroker::GetWIStatus(struct crack_status *pReq){
 	iter_block = m_total_crackblock_map.find(pReq->guid);
 	if (iter_block == m_total_crackblock_map.end()){
 
-		CLog::Log(LOG_LEVEL_WARNING,"Can't find Crack Block With GUID %s\n",pReq->guid);
+		//CLog::Log(LOG_LEVEL_WARNING,"Can't find Crack Block With GUID %s\n",pReq->guid);
 		ret =  NOT_FIND_GUID_BLOCK;
 		return ret;
 	}
@@ -1278,9 +1278,13 @@ int CCrackBroker::deleteCompBlock(char *ipinfo,char *blockguid){
 	int tmpi = 0;
 	CCB_MAP::iterator comp_iter;
 	CBlockNotice *pBN = NULL;
-	CBN_VECTOR tmpcbn;
 
 	//被锁定的任务加入到计算节点和block 映射表中
+	CLog::Log(LOG_LEVEL_WARNING,"CompIP Map %d %s\n", m_comp_block_map.size(), ipinfo);
+	for(comp_iter = m_comp_block_map.begin(); comp_iter != m_comp_block_map.end(); comp_iter++)
+		CLog::Log(LOG_LEVEL_NOMAL, "ip:%s,  running block %d\n", comp_iter->first.c_str(), comp_iter->second.size());
+
+
 	comp_iter = m_comp_block_map.find(ipinfo);
 	if (comp_iter == m_comp_block_map.end()){
 		
@@ -1289,7 +1293,7 @@ int CCrackBroker::deleteCompBlock(char *ipinfo,char *blockguid){
 		return ret;
 	}
 
-	tmpcbn = comp_iter->second;
+	CBN_VECTOR& tmpcbn = comp_iter->second;
 	size = tmpcbn.size();
 	for(tmpi = 0; tmpi < size; tmpi ++){
 		
@@ -1322,11 +1326,11 @@ int CCrackBroker::setCompBlockStatus(char *ipinfo,char *blockguid,char status){
 	int tmpi = 0;
 	CCB_MAP::iterator comp_iter;
 	CBlockNotice *pBN = NULL;
-	CBN_VECTOR tmpcbn;
 
 	//被锁定的任务加入到计算节点和block 映射表中
 	comp_iter = m_comp_block_map.find(ipinfo);
 	if (comp_iter == m_comp_block_map.end()){
+		CBN_VECTOR tmpcbn;
 		
 		pBN = new CBlockNotice();
 		if (!pBN){
@@ -1335,6 +1339,7 @@ int CCrackBroker::setCompBlockStatus(char *ipinfo,char *blockguid,char status){
 			ret = -10;
 			return ret;
 		}
+
 		
 		memset(pBN->m_guid,0,40);
 		memcpy(pBN->m_guid,blockguid,strlen(blockguid));
@@ -1343,11 +1348,11 @@ int CCrackBroker::setCompBlockStatus(char *ipinfo,char *blockguid,char status){
 
 		tmpcbn.push_back(pBN);
 
-		m_comp_block_map.insert(CCB_MAP::value_type(ipinfo,tmpcbn));
+		m_comp_block_map[ipinfo] = tmpcbn;
 
 	}else{
 		
-		tmpcbn = comp_iter->second;
+		CBN_VECTOR& tmpcbn = comp_iter->second;
 		size = tmpcbn.size();
 		for(tmpi = 0;tmpi < size ;tmpi ++ ){
 
@@ -1394,7 +1399,6 @@ int CCrackBroker::getBlockByComp(char *ipinfo,CBN_VECTOR &cbnvector,char status)
 	CCB_MAP::iterator comp_iter;
 	CBlockNotice *pBN = NULL;
 	CBN_VECTOR::iterator cbn_iter;
-	CBN_VECTOR tmpcbn;
 
 	char *p = NULL;
 
@@ -1407,7 +1411,7 @@ int CCrackBroker::getBlockByComp(char *ipinfo,CBN_VECTOR &cbnvector,char status)
 
 	}else{
 		
-		tmpcbn = comp_iter->second;
+		CBN_VECTOR& tmpcbn = comp_iter->second;
 		cbn_iter = tmpcbn.begin();
 
 		while(cbn_iter != tmpcbn.end()){
@@ -1418,7 +1422,6 @@ int CCrackBroker::getBlockByComp(char *ipinfo,CBN_VECTOR &cbnvector,char status)
 
 				cbnvector.push_back(pBN);
 				cbn_iter = tmpcbn.erase(cbn_iter);
-
 			}else{
 
 				cbn_iter++;

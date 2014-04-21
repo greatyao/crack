@@ -929,7 +929,7 @@ int comp_get_workitem_status(void *pclient,unsigned char *pdata,UINT len){
 
 	ret = g_CrackBroker.GetWIStatus(pstatus);
 	if (ret < 0 ){
-		CLog::Log(LOG_LEVEL_WARNING,"Get A WorkItem Progress Error %d\n", ret);
+		//CLog::Log(LOG_LEVEL_WARNING,"Get A WorkItem Progress Error %d\n", ret);
 	}else {
 		//CLog::Log(LOG_LEVEL_WARNING,"Get A WorkItem Progress OK\n");
 	}

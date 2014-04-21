@@ -77,7 +77,7 @@ int CCrackTask::SplitTaskFile(char *pguid){
 		m_crackhash_list.push_back(&pCCH[i]);
 
 		if(this->special == 0)
-			CLog::Log(LOG_LEVEL_WARNING,"Crack Hash is %s,%s,%s\n",hashes[i].hash,hashes[i].salt,hashes[i].salt2);
+			CLog::Log(LOG_LEVEL_NOMAL, "Crack Hash is %s,%s,%s\n",hashes[i].hash,hashes[i].salt,hashes[i].salt2);
 	}
 
 	//出始化相关工作项
@@ -107,11 +107,11 @@ int CCrackTask::SplitTaskFile(char *pguid){
 		if(this->special == 0)
 		{
 			if(pCb[i].type == bruteforce)
-				CLog::Log(LOG_LEVEL_WARNING,"crack_block %s [%d,%d] %s\n",pCb[i].guid, pCb[i].start, pCb[i].end, pCb[i].john);
+				CLog::Log(LOG_LEVEL_NOMAL,"crack_block %s [%d,%d] %s\n",pCb[i].guid, pCb[i].start, pCb[i].end, pCb[i].john);
 			else if(pCb[i].type == dict)
-				CLog::Log(LOG_LEVEL_WARNING,"crack_block %s [dict=%d] %s\n",pCb[i].guid, pCb[i].dict_idx, pCb[i].john);
+				CLog::Log(LOG_LEVEL_NOMAL,"crack_block %s [dict=%d] %s\n",pCb[i].guid, pCb[i].dict_idx, pCb[i].john);
 			if(pCb[i].type == mask && pCb[i].flag == 0)
-				CLog::Log(LOG_LEVEL_WARNING,"crack_block %s [%d, %s] %s\n",pCb[i].guid, pCb[i].maskLength, pCb[i].masks, pCb[i].john);
+				CLog::Log(LOG_LEVEL_NOMAL,"crack_block %s [%d, %s] %s\n",pCb[i].guid, pCb[i].maskLength, pCb[i].masks, pCb[i].john);
 		}
 	}
 
@@ -728,7 +728,7 @@ void CCrackTask::RefreshRemainTime(){
 
 			max_remain_time = pCB->m_remaintime;
 
-			CLog::Log(LOG_LEVEL_WARNING,"CrackBlock GUID %s,Remain time : %d\n",pCB->guid,pCB->m_remaintime);
+			//CLog::Log(LOG_LEVEL_WARNING,"CrackBlock GUID %s,Remain time : %d\n",pCB->guid,pCB->m_remaintime);
 
 		}
 

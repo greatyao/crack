@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <deque>
+#include <string>
 
 #include "ClientInfo.h"
 #include "CrackTask.h"
@@ -13,7 +14,7 @@
 #include "macros.h"
 #include "BlockNotice.h"
 
-
+using std::string;
 
 #define STANDARD_ERR -1000
 
@@ -55,6 +56,11 @@ struct MapLessCompare{
 	{
 		return strcmp(str1,str2) < 0;
 	}
+
+	bool operator()(const string& str1,const string& str2) const
+	{
+		return strcmp(str1.c_str(),str2.c_str()) < 0;
+	}
 };
 
 //typedef std::map<char *, CCrackBlock *,MapLessCompare > TOTAL_CB_MAP;
@@ -67,7 +73,7 @@ typedef std::vector<CClientInfo *> CI_VECTOR;
 
 typedef std::map<char *,CCrackTask *,MapLessCompare> CT_MAP;
 
-typedef std::map<char *,CBN_VECTOR,MapLessCompare> CCB_MAP; //computer<----> block ”≥…‰
+typedef std::map<string,CBN_VECTOR,MapLessCompare> CCB_MAP; //computer<----> block ”≥…‰
 
 //typedef std::queue<char *> CT_QUEUE;
 typedef std::deque<char *> CT_DEQUE;
@@ -147,7 +153,7 @@ private:
 	int deleteCompBlock(char *ipinfo,char *blockguid);
 	int setCompBlockStatus(char *ipinfo,char *blockguid,char status);
 
-	int getBlockByComp(char *ipinfo,CBN_VECTOR &cbnvector,char status);
+	int getBlockByComp(char *ipinfo,CBN_VECTOR& cbnvector,char status);
 
 	int setNoticByHash(CCrackBlock *pCB,int index);
 
