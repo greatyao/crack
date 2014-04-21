@@ -32,7 +32,7 @@ int CCrackTask::Init(crack_task *pCrackTask)
 
 	m_file = NULL;
 
-	m_start_time = 0;
+	m_start_time = time(NULL);
 	m_speed = 0;
 	m_running_time = 0;
 	m_remain_time = 0;
