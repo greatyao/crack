@@ -154,7 +154,7 @@ int	CCrackBroker::CreateTask(struct crack_task *pReq,unsigned char *pguid){
 
 
 //切分任务接口
-int CCrackBroker::SplitTask(char *pguid){
+int CCrackBroker::SplitTask(char *pguid, const char* john){
 	
 	int ret = 0;
 	CT_MAP::iterator iter_task;
@@ -169,7 +169,7 @@ int CCrackBroker::SplitTask(char *pguid){
 
 	pCT = iter_task->second;
 	
-	ret = pCT->SplitTaskFile(pguid);
+	ret = pCT->SplitTaskFile(pguid, john);
 	if (ret < 0 ){
 		
 		CLog::Log(LOG_LEVEL_WARNING,"Task GUID %s ,Split Error\n",pguid);

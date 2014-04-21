@@ -13,8 +13,8 @@ CPackManager::CPackManager(void)
 	//sprintf(m_sIp,"127.0.0.1");
 	ReadConfigure();
 
-	//CLog::InitLogSystem(LOG_TO_FILE,TRUE,"ControlClient.log");
-	CLog::InitLogSystem(LOG_TO_SCREEN,TRUE);
+	CLog::InitLogSystem(LOG_TO_FILE,TRUE,"ControlClient.log");
+	//CLog::InitLogSystem(LOG_TO_SCREEN,TRUE);
 
 	InitLockSocket();
 	m_connected = 0;

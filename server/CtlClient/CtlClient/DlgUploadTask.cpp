@@ -362,18 +362,25 @@ void CDlgUploadTask::OnBnClickedOk()
 		m_EditType.GetWindowTextA(newtask.masks,18);		
 	}	
 
-	sprintf((char *)newtask.filename,"%s",m_filename);
-
-	memcpy(g_packmanager.m_cur_local_file,newtask.filename,256);
-
 	struct task_upload_res ures={0};
-	
 	int ret =0;
+	newtask.single = 1;
+
+	if(newtask.single == 0){
+		sprintf((char *)newtask.filename,"%s",m_filename);
+		memcpy(g_packmanager.m_cur_local_file,newtask.filename,256);
+	}else{
+		//直接复制hash值
+		strcpy((char*)newtask.filename, "00f13b2bcddb408220dc223e15dc2121");
+	}
 	
 	ret = g_packmanager.DoTaskUploadPack(newtask,&ures);
 	if (ret < 0){		
 		ErrorMsg(ret);
 		return ;
+	}else if(newtask.single == 1){
+		AfxMessageBox("Upload Task OK");
+		return;
 	}
 
 	file_upload_req uploadreq;

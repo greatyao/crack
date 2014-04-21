@@ -152,7 +152,11 @@ int cc_task_upload(void *pclient, unsigned char * pdata, UINT len){
 	}
 
 	pCrackTask = (crack_task *)pdata;
-	CLog::Log(LOG_LEVEL_WARNING,"task Task status info charset : %d, filename : %s,algo : %d\n",pCrackTask->charset,pCrackTask->filename,pCrackTask->algo);
+	if(pCrackTask->single == 0)
+		CLog::Log(LOG_LEVEL_NOMAL,"Incoming a new Task [charset=%d, filename=%s, algo=%d]\n",pCrackTask->charset,pCrackTask->filename,pCrackTask->algo);
+	else
+		CLog::Log(LOG_LEVEL_NOMAL,"Incoming a new Task [charset=%d, hash_value=%s, algo=%d]\n",pCrackTask->charset,pCrackTask->filename,pCrackTask->algo);
+	
 	new_guid(pCrackTask->guid,sizeof(pCrackTask->guid));
 	
 	nRet = g_CrackBroker.CreateTask(pCrackTask,task_upload.guid);
@@ -160,6 +164,17 @@ int cc_task_upload(void *pclient, unsigned char * pdata, UINT len){
 		resLen = 0;
 	}else{
 		resLen = sizeof(struct task_upload_res);
+	}
+
+	if(pCrackTask->single)
+	{
+		nRet = g_CrackBroker.SplitTask((char *)task_upload.guid, (char *)pCrackTask->filename);
+		if (nRet < 0){
+			CLog::Log(LOG_LEVEL_WARNING, "Broker Split ErrorCode:%d\n", nRet);
+			
+			//删除新创建任务
+			g_CrackBroker.deleteTask((char *)task_upload.guid);
+		}
 	}
 	
 	memcpy(task_upload.guid,pCrackTask->guid,40);

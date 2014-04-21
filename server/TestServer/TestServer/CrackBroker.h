@@ -95,7 +95,7 @@ public:
 	int	CreateTask(struct crack_task *pReq,unsigned char *pguid);
 
 	//文件上传成功后，对任务进行切分
-	int SplitTask(char *pguid);
+	int SplitTask(char *pguid, const char* john = NULL);
 
 	int	StartTask(struct task_start_req *pReq);
 	

@@ -41,7 +41,7 @@ int CCrackTask::Init(crack_task *pCrackTask)
 }
 
 
-int CCrackTask::SplitTaskFile(char *pguid){
+int CCrackTask::SplitTaskFile(char *pguid, const char* john){
 
 	int ret = 0;
 	CCrackBlock *pCb = NULL;
@@ -59,10 +59,14 @@ int CCrackTask::SplitTaskFile(char *pguid){
 	count = 0;
 
 	//调用文件分割函数
-	memset(filename,0,sizeof(filename));
-	sprintf((char *)filename,".\\tempdir\\%s",guid);
-	
-	ret = load_hashes_file2((char *)filename,this);
+	if(john == NULL){
+		memset(filename,0,sizeof(filename));
+		sprintf((char *)filename,".\\tempdir\\%s",guid);
+		ret = load_hashes_file2((char *)filename,this);
+	} else{
+		ret = load_single_hash2((char *)john, this);
+	}
+
 	if (ret <= 0 ){
 		CLog::Log(LOG_LEVEL_WARNING,"load the hash Info Error\n");
 	//	Free(p);
