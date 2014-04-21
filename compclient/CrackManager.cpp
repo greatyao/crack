@@ -104,6 +104,13 @@ int CrackManager::Init()
 		
 		string vv = value;
 		std::transform(vv.begin(), vv.end(), vv.begin(), to_lower);
+		
+		if(access(value.c_str(), 0) != 0)
+		{
+			CLog::Log(LOG_LEVEL_WARNING, "CrackManager: Couldn't find Crack tool execute file %s\n", value.c_str());
+			continue;
+		}
+		
 		if(vv.find("hashkill") != string::npos)
 		{
 			tools[i] = new HashKill();
@@ -239,13 +246,37 @@ int CrackManager::StartCrack(const crack_block* item, const char* guid, bool gpu
 		return ERR_LAUCH_TASK;
 	
 	CLog::Log(LOG_LEVEL_NOMAL, "CrackManager: Starting to launch task [guid=%s]\n", guid);
+	//static int a = 0;
+	//if(++a % 2 == 0) return ERR_LAUCH_TASK;
+	
+#if 0
 	return tools[toolPriority]->StartCrack(item, guid, gpu, deviceIds, ndevices);
+#else	
+	for(int i = 0; i < toolCount; i++)
+	{
+		if(tools[i] && tools[i]->StartCrack(item, guid, gpu, deviceIds, ndevices) == 0)
+			return 0;
+	}
+	return ERR_LAUCH_TASK;
+#endif
 }
 
 int CrackManager::StopCrack(const char* guid)
 {
+#if 0
 	if(!tools || !tools[toolPriority])
 		return ERR_NOENTRY;
 		
 	return tools[toolPriority]->StopCrack(guid);
+#else	
+	if(!tools)
+		return ERR_NOENTRY;
+	for(int i = 0; i < toolCount; i++)
+	{
+		if(tools[i] && tools[i]->StopCrack(guid) == 0)
+			return 0;
+	}
+	
+	return ERR_FAILED_KILL;
+#endif
 }
