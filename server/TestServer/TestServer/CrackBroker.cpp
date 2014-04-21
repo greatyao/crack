@@ -783,8 +783,6 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 			pCB->m_status = WI_STATUS_READY;
 			((CCrackTask *)(pCB->task))->m_runing_num -=1;
 
-			((CCrackTask *)(pCB->task))->m_runing_num = 0;
-
 			//将任务就绪队列更新
 			updateReadyQueue(pCB);
 
@@ -960,6 +958,7 @@ int CCrackBroker::getStatusFromTask(CCrackTask *pCT,task_status_info *pRes){
 	int ret = 0;
 	time_t mytime = time(NULL);
 
+	memcpy(pRes->guid,pCT->guid,40);
 	pRes->m_fini_number = pCT->m_finish_num;
 	pRes->m_split_number = pCT->m_split_num;
 
@@ -969,9 +968,10 @@ int CCrackBroker::getStatusFromTask(CCrackTask *pCT,task_status_info *pRes){
 
 	if (pCT->m_status == CT_STATUS_RUNNING){
 
-		pRes->m_running_time = (pCT->m_running_time + (mytime-pCT->m_start_time));
-
-
+		if(pCT->m_runing_num == 0)
+			pRes->m_running_time = 0;
+		else
+			pRes->m_running_time = (pCT->m_running_time + (mytime-pCT->m_start_time));
 	}
 
 	pRes->m_algo = pCT->algo;
@@ -980,7 +980,11 @@ int CCrackBroker::getStatusFromTask(CCrackTask *pCT,task_status_info *pRes){
 	pRes->m_progress = pCT->m_progress;
 	pRes->m_speed = pCT->m_speed;
 	pRes->status = pCT->m_status;
-	memcpy(pRes->guid,pCT->guid,40);
+
+	float pro = pRes->m_progress;
+	if(pro == 0) pro = 0.1;
+	pRes->m_remain_time = pRes->m_running_time * (100.0/pro)-pRes->m_running_time;
+
 	return ret;
 }
 
