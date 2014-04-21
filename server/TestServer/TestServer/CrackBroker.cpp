@@ -805,6 +805,10 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 			CLog::Log(LOG_LEVEL_WARNING, "**** WorkItem [guid=%s] password=\"%s\" ****\n",pReq->guid,pReq->password);
 			pCB->m_status = WI_STATUS_CRACKED;
 			pCT =(CCrackTask *)pCB->task;
+
+			//更新剩余时间
+			pCB->m_remaintime = 0;
+			pCT->RefreshRemainTime();
 						
 			//解密成功，同一个hash下的block将不需要继续计算
 			setNoticByHash(pCB,index);
@@ -827,6 +831,11 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 			pCB->m_status = WI_STATUS_NO_PWD;
 			pCT = (CCrackTask *)pCB->task;
 		//	m_cracktask_cs.Lock();
+
+			//更新剩余时间
+			pCB->m_remaintime = 0;
+			pCT->RefreshRemainTime();
+
 
 			//删除完成block
 			deleteCompBlock((char *)pCB->m_comp_guid,pCB->guid);
@@ -1443,7 +1452,7 @@ int CCrackBroker::setNoticByHash(CCrackBlock *pCB,int index){
 	CCrackTask *pCT = (CCrackTask *)pCB->task;
 	CCrackBlock *pTmp = NULL;
 	CB_MAP::iterator iter_block;
-	CB_MAP::iterator iter_block_end;
+	CB_MAP::iterator iter_block_end = pCT->m_crackblock_map.end();
 
 	for(iter_block = pCT->m_crackblock_map.begin();iter_block!=iter_block_end;iter_block++){
 		
