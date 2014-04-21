@@ -99,6 +99,7 @@ enum crack_algorithm
 	algo_smf,             //SMF plugin
 	algo_wordpress,       //Wordpress hashes plugin
 	algo_wpa,             //WPA-PSK plugin
+	algo_pdf,             //Adoble PDF document plugin
 };
 
 //hash
@@ -158,7 +159,8 @@ struct crack_task
 	unsigned char algo;		//解密算法
 	unsigned char charset;	//解密字符集
 	unsigned char type;		//解密类型
-	unsigned char special;//是否是文件解密（pdf+office+rar+zip）
+	unsigned char special:7;//是否是文件解密（pdf+office+rar+zip）
+	unsigned char single:1;	//单个hash值（不通过文件）
 	union{
 		struct{
 			unsigned char startLength;	//起始长度
