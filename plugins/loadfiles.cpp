@@ -28,7 +28,28 @@ int load_hashes_file2(const char *filename, struct crack_task* task)
 	if(plugin)
 	{
 		for(int i = 0; i < n; i++)
-			plugin->recovery(&hashes[i], (char *)(&task->hashes[i]), sizeof(task->hashes[i]));
+		{
+			if(special == 0)
+				plugin->recovery(&hashes[i], (char *)(&task->hashes[i]), sizeof(task->hashes[i]));
+			else
+			{
+				memset(&(task->hashes[i]), 0, sizeof(task->hashes[i]));
+				int algo = task->algo;
+				if(algo == algo_msoffice || algo == algo_msoffice_old)
+					strcpy(task->hashes[i].hash, "MS office document");
+				else if(algo == algo_rar)
+					strcpy(task->hashes[i].hash, "RAR file");
+				else if(algo == algo_zip)
+					strcpy(task->hashes[i].hash, "ZIP file");
+				else if(algo == algo_wpa)
+					strcpy(task->hashes[i].hash, "WPA/WPA2 file");
+				else if(algo == algo_pdf)
+					strcpy(task->hashes[i].hash, "Adobe PDF document");
+				else
+					strcpy(task->hashes[i].hash, "Other file");
+			}
+		}
+
 	}
 	return n;
 }
@@ -128,7 +149,7 @@ int load_single_hash(char *hash, int algo, struct crack_hash* hashes)
 	
 	if(ret == 0)
 		return 1;
-    return ret;
+    return ERR_INVALID_PARAM;
 }
 
 int release_hashes_from_load(struct crack_task* task)
