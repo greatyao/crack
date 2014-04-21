@@ -893,19 +893,20 @@ int comp_get_a_workitem(void *pclient,unsigned char *pdata,UINT len){
 	getClientIPInfo(pclient,ip,&port);
 
 	//处理业务逻辑
-	ret = g_CrackBroker.GetAWorkItem(&pcrackblock);
+	//ret = g_CrackBroker.GetAWorkItem(&pcrackblock);
+	ret = g_CrackBroker.GetAWorkItem2(ip,&pcrackblock);
 	if (ret < 0 ){
-		CLog::Log(LOG_LEVEL_WARNING,"Get A WorkItem Error %d\n", ret);
+		CLog::Log(LOG_LEVEL_WARNING,"Get A WorkItem 2 Error %d\n", ret);
 		resLen = 0;	
 	}else {
-		CLog::Log(LOG_LEVEL_WARNING,"Get A WorkItem OK\n");
+		CLog::Log(LOG_LEVEL_WARNING,"Get A WorkItem 2 OK\n");
 		resLen = sizeof(struct crack_block);
 	}
 
 	//产生应答报文，并发送
 	int m = Write(*(SOCKET*)pclient, CMD_GET_A_WORKITEM, ret, pcrackblock,resLen,true);
 	if (m < 0){
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get A WorkItem :Send Response Error %d \n",ip,port,m);
+		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get A WorkItem 2:Send Response Error %d \n",ip,port,m);
 	}else{
 		//CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client Get A WorkItem OK\n",ip,port);
 	}
