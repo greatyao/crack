@@ -327,6 +327,7 @@ int CCrackTask::updateStatusToRunning(){
 	}
 	
 	m_status = CT_STATUS_RUNNING;
+	this->m_running_time = 0;
 	//m_start_time = time_last;
 	
 

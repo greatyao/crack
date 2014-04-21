@@ -783,6 +783,8 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 			pCB->m_status = WI_STATUS_READY;
 			((CCrackTask *)(pCB->task))->m_runing_num -=1;
 
+			((CCrackTask *)(pCB->task))->m_runing_num = 0;
+
 			//将任务就绪队列更新
 			updateReadyQueue(pCB);
 
