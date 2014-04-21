@@ -1386,7 +1386,7 @@ int CCrackBroker::setCompBlockStatus(char *ipinfo,char *blockguid,char status){
 
 
 //得到映射表中的特定状态block 列表
-int CCrackBroker::getBlockByComp(char *ipinfo,CBN_VECTOR cbnvector,char status){
+int CCrackBroker::getBlockByComp(char *ipinfo,CBN_VECTOR &cbnvector,char status){
 
 	int ret =0;
 	int size = 0;
@@ -1417,7 +1417,8 @@ int CCrackBroker::getBlockByComp(char *ipinfo,CBN_VECTOR cbnvector,char status){
 			if (pBN->m_status & status){  //status 可能是多个状态的组合，例如 STATUS_NOTICE_FINISH | STATUS_NOTICE_STOP
 
 				cbnvector.push_back(pBN);
-				tmpcbn.erase(cbn_iter++);
+				cbn_iter = tmpcbn.erase(cbn_iter);
+
 			}else{
 
 				cbn_iter++;

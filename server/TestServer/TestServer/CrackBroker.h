@@ -147,7 +147,7 @@ private:
 	int deleteCompBlock(char *ipinfo,char *blockguid);
 	int setCompBlockStatus(char *ipinfo,char *blockguid,char status);
 
-	int getBlockByComp(char *ipinfo,CBN_VECTOR cbnvector,char status);
+	int getBlockByComp(char *ipinfo,CBN_VECTOR &cbnvector,char status);
 
 	int setNoticByHash(CCrackBlock *pCB,int index);
 
