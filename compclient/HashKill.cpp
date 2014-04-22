@@ -232,6 +232,8 @@ void *HashKill::MonitorThread(void *p)
 	int progress, ncount;
 	char temp[128];	
 	char text[128] = {0};
+	bool killed = false;
+	
 	while(1)
 	{
 		n = hashkill->ReadFromLancher(guid, buffer, sizeof(buffer)-1);
@@ -239,7 +241,10 @@ void *HashKill::MonitorThread(void *p)
 		if(n == ERR_CHILDEXIT) {
 			CLog::Log(LOG_LEVEL_NOMAL,"%s: Detected child exit\n", __FUNCTION__);
 			break;
-		}else if(n < 0){
+		} else if(n == ERR_NO_THISTASK){
+			killed = true;
+			break;
+		} else if(n < 0){
 			goto write;
 		} else if(n == 0){
 			continue;
@@ -308,7 +313,7 @@ write:
 	}
 	
 	if(hashkill->doneFunc)
-		hashkill->doneFunc(guid, cracked, text);
+		hashkill->doneFunc(guid, cracked, text, !killed);
 
 	return NULL;
 }
