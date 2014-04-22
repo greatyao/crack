@@ -1,4 +1,4 @@
-#include "oclHashcat.h"
+Ôªø#include "oclHashcat.h"
 #include "algorithm_types.h"
 #include "err.h"
 #include "CLog.h"
@@ -135,7 +135,7 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 	}
 	if(i == SUPPORT_HASH_NUM)
 	{	
-		//øøøøøøøø?
+		//Èù†Èù†Èù†Èù†?
 		return ERR_NO_SUPPORT_ALGO;
 	}
 	if(ndevices < 1 || ndevices > 16)
@@ -152,7 +152,7 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 	case bruteforce:
 		if(charset < charset_num || charset > charset_ascii)
 		{
-			//øøøøøøøø
+			//Èù†Èù†Èù†Èù†
 			return ERR_NO_SUPPORT_CHARSET;
 		}
 		sprintf(cmd, fmt, start, end, charsets[charset], others, item->john);
@@ -357,6 +357,7 @@ void *oclHashcat::MonitorThread(void *p)
 	s_hash_with_comma.append(":");
 	algo = iter->second.algo;
 	string lastS="";
+	bool killed = false;
 
 	while(1)
 	{
@@ -366,7 +367,10 @@ void *oclHashcat::MonitorThread(void *p)
 		if(n == ERR_CHILDEXIT) {
 			CLog::Log(LOG_LEVEL_ERROR,"%s: Detected child exit\n",__FUNCTION__);
 			break;
-		}else if(n < 0){
+		} else if(n == ERR_NO_THISTASK){
+			killed = true;
+			break;
+		} else if(n < 0){
 			goto write;
 		} else if(n == 0){
 			continue;
@@ -430,7 +434,7 @@ void *oclHashcat::MonitorThread(void *p)
 			}
 		}
 confirm:
-		idx = s.rfind("Status.........: Cracked");//øøøø
+		idx = s.rfind("Status.........: Cracked");//Èù†Èù†
         if(idx != string::npos){
      		CLog::Log(LOG_LEVEL_ERROR,"%s: Confirming Cracked successfully\n", guid);
 			cracked = true;
@@ -453,7 +457,7 @@ write:
 	}
 	
 	if(ocl_hashcat->doneFunc)
-		ocl_hashcat->doneFunc(guid,cracked,s_result.c_str());
+		ocl_hashcat->doneFunc(guid,cracked,s_result.c_str(), !killed);
 	iter = ocl_hashcat->MapTargetHash.find(guid);	
 	printf("++++++++++++++++++++++++++++++++++++++\n");
 	//ocl_hashcat->MapTargetHash.erase(iter);//TODO:ADD LOCK 
