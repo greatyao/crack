@@ -348,10 +348,11 @@ void ResourcePool::SetToAvailable(struct _resourceslotpool*p, crack_block* item)
 	strcpy(p->m_guid, item->guid);
 }
 
-void ResourcePool::SetToRecover(struct _resourceslotpool* p, bool cracked, const char* passwd)
+void ResourcePool::SetToRecover(struct _resourceslotpool* p, bool cracked, const char* passwd, bool report)
 {
 	p->m_rs_status = cracked ? RS_STATUS_RECOVERED : RS_STATUS_UNRECOVERED;
 	p->m_is_recovered = cracked;
+	p->m_report = report;
 	if(cracked)
 		strncpy(p->m_password, passwd, sizeof(p->m_password));
 }
@@ -380,10 +381,10 @@ void ResourcePool::SetToAvailable(resourceslot* plots[], int n, crack_block* ite
 		SetToAvailable(plots[i], item);
 }
 
-void ResourcePool::SetToRecover(resourceslot* plots[], int n, bool cracked, const char* passwd)
+void ResourcePool::SetToRecover(resourceslot* plots[], int n, bool cracked, const char* passwd, bool report)
 {
 	for(int i = 0; i < n; i++)
-		SetToRecover(plots[i], cracked, passwd);
+		SetToRecover(plots[i], cracked, passwd, report);
 }
 
 void ResourcePool::SaveOneDone(struct crack_result* result)

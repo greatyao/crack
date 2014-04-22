@@ -34,7 +34,7 @@ public:
 	void Start(void);			//开始扫描线程
 	void Stop(void);			//停止扫描线程
 	
-	static int ReportDone(char* guid, bool cracked, const char* passwd);
+	static int ReportDone(char* guid, bool cracked, const char* passwd, bool report);
 
 	static int ReportStatus(char* guid, int progress, float speed, unsigned int remainTime);
 };

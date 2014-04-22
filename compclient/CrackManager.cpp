@@ -162,7 +162,7 @@ int CrackManager::Init()
 	return 0;
 }
 
-void CrackManager::RegisterCallback(int (*done)(char*, bool, const char*), 
+void CrackManager::RegisterCallback(int (*done)(char*, bool, const char*, bool), 
 									int (*status)(char*, int, float, unsigned int))
 {
 	for(int i = 0; i < toolCount; i++)

@@ -29,7 +29,7 @@ clauncher::~clauncher()
 	}
 }
 
-int clauncher::ReportDone(char* guid, bool cracked, const char* passwd)
+int clauncher::ReportDone(char* guid, bool cracked, const char* passwd, bool report)
 {
 	//struct _resourceslotpool *prsp;
 	//prsp = ResourcePool::Get().QueryByGuid(guid);
@@ -45,8 +45,8 @@ int clauncher::ReportDone(char* guid, bool cracked, const char* passwd)
 	else
 		CLog::Log(LOG_LEVEL_ERROR, "clauncher: Crack non password [guid=%s]\n", guid);
 	
-	//ResourcePool::Get().SetToRecover(prsp, cracked, passwd);
-	ResourcePool::Get().SetToRecover(rs, k, cracked, passwd);
+	//ResourcePool::Get().SetToRecover(prsp, cracked, passwd, report);
+	ResourcePool::Get().SetToRecover(rs, k, cracked, passwd, report);
 	
 	return 0;
 }

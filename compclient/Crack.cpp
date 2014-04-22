@@ -119,12 +119,15 @@ int Crack::Kill(const char* guid)
 	if(status < 0)
 	{
 		//终止任务失败
+		CLog::Log(LOG_LEVEL_WARNING, "Crack: Failed to kill [pid=%d, msg=%s]\n", pid, strerror(errno));
 		return ERR_FAILED_KILL;
 	}
+	waitpid(pid, &status, 0);
 
 	close(it->second.read_fd);
 	close(it->second.write_fd);
 	running.erase(it);
+	CLog::Log(LOG_LEVEL_NOMAL, "Crack: Stop [guid=%s] OK\n", guid);
 	return 0;
 }
 	

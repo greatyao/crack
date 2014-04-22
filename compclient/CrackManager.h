@@ -17,7 +17,7 @@ public:
 	static CrackManager& Get();
 	int Init();
 	
-	void RegisterCallback(int (*done)(char*, bool, const char*), 
+	void RegisterCallback(int (*done)(char*, bool, const char*, bool), 
 						  int (*status)(char*, int, float, unsigned int));
 	
 	//½âÃÜ½Ó¿Ú

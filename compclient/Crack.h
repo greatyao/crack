@@ -34,7 +34,7 @@ struct thread_param
 	char guid[40];
 };
 
-typedef int (*ProcessDone)(char* guid, bool cracked, const char* passwd);
+typedef int (*ProcessDone)(char* guid, bool cracked, const char* passwd, bool report);
 typedef int (*ProgressStatus)(char* guid, int progress, float speed, unsigned int remainTime);
 
 class Crack

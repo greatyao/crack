@@ -58,6 +58,7 @@ typedef struct _resourceslotpool
 	unsigned short  m_progress;				//workitem对应的进度
 	bool	 	    m_b_islocked;			//互斥锁
 	bool 		    m_is_recovered;			//密码是否恢复成功
+	bool			m_report;				//是否上报服务端
 	char		    m_password[32];			//如果解密成功，这里保存密码明文
 	crack_block*	m_item;					//解密的workitem，需要动态分配
 	unsigned short  m_shared;				//是否与其他device的共享
@@ -137,13 +138,13 @@ public:
 	void SetToOccupied(struct _resourceslotpool*);
 	void SetToFailed(struct _resourceslotpool*);
 	void SetToAvailable(struct _resourceslotpool*, crack_block* item);
-	void SetToRecover(struct _resourceslotpool*, bool cracked, const char* passwd);
+	void SetToRecover(struct _resourceslotpool*, bool cracked, const char* passwd, bool report);
 	
 	void SetToReady(resourceslot* plots[], int n);
 	void SetToOccupied(resourceslot* plots[], int n);
 	void SetToFailed(resourceslot* plots[], int n);
 	void SetToAvailable(resourceslot* plots[], int n, crack_block* item);
-	void SetToRecover(resourceslot* plots[], int n, bool cracked, const char* passwd);
+	void SetToRecover(resourceslot* plots[], int n, bool cracked, const char* passwd, bool report);
 	
 	//可以增加其他处理函数。
 };
