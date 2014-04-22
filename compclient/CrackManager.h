@@ -12,6 +12,8 @@
 class Crack;
 struct crack_block;
 
+extern int exit_signal;
+
 class CrackManager{
 public:
 	static CrackManager& Get();

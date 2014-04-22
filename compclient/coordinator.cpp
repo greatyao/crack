@@ -99,7 +99,8 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 		{	
 			//提交结果到服务器，并释放资源池
 			bool report = rs[0]->m_report;
-			CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator: Submit result [guid=%s]\n", rs[0]->m_guid);
+			if(report)
+				CLog::Log(LOG_LEVEL_NOMAL,"ccoordinator: Submit result [guid=%s]\n", rs[0]->m_guid);
 			crack_result result;
 			strcpy(result.guid, rs[0]->m_guid);
 			if(rs[0]->m_is_recovered){
@@ -109,7 +110,7 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 				result.status = WI_STATUS_NO_PWD;
 			}
 			//TODO:需要考虑如果服务器宕机，需要将解密结果持久化:-)
-			if(report && Client::Get().ReportResultToServer(&result) <= 0)
+			if(exit_signal == 0 && report && Client::Get().ReportResultToServer(&result) <= 0)
 			{
 				CLog::Log(LOG_LEVEL_NOTICE, "ccoordinator: Server offline and Save result[guid=%s]\n", rs[0]->m_guid);
 				pool.SaveOneDone(&result);
