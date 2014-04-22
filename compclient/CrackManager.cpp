@@ -208,14 +208,15 @@ int CrackManager::CheckParameters(crack_block* item)
 
 bool CrackManager::CouldCrack()const
 {
-	if(!tools || !tools[toolPriority])
+	if(!tools)
 		return false;
 	
-	if(tools[toolPriority]->RunningTasks() != 0 && 
-		tools[toolPriority]->SupportMultiTasks() == 0)
-		return false;
-	
-	return true;
+	for(int i = 0; i < toolCount; i++)
+	{
+		if(tools[i]->RunningTasks() == 0 || tools[i]->SupportMultiTasks() != 0)
+			return true;
+	}
+	return false;
 }
 
 int CrackManager::StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short* deviceIds, int ndevices)
@@ -241,10 +242,6 @@ int CrackManager::StartCrack(const crack_block* item, const char* guid, bool gpu
 		return ERR_DOWNLOADFILE;
 	}
 	
-	if(tools[toolPriority]->RunningTasks() != 0 && 
-		tools[toolPriority]->SupportMultiTasks() == 0)
-		return ERR_LAUCH_TASK;
-	
 	CLog::Log(LOG_LEVEL_NOMAL, "CrackManager: Starting to launch task [guid=%s]\n", guid);
 	//static int a = 0;
 	//if(++a % 2 == 0) return ERR_LAUCH_TASK;
@@ -254,7 +251,13 @@ int CrackManager::StartCrack(const crack_block* item, const char* guid, bool gpu
 #else	
 	for(int i = 0; i < toolCount; i++)
 	{
-		if(tools[i] && tools[i]->StartCrack(item, guid, gpu, deviceIds, ndevices) == 0)
+		if(!tools[i])
+			continue;
+			
+		if(tools[i]->RunningTasks() != 0 && tools[i]->SupportMultiTasks() == 0)
+			continue;
+		
+		if(tools[i]->StartCrack(item, guid, gpu, deviceIds, ndevices) == 0)
 			return 0;
 	}
 	return ERR_LAUCH_TASK;
