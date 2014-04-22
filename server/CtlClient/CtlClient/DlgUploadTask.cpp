@@ -380,7 +380,14 @@ void CDlgUploadTask::OnBnClickedOk()
 
 	struct task_upload_res ures={0};
 	int ret =0;
-	newtask.single = 1;
+
+
+	if(m_CheckHash)
+		newtask.single = 1;
+	else if(m_CheckFile)
+		newtask.single = 0;
+	else{
+	}
 
 	if(newtask.single == 0){
 		sprintf((char *)newtask.filename,"%s",m_filename);
