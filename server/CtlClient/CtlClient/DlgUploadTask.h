@@ -57,4 +57,10 @@ public:
 	//攻击相关控件处理
 	void ProcessControl(int id);
 	afx_msg void OnCbnSelchangeComboType();
+	afx_msg void OnBnClickedRadioFile();
+	afx_msg void OnBnClickedRadioHash();
+	int m_CheckFile;
+	int m_CheckHash;
+	CEdit m_EditPath;
+	CEdit m_EditHash;
 };

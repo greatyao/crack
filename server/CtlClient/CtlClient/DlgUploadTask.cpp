@@ -22,6 +22,8 @@ CDlgUploadTask::CDlgUploadTask(CWnd* pParent /*=NULL*/)
 , m_endlength(_T(""))
 , m_filename(_T(""))
 
+, m_CheckFile(0)
+, m_CheckHash(0)
 {
 	
 }
@@ -45,6 +47,8 @@ void CDlgUploadTask::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_STATIC_LEN_MIN, m_StaticLenMin);
 	DDX_Control(pDX, IDC_STATIC_LEN_MAX, m_StaticLenMax);
 	DDX_Control(pDX, IDC_COMBO_SEL, m_CombBoxSel);
+	DDX_Control(pDX, IDC_EDIT_FILE_PATH, m_EditPath);
+	DDX_Control(pDX, IDC_EDIT_HASH, m_EditHash);
 }
 
 
@@ -54,6 +58,8 @@ BEGIN_MESSAGE_MAP(CDlgUploadTask, CDialog)
 	ON_NOTIFY(NM_CUSTOMDRAW, IDC_SLIDER2, &CDlgUploadTask::OnNMCustomdrawSlider2)
 	ON_NOTIFY(NM_CUSTOMDRAW, IDC_SLIDER_LEN_MIN, &CDlgUploadTask::OnNMCustomdrawSliderLenMin)
 	ON_CBN_SELCHANGE(IDC_COMBO_TYPE, &CDlgUploadTask::OnCbnSelchangeComboType)
+	ON_BN_CLICKED(IDC_RADIO_FILE, &CDlgUploadTask::OnBnClickedRadioFile)
+	ON_BN_CLICKED(IDC_RADIO_HASH, &CDlgUploadTask::OnBnClickedRadioHash)
 END_MESSAGE_MAP()
 
 
@@ -170,6 +176,11 @@ BOOL CDlgUploadTask::OnInitDialog(){
 	ComboInit();
 
 	ProcessControl(0);
+
+	//Radio
+	CButton* p =(CButton*)GetDlgItem(IDC_RADIO_FILE);  
+	p->SetCheck(1); 
+	m_EditHash.ShowWindow(0);
 	return TRUE;
 }
 
@@ -575,4 +586,28 @@ void CDlgUploadTask::OnCbnSelchangeComboType()
 		sel = k;
 		ProcessControl(sel);
 	}
+}
+void CDlgUploadTask::OnBnClickedRadioFile()
+{
+	m_CheckFile = 1;
+	m_CheckHash = 0;
+	
+	m_EditHash.ShowWindow(0);
+	m_EditPath.ShowWindow(1);
+
+	CButton* p =(CButton*)GetDlgItem(IDC_BUTTON_SEL_FILE);  
+	p->EnableWindow(1);
+}
+
+void CDlgUploadTask::OnBnClickedRadioHash()
+{
+	m_CheckFile = 0;
+	m_CheckHash = 1;
+
+	m_EditHash.ShowWindow(1);
+	m_EditPath.ShowWindow(0);
+
+	
+	CButton* p =(CButton*)GetDlgItem(IDC_BUTTON_SEL_FILE);  
+	p->EnableWindow(0);
 }

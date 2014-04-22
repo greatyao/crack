@@ -47,6 +47,10 @@
 #define IDC_STATIC_LEN_MIN              1022
 #define IDC_COMBO4                      1023
 #define IDC_COMBO_SEL                   1023
+#define IDC_RADIO_FILE                  1024
+#define IDC_RADIO_HASH                  1025
+#define IDC_EDIT4                       1026
+#define IDC_EDIT_HASH                   1026
 #define ID_32771                        32771
 #define ID_CFG_SERVER                   32772
 #define ID_32773                        32773
@@ -60,7 +64,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        135
 #define _APS_NEXT_COMMAND_VALUE         32777
-#define _APS_NEXT_CONTROL_VALUE         1024
+#define _APS_NEXT_CONTROL_VALUE         1027
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
