@@ -277,6 +277,7 @@ void CDlgUploadTask::OnBnClickedOk()
 	int loc_len_end = strtoul(p,NULL,10);
 	//文件路径
 	CString loc_file_name = m_filename;
+	if(m_CheckHash) m_EditHash.GetWindowTextA(loc_file_name);
 	//字典或者彩虹表选择序号
 	int loc_dic_sel = m_CombBoxSel.GetCurSel();
 	//掩码输入
@@ -290,9 +291,13 @@ void CDlgUploadTask::OnBnClickedOk()
 	/////////////////////////////////////////////////
 	if(loc_file_name.GetLength()<1)
 	{
-		AfxMessageBox("上传文件不能为空");
+		if(m_CheckFile)
+			AfxMessageBox("上传文件不能为空");
+		else
+			AfxMessageBox("哈希数据不能为空");
 		return;
 	}
+
 	if(loc_type==0)//暴力
 	{
 		if((m_startlength.GetLength()<1)||(m_endlength.GetLength()<1))
@@ -382,7 +387,7 @@ void CDlgUploadTask::OnBnClickedOk()
 		memcpy(g_packmanager.m_cur_local_file,newtask.filename,256);
 	}else{
 		//直接复制hash值
-		strcpy((char*)newtask.filename, "00f13b2bcddb408220dc223e15dc2121");
+		strcpy((char*)newtask.filename, loc_file_name.GetBuffer());
 	}
 	
 	ret = g_packmanager.DoTaskUploadPack(newtask,&ures);
