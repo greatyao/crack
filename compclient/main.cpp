@@ -56,6 +56,10 @@ int main(int argc, char *argv[])
 		Config::Get().GetValue("log_file", value);
 		CLog::InitLogSystem(LOG_TO_FILE, true, value.c_str());
 	}
+	
+	//后台运行
+	if(Config::Get().GetValue("daemon", value) == 0 && value == "1")
+		daemon(1, 1);
 
 	//资源池初始化
 	ResourcePool::Get().Init();

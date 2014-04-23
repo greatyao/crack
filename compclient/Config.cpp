@@ -10,6 +10,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <syslog.h>
 
 #include "Config.h"
 #include "err.h"
@@ -136,11 +137,21 @@ int Config::ReadConfig(const string & filename)
 	
 	string fn = string(path) + "/" + filename;
 	FILE* file = fopen(fn.c_str(), "r");
+	openlog("compclient", LOG_ODELAY|LOG_PID|LOG_CONS, 0);
     if (file == NULL)
     {
-		fprintf(stderr, "Cannot open config file: %s\n", filename.c_str());
-		exit(0);
-    }
+		syslog(LOG_ERR, "Cannot open config file: %s\n", fn.c_str());
+ 
+		fn = string("/etc/")+filename;
+		file = fopen(fn.c_str(), "r");
+		if (file == NULL)
+		{
+			syslog(LOG_CRIT, "Cannot open config file: %s\n", fn.c_str());
+			closelog();
+			exit(0);
+		}
+	}
+	closelog();
     
 	char line[512];
 	string key, value;
