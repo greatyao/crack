@@ -18,6 +18,7 @@ enum crack_charset
 	charset_custom,		//自己定义
 };
 
+//字典名请按照dict-%d.txt格式命名
 enum crack_dict
 {
 	dict_english,			//字典1

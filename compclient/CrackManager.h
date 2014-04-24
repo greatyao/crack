@@ -33,6 +33,9 @@ public:
 	//获取解密文件名路径
 	void GetFilename(const char* guid, char* filename, int size)const;
 	
+	//获取字典路径
+	bool GetDict(unsigned char dict, char* filename, int size)const;
+	
 	//是否采用CPU解密
 	bool UsingCPU()const;
 	

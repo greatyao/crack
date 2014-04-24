@@ -26,6 +26,7 @@
 #include <sys/stat.h>
 
 static string filedb_path;
+static string dict_path;
 static bool using_cpu;
 
 CrackManager& CrackManager::Get()
@@ -70,10 +71,17 @@ int CrackManager::Init()
 	
 	Config::Get().GetValue("files_path", value);
 	if(value == "")
-		value = "files_db";
+		value = "/var/crack_files";
 	filedb_path = value;
 	if(access(filedb_path.c_str(), 0) != 0)
 		mkdir(filedb_path.c_str(), 0777);
+		
+	Config::Get().GetValue("dict_path", value);
+	if(value == "")
+		value = "/var/crack_dict";
+	dict_path = value;
+	if(access(dict_path.c_str(), 0) != 0)
+		mkdir(dict_path.c_str(), 0777);
 		
 	Config::Get().GetValue("using_cpu", value);
 	if(value == "" || value == "0" || value == "false")
@@ -150,7 +158,7 @@ int CrackManager::Init()
 		}
 		if(i == toolCount)
 		{
-			CLog::Log(LOG_LEVEL_ERROR, "CrackManager: crack_priority is invalid\n");
+			CLog::Log(LOG_LEVEL_ERROR, "CrackManager: crack_priority is invalid, please reconfig\n");
 			return ERR_NOENTRY;
 		}
 		else
@@ -175,6 +183,12 @@ void CrackManager::RegisterCallback(int (*done)(char*, bool, const char*, bool),
 void CrackManager::GetFilename(const char* guid, char* filename, int size)const
 {
 	snprintf(filename, size, "%s/%s", filedb_path.c_str(), guid);
+}
+
+bool CrackManager::GetDict(unsigned char dict, char* filename, int size)const
+{
+	snprintf(filename, size, "%s/dict-%d.txt", dict_path.c_str(), dict);
+	return access(filename, 0) == 0;
 }
 
 bool CrackManager::UsingCPU()const
