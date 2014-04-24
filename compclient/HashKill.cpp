@@ -10,6 +10,7 @@
 #include "algorithm_types.h"
 #include "err.h"
 #include "CLog.h"
+#include "CrackManager.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -185,7 +186,13 @@ int HashKill::Launcher(const crack_block* item, bool gpu, unsigned short* device
 	if(type == bruteforce)
 		sprintf(cmd, fmt, start, end, charsets[charset], others, john.c_str());
 	else if(type == dict)
-		sprintf(cmd, fmt, "", others, john.c_str());
+	{
+		char dict_name[512], rule_name[512];
+		bool f = CrackManager::Get().GetDict(item->dict_idx, dict_name, sizeof(dict_name), rule_name, sizeof(rule_name));
+		if(!f) return ERR_NO_DICT;
+		
+		sprintf(cmd, fmt, rule_name, others, john.c_str());
+	}
 	
 	int pid = this->Exec(item->guid, path, cmd, MonitorThread, true, true, false);
 	

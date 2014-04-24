@@ -185,10 +185,33 @@ void CrackManager::GetFilename(const char* guid, char* filename, int size)const
 	snprintf(filename, size, "%s/%s", filedb_path.c_str(), guid);
 }
 
-bool CrackManager::GetDict(unsigned char dict, char* filename, int size)const
+bool CrackManager::GetDict(unsigned char dict, char* dict_name, int size, char* rule_name, int size2)const
 {
-	snprintf(filename, size, "%s/dict-%d.txt", dict_path.c_str(), dict);
-	return access(filename, 0) == 0;
+	snprintf(dict_name, size, "%s/dict-%d.txt", dict_path.c_str(), dict);
+	if(access(dict_name, 0) != 0) 
+	{
+		CLog::Log(LOG_LEVEL_WARNING, "CrackManager: Couldn't access dict_file %s\n", dict_name);
+		return false;
+	}
+	
+	if(rule_name && size2 != 0)
+	{
+		snprintf(rule_name, size2, "%s/rule_%d", dict_path.c_str(), dict);
+		if(access(rule_name, 0) != 0)
+		{
+			FILE* f = fopen(rule_name, "w");
+			if(!f)
+			{
+				CLog::Log(LOG_LEVEL_WARNING, "CrackManager: Couldn't create rule_file %s\n", rule_name);
+				return false;
+			}
+			
+			fprintf(f, "begin\nmust add dict %s\nend\n", dict_name);
+			fclose(f);
+		}
+	}
+	
+	return true;
 }
 
 bool CrackManager::UsingCPU()const
