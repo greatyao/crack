@@ -64,6 +64,7 @@ unsigned long speed_algorithm[]=
 	266,//algo_smf,             //SMF plugin
 	1,//algo_wordpress,       //Wordpress hashes plugin
 	1,//algo_wpa,             //WPA-PSK plugin
+	20,//algo_pdf,             //PDF plugin
 };
 
 csplit::csplit()

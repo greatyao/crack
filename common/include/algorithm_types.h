@@ -101,6 +101,7 @@ enum crack_algorithm
 	algo_wordpress,       //Wordpress hashes plugin
 	algo_wpa,             //WPA-PSK plugin
 	algo_pdf,             //Adoble PDF document plugin
+	algo_max			  //MAX
 };
 
 //hash

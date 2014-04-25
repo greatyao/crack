@@ -90,6 +90,7 @@ static struct hash_parameter all_support_hashes[] =
 	{algo_smf,          {"-p smf -b%d:%d:%s %s %s", "-p smf -r %s %s %s"}},
 	{algo_wordpress,    {"-p wordpress -r brute -a %d:%d:%s %s %s", "-p wordpress -r %s %s %s"}},
 	{algo_wpa,          {"-p wpa -b%d:%d:%s %s %s", "-p wpa -r %s %s %s"}},
+	{algo_pdf,          {"-p pdf -r brute -a %d:%d:%s %s %s", "-p pdf -r %s %s %s"}},
 };
 
 #define SUPPORT_HASH_NUM sizeof(all_support_hashes)/sizeof(all_support_hashes[0])

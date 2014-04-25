@@ -314,7 +314,7 @@ void CDlgTaskStatus::OnBnClickedBtnRefresh()
 		}
 
 		//3算法
-		if( (p->m_algo>algo_wpa)||(p->m_algo<algo_md4) )
+		if( (p->m_algo>=algo_max)||(p->m_algo<algo_md4) )
 			sprintf(tmpbuf,"%s","无法识别");
 		else
 			sprintf(tmpbuf,"%s",crack_algorithm_string[p->m_algo]);
