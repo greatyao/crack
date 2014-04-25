@@ -21,5 +21,6 @@
 #define ERR_DOWNLOADFILE		-16		//下载文件错误
 #define ERR_NO_SUPPORT_TYPE		-17		//不支持该破解类型
 #define ERR_NO_DICT				-18		//不支持指定的字典
+#define ERR_FAILED_MKDIR		-19		//创建目录失败
 
 #endif
