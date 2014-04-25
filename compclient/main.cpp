@@ -71,7 +71,12 @@ int main(int argc, char *argv[])
 	Client::Get().Connect(addr.c_str(), atoi(port.c_str()));
 	
 	//解密算法初始化
-	CrackManager::Get().Init();
+	if(CrackManager::Get().Init() != 0)
+	{
+		Client::Get().Destory();
+		CLog::ReleaseLogSystem();
+		return -1;
+	}
 	
 	//初始化coordinator
 	ccoordinator *pcc = new ccoordinator();

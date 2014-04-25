@@ -18,6 +18,7 @@
 #include "plugin.h"
 
 #include <ctype.h>
+#include <errno.h>
 #include <algorithm>
 #include <stdlib.h>
 #include <stdio.h>
@@ -73,15 +74,24 @@ int CrackManager::Init()
 	if(value == "")
 		value = "/var/crack_files";
 	filedb_path = value;
-	if(access(filedb_path.c_str(), 0) != 0)
-		mkdir(filedb_path.c_str(), 0777);
+	if(access(filedb_path.c_str(), 0) != 0 && mkdir(filedb_path.c_str(), 0666)!=0)
+	{
+		CLog::Log(LOG_LEVEL_ERROR, "CrackManager: Couldn't mkdir %s:[%s]\n", 
+			filedb_path.c_str(), strerror(errno));
+		return ERR_FAILED_MKDIR;
+	}	
 		
 	Config::Get().GetValue("dict_path", value);
 	if(value == "")
 		value = "/var/crack_dict";
 	dict_path = value;
-	if(access(dict_path.c_str(), 0) != 0)
-		mkdir(dict_path.c_str(), 0777);
+	if(access(dict_path.c_str(), 06) != 0 && mkdir(dict_path.c_str(), 0666) != 0)
+	{
+		CLog::Log(LOG_LEVEL_ERROR, "CrackManager: Couldn't mkdir %s:[%s]\n", 
+			dict_path.c_str(), strerror(errno));
+		return ERR_FAILED_MKDIR;
+	}
+	
 		
 	Config::Get().GetValue("using_cpu", value);
 	if(value == "" || value == "0" || value == "false")
