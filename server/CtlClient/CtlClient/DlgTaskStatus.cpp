@@ -256,6 +256,7 @@ const char *crack_algorithm_string[80]={
 	"smf",//             //SMF plugin
 	"wordpress",//       //Wordpress hashes plugin
 	"wpa",
+	"pdf",
 	"max"
 };
 

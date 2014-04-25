@@ -138,6 +138,7 @@ VOID CDlgUploadTask::ComboInit(){
 	m_comboalgo.InsertString(47,_T("algo_smf"));
 	m_comboalgo.InsertString(48,_T("algo_wordpress"));
 	m_comboalgo.InsertString(49,_T("algo_wpa"));
+	m_comboalgo.InsertString(50,_T("algo_pdf"));
 
 
 	m_comboalgo.SetCurSel(0);
