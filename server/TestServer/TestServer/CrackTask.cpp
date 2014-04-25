@@ -1,7 +1,7 @@
 
 #include <string.h>
 #include <stdlib.h>
-
+#include <time.h>
 #include "CrackTask.h"
 #include "loadfiles.h"
 #include "CLog.h"

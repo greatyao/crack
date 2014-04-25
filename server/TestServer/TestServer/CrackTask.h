@@ -1,8 +1,9 @@
 #pragma once
 
-#include <afxmt.h>
+#include <windows.h>
 #include <map>
 #include <vector>
+#include <string>
 #include "algorithm_types.h"
 #include "CrackBlock.h"
 #include "CrackHash.h"
@@ -40,8 +41,6 @@ struct CBMapLessCompare{
 
 		return strcmp(str1,str2) < 0;
 	}
-
-
 };
 
 typedef std::map<char *, CCrackBlock *,CBMapLessCompare> CB_MAP;
@@ -104,7 +103,7 @@ public:
 
 	CB_MAP::iterator cur_crack_block;
 
-	CCriticalSection m_crackblock_cs;
+	//CCriticalSection m_crackblock_cs;
 
 
 

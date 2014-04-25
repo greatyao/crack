@@ -1,6 +1,5 @@
 #pragma once
 
-#include <afxmt.h>
 #include <vector>
 #include <map>
 #include <deque>
@@ -159,7 +158,7 @@ private:
 
 public :
 	
-	CCriticalSection m_cracktask_cs;
+	//CCriticalSection m_cracktask_cs;
 	
 	//方便快速查找任务
 	CT_MAP m_cracktask_map;
@@ -167,10 +166,10 @@ public :
 	//循环队列，方便任务调度
 	CT_DEQUE m_cracktask_ready_queue;
 
-	CCriticalSection m_client_cs;
+	//CCriticalSection m_client_cs;
 	CI_VECTOR m_client_list;
 
-	CCriticalSection m_total_crackblock_cs;
+	//CCriticalSection m_total_crackblock_cs;
 
 	CB_MAP m_total_crackblock_map;
 

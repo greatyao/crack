@@ -169,10 +169,10 @@ enum CMD_CONTENT_RES_TYPE{
 
 typedef int (*recv_data)(void *, unsigned char *, unsigned int);
 
-typedef std::map<BYTE,recv_data> FUNC_MAP;
+typedef std::map<unsigned char,recv_data> FUNC_MAP;
 
 
-INT doRecvData(LPVOID pclient, LPBYTE pdata, UINT len,BYTE cmd);
+int doRecvData(void* pclient, unsigned char* pdata, unsigned int len, unsigned char cmd);
 
 #define CMD_CLIENT_QUIT 251
 

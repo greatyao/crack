@@ -1,6 +1,6 @@
 #pragma once
 
-#include <crtdefs.h>
+#include <time.h>
 
 class CClientInfo
 {

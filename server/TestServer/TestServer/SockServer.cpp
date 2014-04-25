@@ -1,4 +1,3 @@
-#include "StdAfx.h"
 #include "SockServer.h"
 #include "ServerResp.h"
 #include "CLog.h"

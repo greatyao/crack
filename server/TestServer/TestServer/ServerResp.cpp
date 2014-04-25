@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "macros.h"
 #include "err.h"
 #include "ServerResp.h"

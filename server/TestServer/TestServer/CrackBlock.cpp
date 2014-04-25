@@ -1,6 +1,5 @@
 #include "CrackBlock.h"
 #include "macros.h"
-#include "macros.h"
 
 CCrackBlock::CCrackBlock(void)
 {

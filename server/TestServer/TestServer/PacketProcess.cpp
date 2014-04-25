@@ -1,8 +1,8 @@
+#include <windows.h>
+#include <stdio.h>
+#include <Shlwapi.h>
 
-
-#include "stdafx.h"
 #include "PacketProcess.h"
-#include "CLog.h"
 #include "zlib.h"
 #include "ServerResp.h"
 #include "guidgenerator.h"
@@ -12,8 +12,7 @@
 #include "ReqPacket.h"
 #include "ResPacket.h"
 #include "CrackBroker.h"
-#include <stdio.h>
-#include "Shlwapi.h"
+#include "CLog.h"
 
 #pragma comment(lib,"Shlwapi.lib")
 
@@ -1050,7 +1049,7 @@ static FUNC_MAP::value_type func_value_type[] ={
 static FUNC_MAP recv_data_map(func_value_type,func_value_type+sizeof(func_value_type)/sizeof(func_value_type[0]));
 
 
-INT doRecvData(LPVOID pclient, LPBYTE pdata, UINT len,BYTE cmdflag){
+INT doRecvData(void* pclient, unsigned char* pdata, UINT len,BYTE cmdflag){
 	if(recv_data_map.find(cmdflag) == recv_data_map.end())
 		return -1;
 
