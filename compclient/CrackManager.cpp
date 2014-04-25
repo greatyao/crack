@@ -116,6 +116,7 @@ int CrackManager::Init()
 		if(access(value.c_str(), 0) != 0)
 		{
 			CLog::Log(LOG_LEVEL_WARNING, "CrackManager: Couldn't find Crack tool execute file %s\n", value.c_str());
+			tools[i] = NULL;
 			continue;
 		}
 		
@@ -250,6 +251,8 @@ bool CrackManager::CouldCrack()const
 	
 	for(int i = 0; i < toolCount; i++)
 	{
+		if(!tools[i]) 
+			continue;
 		if(tools[i]->RunningTasks() == 0 || tools[i]->SupportMultiTasks() != 0)
 			return true;
 	}
