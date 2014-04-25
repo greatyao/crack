@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
 	delete pcc;
 	delete pcl;
 	Client::Get().Destory();
-	CrackManager::Get().Destory();
+	CrackManager::Get().Destroy();
 	//关闭日志系统
 	CLog::ReleaseLogSystem();
 	return ret;
