@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="TestServer"
+	Name="ScheduleServer"
 	ProjectGUID="{3E8D529F-2DF8-4CC2-82A0-474E99330032}"
 	RootNamespace="TestServer"
 	Keyword="MFCProj"
