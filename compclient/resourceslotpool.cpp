@@ -201,36 +201,9 @@ int ResourcePool::CoordinatorQuery(resourceslot* plots[], int n, int type)
 		j = (j+1) % m_rs_pool.size();
 	}while(j != m_base_coordinator);
 	
-	m_base_coordinator = (j)% m_rs_pool.size();
+	m_base_coordinator = (j+1)% m_rs_pool.size();
 
 	return i;
-}
-
-struct _resourceslotpool* ResourcePool::CoordinatorQuery(unsigned &u_status, int type)
-{
-	struct _resourceslotpool* p_rsp = 0;
-	u_status = 0;
-	
-	//if(!m_bIsLauncher)
-	{
-		//处理
-		m_base_coordinator%=m_rs_pool.size();
-		for(; m_base_coordinator<m_rs_pool.size(); m_base_coordinator++)
-		{
-			struct _resourceslotpool* p = m_rs_pool[m_base_coordinator];
-			if((type == -1 || p->m_worker_type == type) && 
-				p->m_rs_status>=RS_STATUS_READY && p->m_rs_status<=RS_STATUS_UNRECOVERED) 
-			{
-				u_status = p->m_rs_status;
-				p_rsp = p;
-				break;
-			}
-		}
-		if(m_base_coordinator!=m_rs_pool.size())m_base_coordinator++;
-
-		m_bIsLauncher = 1;
-	}
-	return p_rsp;
 }
 
 int ResourcePool::LauncherQuery(resourceslot* plots[], int n)
@@ -260,50 +233,11 @@ int ResourcePool::LauncherQuery(resourceslot* plots[], int n)
 		j = (j+1) % m_rs_pool.size();
 	}while(j != m_base_launcher);
 	
-	m_base_launcher = (j)% m_rs_pool.size();
+	m_base_launcher = (j+1)% m_rs_pool.size();
 
 	return i;
 }
 
-struct _resourceslotpool* ResourcePool::LauncherQuery(unsigned &u_status)
-{
-	struct _resourceslotpool* p_rsp = 0;
-	u_status = 0;
-
-	//if(m_bIsLauncher)
-	{
-		//处理
-		m_base_launcher%=m_rs_pool.size();
-		for(; m_base_launcher<m_rs_pool.size(); m_base_launcher++)
-		{
-			struct _resourceslotpool* p = m_rs_pool[m_base_launcher];
-			if( (p->m_rs_status==RS_STATUS_AVAILABLE)||(p->m_rs_status==RS_STATUS_FAILED) )
-			{
-				u_status = p->m_rs_status;
-				p_rsp = p;
-				break;
-			}
-		}
-		if(m_base_launcher!=m_rs_pool.size()) m_base_launcher++;
-		m_bIsLauncher = 0;
-	}
-	return p_rsp;
-}
-
-struct _resourceslotpool* ResourcePool::QueryByGuid(const char* guid)
-{
-	struct _resourceslotpool* p_rsp = 0;
-	for(int i = 0; i<m_rs_pool.size(); i++)
-	{
-		struct _resourceslotpool* p = m_rs_pool[i];
-		if(strcmp(guid, p->m_guid) == 0)
-			return p;
-	}
-	
-	return p_rsp;
-}
-
-	
 int ResourcePool::QueryByGuid(resourceslot* plots[], int n, const char* guid)
 {
 	int j = 0;

@@ -102,16 +102,12 @@ public:
 	void GetDevicesNo(int* gpu, int* cpu);
 
 	//Coordinator查询接口(-1表示不限类型)
-	struct _resourceslotpool* CoordinatorQuery(unsigned &u_status, int type = -1);
-	
 	//获取多个资源（注意所有的资源状态必须一致）
 	int CoordinatorQuery(resourceslot* plots[], int n, int type = -1);
 	
 	//Launcher查询接口
-	struct _resourceslotpool* LauncherQuery(unsigned &u_status);
 	int LauncherQuery(resourceslot* plots[], int n);
 	
-	struct _resourceslotpool* QueryByGuid(const char* guid);
 	int QueryByGuid(resourceslot* plots[], int n, const char* guid);
 	
 	void SaveOneDone(struct crack_result* result);
