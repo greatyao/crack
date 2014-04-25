@@ -19,6 +19,8 @@ public:
 	static CrackManager& Get();
 	int Init();
 	
+	void Destroy();
+	
 	void RegisterCallback(int (*done)(char*, bool, const char*, bool), 
 						  int (*status)(char*, int, float, unsigned int));
 	

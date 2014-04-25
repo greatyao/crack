@@ -64,19 +64,18 @@ int main(int argc, char *argv[])
 	//资源池初始化
 	ResourcePool::Get().Init();
 	
+	//解密算法初始化
+	if(CrackManager::Get().Init() != 0)
+	{
+		CLog::ReleaseLogSystem();
+		return -1;
+	}
+	
 	//连接服务端
 	string addr, port;
 	Config::Get().GetValue("server_addr", addr);
 	Config::Get().GetValue("server_port", port);
 	Client::Get().Connect(addr.c_str(), atoi(port.c_str()));
-	
-	//解密算法初始化
-	if(CrackManager::Get().Init() != 0)
-	{
-		Client::Get().Destory();
-		CLog::ReleaseLogSystem();
-		return -1;
-	}
 	
 	//初始化coordinator
 	ccoordinator *pcc = new ccoordinator();
@@ -93,7 +92,7 @@ int main(int argc, char *argv[])
 	delete pcc;
 	delete pcl;
 	Client::Get().Destory();
-	
+	CrackManager::Get().Destory();
 	//关闭日志系统
 	CLog::ReleaseLogSystem();
 	return ret;

@@ -65,7 +65,16 @@ static int to_lower(int c)
 	return c;  
 }  
 
+void CrackManager::Destroy()
+{
+	for(int i = 0; i < toolCount; i++)
+	{
+		if(tools[i])	delete tools[i];
+	}
 	
+	delete []tools;
+}	
+
 int CrackManager::Init()
 {
 	string value;
