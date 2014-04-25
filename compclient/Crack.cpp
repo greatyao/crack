@@ -67,11 +67,14 @@ Crack::Crack(void)
 
 Crack::~Crack(void)
 {
+	std::vector<int> pids;
 	std::map<std::string, lauch_param>::iterator it;
 	for(it = running.begin(); it != running.end(); it++)
-	{
-		pthread_cancel(it->second.tid);
-	}
+		pids.push_back(it->second.pid);
+	
+	for(int i = 0; i < pids.size(); i++)
+		kill(pids[i], SIGKILL);
+	
 	pthread_rwlock_destroy(&rwlock);
 }
 
