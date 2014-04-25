@@ -201,7 +201,7 @@ int ResourcePool::CoordinatorQuery(resourceslot* plots[], int n, int type)
 		j = (j+1) % m_rs_pool.size();
 	}while(j != m_base_coordinator);
 	
-	m_base_coordinator = (j+1)% m_rs_pool.size();
+	m_base_coordinator = (j)% m_rs_pool.size();
 
 	return i;
 }
@@ -235,8 +235,8 @@ struct _resourceslotpool* ResourcePool::CoordinatorQuery(unsigned &u_status, int
 
 int ResourcePool::LauncherQuery(resourceslot* plots[], int n)
 {
-	m_base_coordinator%=m_rs_pool.size();
-	int i = 0, j = m_base_coordinator;
+	m_base_launcher%=m_rs_pool.size();
+	int i = 0, j = m_base_launcher;
 	unsigned short status0;
 	unsigned short platformId = 0xff;
 	do{
@@ -258,9 +258,9 @@ int ResourcePool::LauncherQuery(resourceslot* plots[], int n)
 		}
 		
 		j = (j+1) % m_rs_pool.size();
-	}while(j != m_base_coordinator);
+	}while(j != m_base_launcher);
 	
-	m_base_coordinator = (j+1)% m_rs_pool.size();
+	m_base_launcher = (j)% m_rs_pool.size();
 
 	return i;
 }
