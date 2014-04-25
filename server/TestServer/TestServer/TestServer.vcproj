@@ -827,6 +827,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\plugins\pdf.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\plugins\plugin.cpp"
 				>
 			</File>

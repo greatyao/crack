@@ -259,6 +259,12 @@ int zip_is_special();
 int zip_check_valid(struct crack_hash* hash);
 int zip_recovery(const struct crack_hash* hash, char* line, int size);
 
+//pdf
+int pdf_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
+int pdf_is_special();
+int pdf_check_valid(struct crack_hash* hash);
+int pdf_recovery(const struct crack_hash* hash, char* line, int size);
+
 //一些常用函数
 //char* strupr(char* ioString);//*******************************mike
 char* strlow(char* ioString);

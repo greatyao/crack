@@ -45,6 +45,7 @@ struct hash_support_plugins all_plugins[] =
 	{algo_msoffice, &msoffice_parse_hash, &msoffice_is_special, &msoffice_check_valid,&msoffice_recovery},
 	{algo_rar, &rar_parse_hash, &rar_is_special, &rar_check_valid,&rar_recovery},
 	{algo_zip, &zip_parse_hash, &zip_is_special, &zip_check_valid,&zip_recovery},
+	{algo_pdf, &pdf_parse_hash, &pdf_is_special, &pdf_check_valid, &pdf_recovery},
 
 	//请在这里相应的添加各种插件
 	{0, NULL, NULL, NULL}
