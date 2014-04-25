@@ -178,12 +178,26 @@ int ResourcePool::CoordinatorQuery(resourceslot* plots[], int n, int type)
 	//	sprintf(text, "%s (%04x,%d)", text, m_rs_pool[i]->m_device, m_rs_pool[i]->m_rs_status);
 	//CLog::Log(LOG_LEVEL_NOMAL,"resources %s\n", text);
 	
+	bool cracked = false;
+	for(int k = 0; k < m_rs_pool.size(); k++)
+	{
+		resourceslot* p = m_rs_pool[k];
+		int st = p->m_rs_status;
+		if((type == -1 || p->m_worker_type == type) && 
+			(st == RS_STATUS_RECOVERED || st == RS_STATUS_UNRECOVERED)) 
+		{
+			cracked = true;
+			break;
+		}
+	}
+	
 	do{
 		resourceslot* p = m_rs_pool[j];
 		unsigned short status = p->m_rs_status;
 			
 		if((type == -1 || p->m_worker_type == type) && 
-			status>=RS_STATUS_READY && status<=RS_STATUS_UNRECOVERED) 
+			status>=(cracked?RS_STATUS_RECOVERED:RS_STATUS_READY) && 
+			status<=RS_STATUS_UNRECOVERED) 
 		{
 			if(i == 0)
 			{
