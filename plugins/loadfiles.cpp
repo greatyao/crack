@@ -129,6 +129,10 @@ int load_single_hash2(char *hash, struct crack_task* task)
 	task->count = 1;
 	task->hashes = (struct crack_hash*)malloc(sizeof(struct crack_hash));
 	memcpy(task->hashes, &hashes, sizeof(struct crack_hash));
+		
+	struct hash_support_plugins* plugin = locate_by_algorithm(task->algo);
+	if(plugin)
+		plugin->recovery(&hashes, (char *)(&task->hashes[0]), sizeof(task->hashes[0]));
 	return 1;
 }
 
