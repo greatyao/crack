@@ -339,7 +339,7 @@ void ResourcePool::SetToAvailable(resourceslot* plots[], int n, crack_block* ite
 	for(int i = 0; i < n; i++)
 	{
 		SetToAvailable(plots[i], item);
-		plots[i]->m_shared = plots[0]->m_shared;
+		plots[i]->m_shared = plots[0]->m_device;
 	}
 }
 
@@ -348,7 +348,7 @@ void ResourcePool::SetToRecover(resourceslot* plots[], int n, bool cracked, cons
 	for(int i = 0; i < n; i++)
 	{
 		SetToRecover(plots[i], cracked, passwd, report);
-		plots[i]->m_shared = plots[0]->m_shared;
+		plots[i]->m_shared = plots[0]->m_device;
 	}
 }
 
