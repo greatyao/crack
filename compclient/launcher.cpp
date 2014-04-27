@@ -99,11 +99,13 @@ void *clauncher::Thread(void*par)//扫描线程
 					bool gpu = rs[0]->m_worker_type == DEVICE_GPU;
 					for(int i = 0; i < k; i++)
 						deviceIds[i] = rs[i]->m_device;
-					//bool lauched = CrackManager::Get().StartCrack(block, block->guid, gpu, rs[0]->m_device) == 0;
-					bool lauched = CrackManager::Get().StartCrack(block, block->guid, gpu, deviceIds, k) == 0;
+					char tool[32]={0};
+					bool lauched = CrackManager::Get().StartCrack(block, block->guid, gpu, 
+													deviceIds, k, tool, sizeof(tool)) == 0;
 					
 					crack_result result;
 					strcpy(result.guid, rs[0]->m_guid);
+					strcpy(result.password, tool);
 					result.status = lauched ? WI_STATUS_RUNNING : WI_STATUS_UNLOCK;
 					Client::Get().ReportResultToServer(&result);
 					
@@ -117,14 +119,7 @@ void *clauncher::Thread(void*par)//扫描线程
 					CLog::Log(LOG_LEVEL_NOMAL,"clauncher: Find failed task [guid=%s]\n", rs[0]->m_guid);
 					pool.SetToReady(rs, k);
 				}
-				break;
-	
-			//case RS_STATUS_OCCUPIED://由解密插件提交解密结果以后处理
-			//	{//正在执行解密任务
-			//		CLog::Log(LOG_LEVEL_NOMAL,"clauncher 解密任务执行中\n");
-			//		p->m_pcrsp->SetToReady(prsp);
-			//	}
-				break;
+				break;	
 			default:break;
 		}
 	}

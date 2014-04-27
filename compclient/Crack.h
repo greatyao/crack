@@ -48,9 +48,11 @@ protected:
 	int CleanUp(const char* guid);
 	int UpdateStatus(const char* guid, int progress, float speed, unsigned int elapseTime, unsigned int remainTime);
 	int SetPath(const char* path);
+	void SetToolName(const char* name);
 	int RunningTasks()const;
 	
 	char path[256];
+	char toolname[32];
 	pthread_rwlock_t rwlock;
 	std::map<std::string, struct lauch_param> running;
 	ProcessDone doneFunc;

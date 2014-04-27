@@ -143,12 +143,14 @@ int CrackManager::Init()
 		{
 			tools[i] = new HashKill();
 			tools[i]->SetPath(value.c_str());
+			tools[i]->SetToolName("HashKill");
 			CLog::Log(LOG_LEVEL_NOMAL, "CrackManager: Crack tool HashKill\n");
 		}
 		else if(vv.find("oclhashcat") != string::npos)
 		{
 			tools[i] = new oclHashcat();
 			tools[i]->SetPath(value.c_str());
+			tools[i]->SetToolName("oclHashcat");
 			CLog::Log(LOG_LEVEL_NOMAL, "CrackManager: Crack tool oclHashcat\n");
 		}
 		else
@@ -278,7 +280,9 @@ bool CrackManager::CouldCrack()const
 	return false;
 }
 
-int CrackManager::StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short* deviceIds, int ndevices)
+int CrackManager::StartCrack(const crack_block* item, const char* guid, bool gpu, 
+							unsigned short* deviceIds, int ndevices,
+							char* toolname, int size)
 {
 	if(!tools || !tools[toolPriority])
 		return ERR_NOENTRY;
@@ -301,15 +305,19 @@ int CrackManager::StartCrack(const crack_block* item, const char* guid, bool gpu
 		return ERR_DOWNLOADFILE;
 	}
 	
-	CLog::Log(LOG_LEVEL_NOMAL, "CrackManager: Starting to launch task [guid=%s]\n", guid);
+	CLog::Log(LOG_LEVEL_NOMAL, "CrackManager: Starting to launch task [guid=%s, algo=%d, type=%d]\n", 
+		guid, item->algo, item->type);
 	//static int a = 0;
 	//if(++a % 2 == 0) return ERR_LAUCH_TASK;
 	
 #if 0
 	return tools[toolPriority]->StartCrack(item, guid, gpu, deviceIds, ndevices);
-#else	
-	for(int i = 0; i < toolCount; i++)
+#else
+	static int base = 0;
+	for(int i = base, j = 0; j < toolCount; i++, j++)
 	{
+		if(i >= toolCount) i -= toolCount;
+		
 		if(!tools[i])
 			continue;
 			
@@ -317,8 +325,15 @@ int CrackManager::StartCrack(const crack_block* item, const char* guid, bool gpu
 			continue;
 		
 		if(tools[i]->StartCrack(item, guid, gpu, deviceIds, ndevices) == 0)
+		{
+			base = (i+1)%toolCount;
+			if(toolname && size)
+				strncpy(toolname, tools[i]->toolname, size);
 			return 0;
+		}
 	}
+	base = (base + 1)%toolCount;
+	
 	return ERR_LAUCH_TASK;
 #endif
 }

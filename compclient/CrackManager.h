@@ -26,7 +26,8 @@ public:
 	
 	//解密接口
 	bool CouldCrack()const;
-	int StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short* deviceIds, int ndevices);
+	int StartCrack(const crack_block* item, const char* guid, bool gpu, unsigned short* deviceIds, int ndevices,
+					char* toolname = 0, int size = 0);
 	int StopCrack(const char* guid);
 	
 	//检验workitem的参数
