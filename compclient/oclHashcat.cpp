@@ -114,9 +114,9 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 	const char* fmt;
 	unsigned short platformId = deviceIds[0] >> 8;
         unsigned short ids[16] = {0};
-	char local_mask[128]={0};
-	char local_mask2[128]={0};
-	char charset_mask[128]={0};
+	char local_mask[1024]={0};
+	char local_mask2[1024]={0};
+	char charset_mask[1024]={0};
 	char cmd[4096];
         char others[128];
 	int i,j;
@@ -216,62 +216,45 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 			sprintf(cmd,fmt,others,item->john,local_mask2);
 		}
 		else if(item->flag==1){
-			for(unsigned short i=0;i < item->maskLength;i++)
+			//printf("%s\n",item->masks1);
+			//printf("%s\n",item->masks2);
+			unsigned int it = 0;
+			while((item->masks1[it])==(item->masks2[it])){it++;}
+			//printf("%d\n",it);
+			//printf("mask length %d\n",item->maskLength);
+			unsigned int j=0,k=0;
+			while((item->masks1[it])!=(crack_charsets[item->charset][j])){j++;}
+			while((item->masks2[it])!=(crack_charsets[item->charset][k])){k++;}
+			//printf("charset index:%d %d\n",j,k);
+			//sprintf(charset_mask,"?2");
+			//printf("charset_mask %s \n",charset_mask);
+			for(unsigned int m=j;m<=k;m++)
+				sprintf(charset_mask,"%s%c",charset_mask,crack_charsets[item->charset][m]);
+			//printf("charset_mask %s \n",charset_mask);
+			for(j=item->maskLength-1;j>it;j--)
 			{
-				if(item->masks1[i]==item->masks2[i])
-				{
-					if((int)item->masks1[i]==-1)
-					{	
-						switch(item->charset){
-							case charset_num:
-								sprintf(local_mask,"%s%s",local_mask,"?d");
-								break;
-							case charset_lalpha:
-								sprintf(local_mask,"%s%s",local_mask,"?l");
-								break;
-						case charset_ualpha:
-								sprintf(local_mask,"%s%s",local_mask,"?u");
-								break;
-						case charset_lalphanum:
-								sprintf(local_mask,"%s%s",local_mask,"?1");
-								break;
-						case charset_ualphanum:
-								sprintf(local_mask,"%s%s",local_mask,"?1");
-							break;
-						case charset_alphanum:
-								sprintf(local_mask,"%s%s",local_mask,"?1");
-                	                                break;
-						default:
-							sprintf(local_mask,"%s%s",local_mask,"?a");
-							break;
-						}
-				
-					}
-					else{
-						sprintf(local_mask,"%s%c",local_mask,item->masks1[i]);
-					}
-				}
-				else{
-					if(i<item->maskLength-1)
-					{
-					//	if(item->crack_charset)
-						{	
-						}
-						int j=0,k=0;
-						printf("%s\n",item->masks1);
-						printf("%s\n",item->masks2);
-						while((item->masks1[i])!=(crack_charsets[item->charset][j])){j++;}
-						while((item->masks2[i])!=(crack_charsets[item->charset][k])){k++;}
-						printf("%d %d\n",j,k);
-						//crack_charset[item->crack_charset]
-						for(int m=j;m<=k;m++)
-						sprintf(charset_mask,"%s%c",charset_mask,crack_charsets[item->charset][m]);
-						sprintf(local_mask,"%s?2",local_mask);
-					}
-				}
-
+				if(item->charset==charset_num){
+					sprintf(local_mask,"%s%s",local_mask,"?d");}
+				else if(item->charset==charset_lalpha){
+					sprintf(local_mask,"%s%s",local_mask,"?l");}
+				else if(item->charset==charset_ualpha){
+					sprintf(local_mask,"%s%s",local_mask,"?u");}
+				else if(item->charset==charset_lalphanum){
+					sprintf(local_mask,"%s%s",local_mask,"?1");}
+				else if(item->charset==charset_ualphanum){
+					sprintf(local_mask,"%s%s",local_mask,"?1");}
+				else if(item->charset==charset_alphanum){
+					sprintf(local_mask,"%s%s",local_mask,"?1");}
+				else
+					sprintf(local_mask,"%s%s",local_mask,"?a");
 			}
-			//printf("%s\n",local_mask);
+			sprintf(local_mask2,"?2%s",local_mask);
+			sprintf(local_mask,"");
+			for(i=0;i<it;i++)
+				sprintf(local_mask,"%s%c",local_mask,(char)item->masks1[i]);
+			sprintf(local_mask,"%s%s",local_mask,local_mask2);
+			//printf("local_mask2 %s \n",local_mask2);
+			//printf("local_mask %s \n",local_mask);
 		}
 		if(item->charset==charset_num)
 			sprintf(local_mask2,"--custom-charset2=%s --custom-charset1=%s %s",charset_mask,"?d",local_mask);
@@ -287,7 +270,7 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 			sprintf(local_mask2,"--custom-charset2=%s --custom-charset1=%s %s",charset_mask,"?u?l?d",local_mask);
 		else
 			sprintf(local_mask2,"--custom-charset2=%s --custom-charset1=%s %s",charset_mask,"?a",local_mask);
-		printf("%s\n",charset_mask);	
+		//printf("%s\n",charset_mask);	
 		sprintf(cmd,fmt,others,item->john,local_mask2);
 		break;
 	default:
