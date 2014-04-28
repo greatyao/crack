@@ -10,6 +10,8 @@
 #include <string>
 #include <float.h> 
 #include <unistd.h>
+#include <ctype.h>
+#include <algorithm>
 
 using std::string;
 
@@ -114,13 +116,13 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 	const char* hash = item->john;
 	const char* fmt;
 	unsigned short platformId = deviceIds[0] >> 8;
-        unsigned short ids[16] = {0};
+	unsigned short ids[16] = {0};
 	char local_mask[1024]={0};
 	char local_mask2[1024]={0};
 	char charset_mask[1024]={0};
 	char cmd[4096];
 	string john = item->john;
-        char others[128];
+    char others[128];
 	int i,j;
 	struct maphashtarget a;
 	
@@ -155,7 +157,6 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 		int id = john.find("*");
 		if(id!=string::npos)
 			john = john.substr(id+1,john.length()-1);
-		//printf("%s\n",john.c_str());
 	}
 	switch(type){
 	case bruteforce:
@@ -184,35 +185,22 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 		{
 			for(unsigned short i=0;i < item->maskLength;i++)
 			{
-				if((int)item->masks[i]== -1)
-				{
-					switch(item->charset){
-						case charset_num:
-							sprintf(local_mask,"%s%s",local_mask,"?d");
-							break;
-						case charset_lalpha:
-							sprintf(local_mask,"%s%s",local_mask,"?l");
-							break;
-						case charset_ualpha:
-							sprintf(local_mask,"%s%s",local_mask,"?u");
-							break;
-						case charset_lalphanum:
-							sprintf(local_mask,"%s%s",local_mask,"?1");
-							break;
-						case charset_ualphanum:
-							sprintf(local_mask,"%s%s",local_mask,"?1");
-							break;
-						case charset_alphanum:
-							sprintf(local_mask,"%s%s",local_mask,"?1");
-                	                                break;
-						default:
-							sprintf(local_mask,"%s%s",local_mask,"?a");
-							break;
-					}
-				}
-				else{
+				if((int)item->masks[i] != -1)
 					sprintf(local_mask,"%s%c",local_mask,item->masks[i]);
-				}
+				else if(item->charset == charset_num)
+					sprintf(local_mask,"%s%s",local_mask,"?d");
+				else if(item->charset == charset_lalpha)
+					sprintf(local_mask,"%s%s",local_mask,"?l");
+				else if(item->charset == charset_ualpha)
+					sprintf(local_mask,"%s%s",local_mask,"?u");
+				else if(item->charset == charset_lalphanum)
+					sprintf(local_mask,"%s%s",local_mask,"?1");
+				else if(item->charset == charset_ualphanum)
+					sprintf(local_mask,"%s%s",local_mask,"?1");
+				else if(item->charset == charset_alphanum)
+					sprintf(local_mask,"%s%s",local_mask,"?1");
+                else
+					sprintf(local_mask,"%s%s",local_mask,"?a");
 			}
 			if(item->charset==charset_num)
 				sprintf(local_mask2,"%s",local_mask);
@@ -225,7 +213,7 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 			else if(item->charset==charset_ualphanum)
 				sprintf(local_mask2,"--custom-charset1=?u?d %s", local_mask);
 			else if(item->charset==charset_alphanum)
-        	                sprintf(local_mask2,"--custom-charset1=?u?l?d %s", local_mask);
+				sprintf(local_mask2,"--custom-charset1=?u?l?d %s", local_mask);
 			else
 				sprintf(local_mask2,"%s", local_mask);
 			sprintf(cmd,fmt,others,john.c_str(),local_mask2);
@@ -292,21 +280,13 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 		CLog::Log(LOG_LEVEL_NOMAL, "#######   crack type: %d  ###########\n",type);
         break;sprintf(local_mask2,"--custom-charset2=%s --custom-charset1=%s %s",charset_mask,"?1",local_mask);
 	}
-	//struct maphashtarget a;
+	
 	a.algo = algo;
-	memcpy(a.hash,john.c_str(),john.length());
 	if(algo==algo_mssql_2005||algo==algo_mssql_2012||algo==algo_osx_old)
-	{
-		int i=0;
-		char c;
-		while(a.hash[i])
-		{
-			c=a.hash[i];
-			a.hash[i]=tolower(c);
-			i++;
-		}
-	}
+		std::transform(john.begin(), john.end(), john.begin(), ::tolower);
+	memcpy(a.hash,john.c_str(),john.length());
 	this->MapTargetHash.insert(pair<string,maphashtarget>(item->guid,a));
+	
 	int pid = this->Exec(item->guid, path, cmd, MonitorThread, true, true, false);
 	
 	if(pid > 0){
@@ -348,7 +328,6 @@ void *oclHashcat::MonitorThread(void *p)
 	int idx, idx2,idx3;
 	double percent=0.0,tempspeed=0.0;
 	char avgspeed[128]={0};	
-	//char text[128]={0};
 	map<string,struct maphashtarget>::iterator iter;
 	iter = ocl_hashcat->MapTargetHash.find(guid);
 	if(iter->second.algo==algo_wpa)
@@ -441,23 +420,22 @@ void *oclHashcat::MonitorThread(void *p)
 				int ret = sscanf(s2.c_str(),"%lf %s",&tempspeed,&avgspeed);
 				if(ret == 2){
 					idx = s.rfind("Progress.......:");
-                			if(idx != string::npos){
-                        			idx += strlen("Progress.......:");
-									idx2 = s.find("\n",idx);
-			                        if(idx2 != string::npos){
-                        		    		string s2 = s.substr(idx,idx2-idx);
-		                               		int ret = sscanf(s2.c_str(),"%*llu/%*llu (%lf%%)",&percent);
+					if(idx != string::npos){
+						idx += strlen("Progress.......:");
+						idx2 = s.find("\n",idx);
+						if(idx2 != string::npos){
+							string s2 = s.substr(idx,idx2-idx);
+							int ret = sscanf(s2.c_str(),"%*llu/%*llu (%lf%%)",&percent);
 
-                		                		if(ret == 1){
-                                		        		CLog::Log(LOG_LEVEL_NOMAL,"Progress is %f \n",percent);
-									unsigned int ct = t1-t0;
-									unsigned rt = (percent==0.0f)?0xFFFFFFFF : (unsigned)(100.0/percent*ct)-ct;
-                                			       		if(ocl_hashcat->statusFunc)
-                                               					 ocl_hashcat->statusFunc(guid, percent, tempspeed*GetSpeed(avgspeed), rt);
-               //                        CLog::Log(LOG_LEVEL_NOMAL,"Progress updated!!!!!!!!!!!1 \n");
-                                				}
-                        			}
-                			}
+							if(ret == 1){
+								CLog::Log(LOG_LEVEL_NOMAL,"Progress is %f \n",percent);
+								unsigned int ct = t1-t0;
+								unsigned rt = (percent==0.0f)?0xFFFFFFFF : (unsigned)(100.0/percent*ct)-ct;
+								if(ocl_hashcat->statusFunc)
+									ocl_hashcat->statusFunc(guid, percent, tempspeed*GetSpeed(avgspeed), rt);
+   							}
+						}
+					}
 				}
 			}
 		}
@@ -466,7 +444,6 @@ confirm:
         if(idx != string::npos){
      		CLog::Log(LOG_LEVEL_ERROR,"%s: Confirming Cracked successfully\n", guid);
 			cracked = true;
-			//break;
 		}
 	
 write:	
@@ -479,8 +456,7 @@ write:
 			{
 				CLog::Log(LOG_LEVEL_NOMAL,"%s: Detected child exit2\n", __FUNCTION__);
 				break;
-			}
-			
+			}	
 		}
 	}
 	
