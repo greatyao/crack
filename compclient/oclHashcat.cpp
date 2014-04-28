@@ -37,29 +37,29 @@ static const char* charsets[] = {
 
 static struct hash_parameter all_support_hashes[] = 
 {
-/*	{algo_md4,			{"-m 900 -a 3 --increment-min=%d --increment-max=%d %s %s %s"}},*/
-	{algo_md5,			{"-m 0 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s",NULL,"-m 0 -a 3 %s %s %s"}},
-//	{algo_md5md5,		"-p md5md5 -b%d:%d:%s %s %s"},
+	{algo_md4,		{"-m 900 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 900 -a 3 %s %s %s",NULL,"-m 900 -a 3 %s %s %s"}},
+	{algo_md5,		{"-m 0 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 3 %s %s %s",NULL,"-m 0 -a 3 %s %s %s"}},
+	{algo_md5md5,		{"-m 2600 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 2600 -a 3 %s %s %s",NULL,"-m 2600 -a 3 %s %s %s"}},
 	{algo_md5unix,		{"-m 500 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 500 -a 3 %s %s %s",NULL,"-m 500 -a 3 %s %s %s"}},
 //	{algo_mediawiki,	"-p mediawiki -b%d:%d:%s %s %s"},
 	{algo_oscommerce,	{"-m 21 -a 3 --increment-min=%d --increment-max=%d %s %s %s",  "-m 21 -a 3 %s %s %s",NULL,"-m 21 -a 3 %s %s %s"}},
-//	{algo_ipb2,			"-p ipb2 -b%d:%d:%s %s %s"},
+	{algo_ipb2,		{"-m 2811 -a 3 --increment-min=%d --increment-max=%d %s %s %s",  "-m 2811 -a 3 %s %s %s",NULL,"-m 2811 -a 3 %s %s %s"}},
 	{algo_joomla,		{"-m 11 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 11 -a 3 %s %s %s",NULL,"-m 11 -a 3 %s %s %s"}},
-//	{algo_vbulletin,    "-p vbulletin -b%d:%d:%s %s %s"},
+	{algo_vbulletin,    	{"-m 2611 -a 3 --increment-min=%d --increment-max=%d %s %s %s",  "-m 2611 -a 3 %s %s %s",NULL,"-m 2611 -a 3 %s %s %s"}},
 	{algo_desunix,      {"-m 1500 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 1500 -a 3 %s %s %s",NULL,"-m 1500 -a 3 %s %s %s"}},
 	{algo_sha1,         {"-m 100 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 100 -a 3 %s %s %s",NULL,"-m 100 -a 3 %s %s %s"}},//finished
 //	{algo_sha1sha1,     "-p sha1sha1 -b%d:%d:%s %s %s"},
 	{algo_sha256,       {"-m 1400 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 1400 -a 3 %s %s %s",NULL,"-m 1400 -a 3 %s %s %s"}},
-//	{algo_sha256unix,   "-p sha256unix -b%d:%d:%s %s %s"},
+	{algo_sha256unix,   {"-m 7400 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 7400 -a 3 %s %s %s",NULL,"-m 7400 -a 3 %s %s %s"}},
 	{algo_sha512,       {"-m 1700 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 1700 -a 3 %s %s %s",NULL,"-m 1700 -a 3 %s %s %s"}},
-//	{algo_sha512unix,   "-p sha512unix -b%d:%d:%s %s %s"},
+	{algo_sha512unix,   {"-m 1800 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 1800 -a 3 %s %s %s",NULL,"-m 1800 -a 3 %s %s %s"}},
 //	{algo_msoffice_old, "-p msoffice-old -b%d:%d:%s %s %s"},
 //	{algo_msoffice,     "-p msoffice -b%d:%d:%s %s %s"},
 //	{algo_django256,    "-p django256 -b%d:%d:%s %s %s"},
 //	{algo_zip,          "-p zip -b%d:%d:%s %s %s"},
 //	{algo_rar,          "-p rar -b%d:%d:%s %s %s"},
-//	{algo_apr1,         "-p apr1 -b%d:%d:%s %s %s"},
-//	{algo_bfunix,       "-p bfunix -b%d:%d:%s %s %s"},
+	{algo_apr1,         {"-m 1600 -a 3 --increment-min=%d --incremnet-max=%d %s %s %s", "-m 1600 -a 3 %s %s %s",NULL,"-m 1600 -a 3 %s %s %s"}},// something wrong
+	{algo_bfunix,      {"-m 3200 -a 3 --increment-min=%d --incremnet-max=%d %s %s %s", "-m 3200 -a 3 %s %s %s",NULL,"-m 3200 -a 3 %s %s %s"}},
 //	{algo_dmg,          "-p dmg -b%d:%d:%s %s %s"},
 //	{algo_drupal7,      "-p drupa17 -b%d:%d:%s %s %s"},
 	{algo_lm,           {"-m 3000 -a 3 --increment-min=%d --incremnet-max=%d %s %s %s", "-m 3000 -a 3 %s %s %s",NULL,"-m 3000 -a 3 %s %s %s"}},
@@ -69,14 +69,14 @@ static struct hash_parameter all_support_hashes[] =
 	{algo_mssql_2000,   {"-m 131 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 131 -a 3 %s %s %s",NULL,"-m 131 -a 3 %s %s %s"}},
 	{algo_mssql_2005,   {"-m 132 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 132 -a 3 %s %s %s",NULL,"-m 132 -a 3 %s %s %s"}},
 	{algo_mssql_2012,   {"-m 1731 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 1731 -a 3 %s %s %s",NULL,"-m 1731 -a 3 %s %s %s"}},
-//	{algo_mysql5,       "-p mssql5 -b%d:%d:%s %s %s"},
+	{algo_mysql5,       {"-m 300 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 300 -a 3 %s %s %s",NULL,"-m 300 -a 3 %s %s %s"}},
 	{algo_nsldap,       {"-m 101 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 101 -a 3 %s %s %s",NULL,"-m 101 -a 3 %s %s %s"}},
 	{algo_nsldaps,      {"-m 111 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 111 -a 3 %s %s %s",NULL,"-m 111 -a 3 %s %s %s"}},
 	{algo_ntlm,         {"-m 1000 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 1000 -a 3 %s %s %s",NULL,"-m 1000 -a 3 %s %s %s"}},
 //	{algo_o5logon,      "-p o5logon -b%d:%d:%s %s %s"},
-//	{algo_oracle_old,   "-m 3100 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},//something wrong with oclhashcat
-//	{algo_oracle11g,    "-m 112 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},//wrong with hash-length inputed
-//	{algo_osx_old,      "-p osx-old -b%d:%d:%s %s %s"},
+	{algo_oracle_old,   {"-m 3100 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 3100 -a 3 %s %s %s",NULL,"-m 3100 -a 3 %s %s %s"}},//something wrong with oclhashcat
+//	{algo_oracle11g,    {"-m 112 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 112 -a 3 %s %s %s",NULL,"-m 112 -a 3 %s %s %s"}},//wrong with hash-length inputed
+	{algo_osx_old,      {"-m 122 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 122 -a 3 %s %s %s",NULL,"-m 122 -a 3 %s %s %s"}},
 	{algo_osxlion,      {"-m 1722 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 1722 -a 3 %s %s %s",NULL,"-m 1722 -a 3 %s %s %s"}},
 	{algo_phpbb3,       {"-m 400 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 400 -a 3 %s %s %s",NULL,"-m 400 -a 3 %s %s %s"}},
 //	{algo_pixmd5,       "-p pixmd5 -b%d:%d:%s %s %s"},
@@ -85,8 +85,8 @@ static struct hash_parameter all_support_hashes[] =
 //	{algo_sapg,         "-p sapg -b%d:%d:%s %s %s"},
 //	{algo_sl3,          "-p sl3 -b%d:%d:%s %s %s"},
 //	{algo_smf,          "-p smf -b%d:%d:%s %s %s"},
-//	{algo_wordpress,    "-m 500 -a 3 --increment-min=%d --increment-max=%d %s %s %s"},
-//	{algo_wpa,          "-p wpa -b%d:%d:%s %s %s"},
+	{algo_wordpress,    {"-m 500 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 500 -a 3 %s %s %s",NULL,"-m 500 -a 3 %s %s %s"}},
+//	{algo_wpa,          {"-m 2500 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 2500 -a 3 %s %s %s",NULL,"-m 2500 -a 3 %s %s %s"}},
 };
 
 #define SUPPORT_HASH_NUM sizeof(all_support_hashes)/sizeof(all_support_hashes[0])
@@ -119,6 +119,7 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 	char local_mask2[1024]={0};
 	char charset_mask[1024]={0};
 	char cmd[4096];
+	string john = item->john;
         char others[128];
 	int i,j;
 	struct maphashtarget a;
@@ -149,21 +150,31 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 	for(i = 0; i < ndevices-1; i++)
 		sprintf(others, "%s%d,", others, ids[i]);
 	sprintf(others, "%s%d", others, ids[i]);
+	if(algo == algo_mysql5)
+	{
+		int id = john.find("*");
+		if(id!=string::npos)
+			john = john.substr(id+1,john.length()-1);
+		//printf("%s\n",john.c_str());
+	}
 	switch(type){
 	case bruteforce:
+		if(algo==algo_apr1||algo==algo_bfunix)
+			return ERR_NO_SUPPORT_ALGO;
 		if(charset < charset_num || charset > charset_ascii)
 		{
 			//靠靠靠靠
 			return ERR_NO_SUPPORT_CHARSET;
 		}
-		sprintf(cmd, fmt, start, end, charsets[charset], others, item->john);
+		sprintf(cmd, fmt, start, end, charsets[charset], others, john.c_str());
+		//printf("%s",cmd);
 		break;
 	case dict:
 	{
 		char dict_name[512];
 		bool f = CrackManager::Get().GetDict(item->dict_idx,dict_name,sizeof(dict_name),NULL,NULL);
 		if(!f) return ERR_NO_DICT;
-		sprintf(cmd,fmt,others,item->john,dict_name);			
+		sprintf(cmd,fmt,others,john.c_str(),dict_name);			
 		break;
 	}
 	case mask:
@@ -217,7 +228,7 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
         	                sprintf(local_mask2,"--custom-charset1=?u?l?d %s", local_mask);
 			else
 				sprintf(local_mask2,"%s", local_mask);
-			sprintf(cmd,fmt,others,item->john,local_mask2);
+			sprintf(cmd,fmt,others,john.c_str(),local_mask2);
 		}
 		else if(item->flag==1){
 			//printf("%s\n",item->masks1);
@@ -275,7 +286,7 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 		else
 			sprintf(local_mask2,"--custom-charset2=%s --custom-charset1=%s %s",charset_mask,"?a",local_mask);
 		//printf("%s\n",charset_mask);	
-		sprintf(cmd,fmt,others,item->john,local_mask2);
+		sprintf(cmd,fmt,others,john.c_str(),local_mask2);
 		break;
 	default:
 		CLog::Log(LOG_LEVEL_NOMAL, "#######   crack type: %d  ###########\n",type);
@@ -283,8 +294,8 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 	}
 	//struct maphashtarget a;
 	a.algo = algo;
-	memcpy(a.hash,item->john,sizeof(item->john));
-	if(algo==algo_mssql_2005||algo==algo_mssql_2012)
+	memcpy(a.hash,john.c_str(),john.length());
+	if(algo==algo_mssql_2005||algo==algo_mssql_2012||algo==algo_osx_old)
 	{
 		int i=0;
 		char c;
