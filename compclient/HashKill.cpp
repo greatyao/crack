@@ -157,8 +157,6 @@ int HashKill::Launcher(const crack_block* item, bool gpu, unsigned short* device
 	char others[128];
 	if(!gpu)
 		sprintf(others, "-c -C %d", ndevices);
-	else if(ndevices == 1)
-		sprintf(others, "-t %d", platformId);
 	else 
 	{
 		sprintf(others, "-t %d -A ", platformId);
@@ -259,7 +257,7 @@ void *HashKill::MonitorThread(void *p)
 		}
 		buffer[n] = 0;
 		s = lastS + buffer;
-		lastS = buffer;
+		lastS = buffer[n-1] == '\n' ? "" : buffer;
 				
 		idx = s.rfind("Progress:");//进度标志
 		if(idx != string::npos){
