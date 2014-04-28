@@ -2,6 +2,7 @@
 #include "algorithm_types.h"
 #include "err.h"
 #include "CLog.h"
+#include "CrackManager.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -158,10 +159,13 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 		sprintf(cmd, fmt, start, end, charsets[charset], others, item->john);
 		break;
 	case dict:
-		//unsigned char a = item->dict_idx;
-	   	sprintf(cmd,fmt,others,item->john,"/home/gputest/dic.1");//Fixed:must absolute path
-		//sprintf(cmd, fmt, start, end, charsets[charset], others, item->john);
+	{
+		char dict_name[512];
+		bool f = CrackManager::Get().GetDict(item->dict_idx,dict_name,sizeof(dict_name),NULL,NULL);
+		if(!f) return ERR_NO_DICT;
+		sprintf(cmd,fmt,others,item->john,dict_name);			
 		break;
+	}
 	case mask:
 		if(item->maskLength>18||item->maskLength<1)
 			return ERR_INVALID_PARAM;
