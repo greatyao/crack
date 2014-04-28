@@ -477,6 +477,8 @@ int Client::ReportStatusToServer(crack_status* status)
 	short st;
 	char buf[1024];
 	Read(&cmd, &st, buf, sizeof(buf));
+	if(cmd != CMD_WORKITEM_STATUS)
+		Read(&cmd, &st, buf, sizeof(buf));
 	return m;
 }
 	
@@ -494,6 +496,12 @@ int Client::ReportResultToServer(crack_result* result)
 	int n = Read(&cmd, &status, buf, sizeof(buf));
 	if(n < 0)
 		return n;
+	
+	if(cmd != CMD_WORKITEM_RESULT)
+		n = Read(&cmd, &status, buf, sizeof(buf));
+	if(n < 0)
+		return n;
+		
 	return m;
 }
 
@@ -510,6 +518,9 @@ int Client::GetWorkItemFromServer(crack_block* item)
 	
 	int n = Read(&cmd, &status, buffer, sizeof(buffer));
 	CLog::Log(LOG_LEVEL_NOMAL, "Client: Read workitem %d %d %d\n", cmd, n, sizeof(*item));
+	
+	if(cmd != CMD_GET_A_WORKITEM)
+		n = Read(&cmd, &status, buffer, sizeof(buffer));
 		
 	if(cmd == CMD_GET_A_WORKITEM && status == 0)
 	{

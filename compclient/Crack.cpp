@@ -182,11 +182,11 @@ int Crack::Exec(const char* guid, const char* path, const char* params, void* (*
 		
 		close(fd1[1]);
 		close(fd2[0]);
-		//close(0);
-		//close(1);
-		//close(2);
-		//if(dupStdin)
-		//	dup2(fd1[0], STDIN_FILENO);
+		close(0);
+		close(1);
+		close(2);
+		if(dupStdin)
+			dup2(fd1[0], STDIN_FILENO);
 		if(dupStdout)
 			dup2(fd2[1], STDOUT_FILENO);
         if(dupStderr)
