@@ -46,6 +46,11 @@ CrackManager::CrackManager()
 
 CrackManager::~CrackManager()
 {
+	Destroy();
+}
+	
+void CrackManager::Destroy()
+{
 	if(tools)
 	{
 		for(int i = 0; i < toolCount; i++)
@@ -53,26 +58,9 @@ CrackManager::~CrackManager()
 			if(tools[i]) delete tools[i];
 		}
 		delete []tools;
-	}
-}
-	
-static int to_lower(int c)  
-{  
-    if (isupper(c))  
-    {  
-		return c+32;  
-    }  
-	return c;  
-}  
-
-void CrackManager::Destroy()
-{
-	for(int i = 0; i < toolCount; i++)
-	{
-		if(tools[i])	delete tools[i];
-	}
-	
-	delete []tools;
+		toolCount = 0;
+		tools = NULL;
+	}	
 }	
 
 int CrackManager::Init()
@@ -130,7 +118,7 @@ int CrackManager::Init()
 		}
 		
 		string vv = value;
-		std::transform(vv.begin(), vv.end(), vv.begin(), to_lower);
+		std::transform(vv.begin(), vv.end(), vv.begin(), ::tolower);
 		
 		if(access(value.c_str(), 0) != 0)
 		{
