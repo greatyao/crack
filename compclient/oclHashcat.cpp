@@ -351,11 +351,16 @@ void *oclHashcat::MonitorThread(void *p)
 	//char text[128]={0};
 	map<string,struct maphashtarget>::iterator iter;
 	iter = ocl_hashcat->MapTargetHash.find(guid);
-	s_hash_with_comma = iter->second.hash;
-	s_hash_with_comma.append(":");
+	if(iter->second.algo==algo_wpa)
+		s_hash_with_comma = "";	
+	else{
+		s_hash_with_comma = iter->second.hash;
+		s_hash_with_comma.append(":");
+	}
 	algo = iter->second.algo;
 	string lastS="";
 	bool killed = false;
+	bool is_wpa_set = false;
 
 	while(1)
 	{
@@ -380,7 +385,32 @@ void *oclHashcat::MonitorThread(void *p)
 		
 		//if(n>0)
 		//	CLog::Log(LOG_LEVEL_NOMAL,"%s\n", buffer);
-		
+		if((!is_wpa_set)&&algo==algo_wpa)
+		{
+			idx = s.rfind("Hash.Target....:");
+			if(idx != string::npos){
+		//		printf("Hash Target found\n");
+				idx2 = s.find("\n",idx);
+				if(idx2 != string::npos){
+		//			printf("backsplash Tail found\n");
+					string s4=s.substr(idx,idx2-idx);
+//					printf("s4: %s\n",s4.c_str());
+					idx3 = s4.find("(",idx);
+					if(idx3>0)
+					{
+//						printf("( found\n");
+						s_hash_with_comma=s4.substr(idx+16,idx3-idx-16);
+						char buf[256];
+						sscanf(s_hash_with_comma.c_str(),"%s",buf);
+						printf("$$$$$$$$$%s\n",buf);
+						s_hash_with_comma = buf;
+						s_hash_with_comma.append(":");
+						is_wpa_set = true;
+						printf("###%s\n",s_hash_with_comma.c_str());
+					} 
+				}
+			}
+		}
 		if(algo==algo_mssql_2000)
 			idx = s.rfind(s_hash_with_comma.substr(0,14));//mssql_2000:
 		else
