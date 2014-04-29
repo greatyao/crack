@@ -230,6 +230,12 @@ int osxlion_check_valid(struct crack_hash* hash);
 int osxlion_recovery(const struct crack_hash* hash, char* line, int size);
 
 //
+int ripemd160_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
+int ripemd160_is_special();
+int ripemd160_check_valid(struct crack_hash* hash);
+int ripemd160_recovery(const struct crack_hash* hash, char* line, int size);
+
+//
 int wpa_parse_hash(char *hashline, char *filename, struct crack_hash* hash);
 int wpa_is_special();
 int wpa_check_valid(struct crack_hash* hash);

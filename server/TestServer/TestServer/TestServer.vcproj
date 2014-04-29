@@ -772,6 +772,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\plugins\ripemd160.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\plugins\sha1.cpp"
 				>
 			</File>
