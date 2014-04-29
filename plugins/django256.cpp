@@ -15,7 +15,9 @@ int django256_parse_hash(char *hashline, char *filename, struct crack_hash* hash
 
 	char line[HASHFILE_MAX_LINE_LENGTH];
 	snprintf(line, HASHFILE_MAX_LINE_LENGTH-1, "%s", hashline);
-	if((strlen(hashline)>=72) && isStartsWith(hashline,"sha256$") && (countSpecChar(hashline,'$')==2))
+	if(strlen(hashline) < 72)
+		return 1;
+	if(isStartsWith(hashline,"sha256$") && (countSpecChar(hashline,'$')==2))
 	{
 		std::vector<char*> v = split(line,"$");
 		int i = v.size()-1;
@@ -26,11 +28,17 @@ int django256_parse_hash(char *hashline, char *filename, struct crack_hash* hash
 			strcpy(hash->salt2, "");
 			return 0;
 		}
-		else
-			return 1;
-	}
-	else
 		return 1;
+	}
+	else if(isStartsWith(hashline,"pbkdf2_sha256$") && (countSpecChar(hashline,'$')==3))
+	{
+		strcpy(hash->hash, hashline);
+		strcpy(hash->salt, "");
+		strcpy(hash->salt2, "");
+		return 0;
+	}
+	
+	return 1;
 }
 
 int django256_recovery(const struct crack_hash* hash, char* line, int size)
