@@ -43,7 +43,7 @@ static struct hash_parameter all_support_hashes[] =
 	{algo_md5,		{"-m 0 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 0 -a 0 %s %s %s",NULL,"-m 0 -a 3 %s %s %s"}},
 	{algo_md5md5,		{"-m 2600 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 2600 -a 0 %s %s %s",NULL,"-m 2600 -a 3 %s %s %s"}},
 	{algo_md5unix,		{"-m 500 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 500 -a 0 %s %s %s",NULL,"-m 500 -a 3 %s %s %s"}},
-//	{algo_mediawiki,	"-p mediawiki -b%d:%d:%s %s %s"},
+//	{algo_mediawiki,	"-p mediawiki -b%d:%d:%s %s %s"},/
 	{algo_oscommerce,	{"-m 21 -a 3 --increment-min=%d --increment-max=%d %s %s %s",  "-m 21 -a 0 %s %s %s",NULL,"-m 21 -a 3 %s %s %s"}},
 	{algo_ipb2,		{"-m 2811 -a 3 --increment-min=%d --increment-max=%d %s %s %s",  "-m 2811 -a 0 %s %s %s",NULL,"-m 2811 -a 3 %s %s %s"}},
 	{algo_joomla,		{"-m 11 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 11 -a 0 %s %s %s",NULL,"-m 11 -a 3 %s %s %s"}},
@@ -60,11 +60,11 @@ static struct hash_parameter all_support_hashes[] =
 //	{algo_django256,    "-p django256 -b%d:%d:%s %s %s"},
 //	{algo_zip,          "-p zip -b%d:%d:%s %s %s"},
 //	{algo_rar,          "-p rar -b%d:%d:%s %s %s"},
-	{algo_apr1,         {"-m 1600 -a 3 --increment-min=%d --incremnet-max=%d %s %s %s", "-m 1600 -a 0 %s %s %s",NULL,"-m 1600 -a 3 %s %s %s"}},// something wrong
-	{algo_bfunix,      {"-m 3200 -a 3 --increment-min=%d --incremnet-max=%d %s %s %s", "-m 3200 -a 0 %s %s %s",NULL,"-m 3200 -a 3 %s %s %s"}},
+	{algo_apr1,         {"-m 1600 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 1600 -a 0 %s %s %s",NULL,"-m 1600 -a 3 %s %s %s"}},// something wrong
+	{algo_bfunix,      {"-m 3200 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 3200 -a 0 %s %s %s",NULL,"-m 3200 -a 3 %s %s %s"}},
 //	{algo_dmg,          "-p dmg -b%d:%d:%s %s %s"},
 //	{algo_drupal7,      "-p drupa17 -b%d:%d:%s %s %s"},
-	{algo_lm,           {"-m 3000 -a 3 --increment-min=%d --incremnet-max=%d %s %s %s", "-m 3000 -a 0 %s %s %s",NULL,"-m 3000 -a 3 %s %s %s"}},
+	{algo_lm,           {"-m 3000 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 3000 -a 0 %s %s %s",NULL,"-m 3000 -a 3 %s %s %s"}},
 //	{algo_luks,         "-p luks -b%d:%d:%s %s %s"},
 	{algo_mscash,       {"-m 1100 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 1100 -a 0 %s %s %s",NULL,"-m 1100 -a 3 %s %s %s"}},
 	{algo_mscash2,      {"-m 2100 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 2100 -a 0 %s %s %s",NULL,"-m 2100 -a 3 %s %s %s"}},
@@ -87,7 +87,7 @@ static struct hash_parameter all_support_hashes[] =
 //	{algo_sapg,         "-p sapg -b%d:%d:%s %s %s"},
 //	{algo_sl3,          "-p sl3 -b%d:%d:%s %s %s"},
 //	{algo_smf,          "-p smf -b%d:%d:%s %s %s"},
-	{algo_wordpress,    {"-m 500 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 500 -a 0 %s %s %s",NULL,"-m 500 -a 3 %s %s %s"}},
+//	{algo_wordpress,    {"-m 500 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 500 -a 0 %s %s %s",NULL,"-m 500 -a 3 %s %s %s"}},
 	{algo_wpa,          {"-m 2500 -a 3 --increment-min=%d --increment-max=%d %s %s %s", "-m 2500 -a 0 %s %s %s",NULL,"-m 2500 -a 3 %s %s %s"}},
 };
 
@@ -122,7 +122,7 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 	char charset_mask[1024]={0};
 	char cmd[4096];
 	string john = item->john;
-    char others[128];
+    	char others[128];
 	int i,j;
 	struct maphashtarget a;
 	
@@ -158,10 +158,31 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 		if(id!=string::npos)
 			john = john.substr(id+1,john.length()-1);
 	}
+	a.algo = algo;
+        if(algo==algo_mssql_2005||algo==algo_mssql_2012||algo==algo_osx_old)
+                std::transform(john.begin(), john.end(), john.begin(), ::tolower);
+        memcpy(a.hash,john.c_str(),john.length());
+        this->MapTargetHash.insert(pair<string,maphashtarget>(item->guid,a));
+	//Must follow after Map Insert
+	if(algo==algo_apr1)
+	{
+		printf("start apr1\n");
+		char tmp_filename[128]="/tmp/";
+   		char line[50];
+		FILE *fp;
+		strcat(tmp_filename,item->guid);
+		fp = fopen(tmp_filename,"w+");
+		if(fp==NULL)
+		{
+			printf("tmpfile error\n");
+		}
+		fprintf(fp,john.c_str());
+		john = tmp_filename;
+		fclose(fp);
+	}
+
 	switch(type){
 	case bruteforce:
-		if(algo==algo_apr1||algo==algo_bfunix)
-			return ERR_NO_SUPPORT_ALGO;
 		if(charset < charset_num || charset > charset_ascii)
 		{
 			//靠靠靠靠
@@ -281,12 +302,12 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
         break;sprintf(local_mask2,"--custom-charset2=%s --custom-charset1=%s %s",charset_mask,"?1",local_mask);
 	}
 	
-	a.algo = algo;
-	if(algo==algo_mssql_2005||algo==algo_mssql_2012||algo==algo_osx_old)
-		std::transform(john.begin(), john.end(), john.begin(), ::tolower);
-	memcpy(a.hash,john.c_str(),john.length());
-	this->MapTargetHash.insert(pair<string,maphashtarget>(item->guid,a));
-	
+//	a.algo = algo;
+//	if(algo==algo_mssql_2005||algo==algo_mssql_2012||algo==algo_osx_old)
+//		std::transform(john.begin(), john.end(), john.begin(), ::tolower);
+//	memcpy(a.hash,john.c_str(),john.length());
+//	this->MapTargetHash.insert(pair<string,maphashtarget>(item->guid,a));
+// 	printf("cmd is :%s ,",cmd);	
 	int pid = this->Exec(item->guid, path, cmd, MonitorThread, true, true, false);
 	
 	if(pid > 0){
@@ -456,6 +477,12 @@ write:
 	
 	if(ocl_hashcat->doneFunc)
 		ocl_hashcat->doneFunc(guid,cracked,s_result.c_str(), !killed);
+	if(algo==algo_apr1)
+	{
+		char tmp_filename[128]="/tmp/";
+	        strcat(tmp_filename,guid);
+        	unlink(tmp_filename);
+	}
 	iter = ocl_hashcat->MapTargetHash.find(guid);	
 	printf("++++++++++++++++++++++++++++++++++++++\n");
 	//ocl_hashcat->MapTargetHash.erase(iter);//TODO:ADD LOCK 
