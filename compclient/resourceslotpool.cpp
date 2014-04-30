@@ -80,7 +80,7 @@ static unsigned int get_num_cpu(void)
 #ifndef TEST
 	return 1;
 #else
-    return proc;
+    return proc*2;
 #endif
 }
 #endif
@@ -175,10 +175,13 @@ int ResourcePool::CoordinatorQuery(resourceslot* plots[], int n, int type)
 	unsigned short platformId = 0xff;
 	unsigned short status0;
 	
-	//char text[2048] = {0};
-	//for(int i = 0; i < m_rs_pool.size(); i++)
-	//	sprintf(text, "%s (%04x,%d)", text, m_rs_pool[i]->m_device, m_rs_pool[i]->m_rs_status);
-	//CLog::Log(LOG_LEVEL_NOMAL,"resources %s\n", text);
+	char text[2048] = {0};
+	for(int i = 0; i < m_rs_pool.size(); i++)
+	{	
+		sprintf(text, "%s %s(%02x,%d,%x)", text, 
+			(m_rs_pool[i]->m_worker_type == DEVICE_GPU ? "G" : "C"),
+			m_rs_pool[i]->m_device&0xff, m_rs_pool[i]->m_rs_status, m_rs_pool[i]->m_shared);
+	}	
 	
 	bool cracked = false;
 	for(int k = 0; k < m_rs_pool.size(); k++)
@@ -208,11 +211,18 @@ int ResourcePool::CoordinatorQuery(resourceslot* plots[], int n, int type)
 				status0 = status;
 				plots[i++] = p;
 				shared = p->m_shared;
+				
+				sprintf(text, "%s -- %s(%02x,%d)", text, 
+					p->m_worker_type == DEVICE_GPU ?"G" : "C",
+					p->m_device&0xff, p->m_rs_status);
 			}
 			else if(status0 == status && shared == p->m_shared && 
 				platformId == ((p->m_device) >> 8))
 			{
 				plots[i++] = p;
+				sprintf(text, "%s %s(%02x,%d)", text, 
+					p->m_worker_type == DEVICE_GPU ? "G" : "C",
+					p->m_device&0xff, p->m_rs_status);
 			}	
 			if(i == n) break;
 		}
@@ -222,6 +232,7 @@ int ResourcePool::CoordinatorQuery(resourceslot* plots[], int n, int type)
 	
 	m_base_coordinator = (j+1)% m_rs_pool.size();
 
+	CLog::Log(LOG_LEVEL_NOMAL,"resources %s\n", text);
 	return i;
 }
 
@@ -232,6 +243,16 @@ int ResourcePool::LauncherQuery(resourceslot* plots[], int n)
 	unsigned short status0;
 	unsigned short platformId = 0xff;
 	unsigned short shared = 0xffff;
+	
+	char text[2048] = {0};
+	for(int i = 0; i < m_rs_pool.size(); i++)
+	{	
+		sprintf(text, "%s %s(%02x,%d,%x)", text, 
+			(m_rs_pool[i]->m_worker_type == DEVICE_GPU ? "G" : "C"),
+			m_rs_pool[i]->m_device&0xff, m_rs_pool[i]->m_rs_status, m_rs_pool[i]->m_shared);
+	}	
+	//CLog::Log(LOG_LEVEL_NOMAL,"resources2 %s\n", text);
+	
 	do{
 		resourceslot* p = m_rs_pool[j];
 		unsigned short status = p->m_rs_status;
@@ -315,6 +336,7 @@ void ResourcePool::SetToRecover(struct _resourceslotpool* p, bool cracked, const
 
 void ResourcePool::SetToReady(resourceslot* plots[], int n)
 {
+	CLog::Log(LOG_LEVEL_NOMAL,"SetToReady %d\n", n);
 	for(int i = 0; i < n; i++)
 	{
 		SetToReady(plots[i]);
@@ -324,18 +346,21 @@ void ResourcePool::SetToReady(resourceslot* plots[], int n)
 
 void ResourcePool::SetToOccupied(resourceslot* plots[], int n)
 {
+	CLog::Log(LOG_LEVEL_NOMAL,"SetToOccupied %d\n", n);
 	for(int i = 0; i < n; i++)
 		SetToOccupied(plots[i]);
 }
 
 void ResourcePool::SetToFailed(resourceslot* plots[], int n)
 {
+	CLog::Log(LOG_LEVEL_NOMAL,"SetToFailed %d\n", n);
 	for(int i = 0; i < n; i++)
 		SetToFailed(plots[i]);
 }
 
 void ResourcePool::SetToAvailable(resourceslot* plots[], int n, crack_block* item)
 {
+	CLog::Log(LOG_LEVEL_NOMAL,"SetToAvailable %d\n", n);
 	for(int i = 0; i < n; i++)
 	{
 		SetToAvailable(plots[i], item);
@@ -345,11 +370,20 @@ void ResourcePool::SetToAvailable(resourceslot* plots[], int n, crack_block* ite
 
 void ResourcePool::SetToRecover(resourceslot* plots[], int n, bool cracked, const char* passwd, bool report)
 {
+	CLog::Log(LOG_LEVEL_NOMAL,"SetToRecover %d\n", n);
 	for(int i = 0; i < n; i++)
 	{
 		SetToRecover(plots[i], cracked, passwd, report);
 		plots[i]->m_shared = plots[0]->m_device;
 	}
+	char text[2048] = {0};
+	for(int i = 0; i < m_rs_pool.size(); i++)
+	{	
+		sprintf(text, "%s %s(%02x,%d,%x)", text, 
+			(m_rs_pool[i]->m_worker_type == DEVICE_GPU ? "G" : "C"),
+			m_rs_pool[i]->m_device&0xff, m_rs_pool[i]->m_rs_status, m_rs_pool[i]->m_shared);
+	}	
+	CLog::Log(LOG_LEVEL_NOMAL,"SetToRecover %s\n", text);
 }
 
 void ResourcePool::SaveOneDone(struct crack_result* result)

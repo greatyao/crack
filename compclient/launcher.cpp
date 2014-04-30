@@ -38,7 +38,7 @@ int clauncher::ReportDone(char* guid, bool cracked, const char* passwd, bool rep
 	int k = ResourcePool::Get().QueryByGuid(rs, MAX_PARALLEL_NUM, guid);
 	if(k == 0)	return -1;
 	
-	ResourcePool::Lock(ResourcePool::Get().GetMutex());
+	ResourcePool::Lock lk(ResourcePool::Get().GetMutex());
 	
 	if(cracked)
 		CLog::Log(LOG_LEVEL_SUCCEED, "clauncher: Crack password %s [guid=%s]\n", passwd, guid);
@@ -79,7 +79,7 @@ void *clauncher::Thread(void*par)//扫描线程
 		if(p->m_bStop) break;
 		
 		sleep(3);
-		ResourcePool::Lock(pool.GetMutex());
+		ResourcePool::Lock lk(pool.GetMutex());
 		//prsp = pool.LauncherQuery(uStatus);
 		//if(!uStatus)	continue;
 		

@@ -59,7 +59,7 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 		}
 		
 		//从资源池获取可用的计算单元
-		ResourcePool::Lock(pool.GetMutex());
+		ResourcePool::Lock lk(pool.GetMutex());
 		//prsp = pool.CoordinatorQuery(status, crack_device);
 		//if(!status) continue;
 		
