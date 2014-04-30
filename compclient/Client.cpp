@@ -17,6 +17,7 @@
 #include <errno.h>
 #include <zlib.h>
 #include <fcntl.h>
+#include <deque>
 
 #include "Client.h"
 #include "CrackManager.h"
@@ -26,6 +27,7 @@
 #include "macros.h"
 #include "algorithm_types.h"
 
+static std::deque<crack_block> blocks;
 
 static struct login_info linfo = {0};
 static unsigned char pack_flag[5] = {'G', '&', 'C', 'P', 'U'};
@@ -45,6 +47,25 @@ private:
 	pthread_mutex_t* mutex;
 };
 
+const struct timespec tensecs = {10, 0};  
+
+class Wait{
+public:
+	Wait(pthread_mutex_t* mutex, pthread_cond_t* cond)
+	{
+		pthread_cond_wait(cond, mutex, &tensecs);
+	}
+};
+
+class Signal{
+public:
+	Signal(pthread_cond_t* cond)
+	{
+		pthread_cond_signal(cond);
+	}
+};
+
+
 Client& Client::Get()
 {
 	static Client client;
@@ -57,8 +78,10 @@ Client::Client()
 	connected = false;
 	stop = false;
 	tid = 0;
+	tid2 = 0;
 	fetch = true;
 	pthread_mutex_init(&mutex, NULL);
+	pthread_cond_init(&cond, NULL);
 }
 
 Client::~Client()
@@ -68,15 +91,117 @@ Client::~Client()
 
 void Client::Destory()
 {
-	if(tid)
+	if(tid || tid2)
 	{
 		stop = true;
-		pthread_join(tid, NULL);
-		tid = 0;
-		CLog::Log(LOG_LEVEL_NOMAL, "Client: Succeed to exit monitor thread\n");
+		if(tid){
+			pthread_join(tid, NULL);
+			tid = 0;
+			CLog::Log(LOG_LEVEL_NOMAL, "Client: Succeed to exit monitor thread\n");
+		}
+		if(tid2){
+			pthread_join(tid2, NULL);
+			tid2 = 0;
+			CLog::Log(LOG_LEVEL_NOMAL, "Client: Succeed to exit dispatch thread\n");
+		}
 	}
 }
 
+void* Client::DispatchThread(void* p)
+{
+	Client* client = (Client*)p;
+	int ret;
+	char buf[1024*4];
+	time_t t0 = time(NULL);
+	while(1)
+	{
+		if(client->stop) return NULL;
+		
+		if(client->connected != 2)
+		{
+			t0 = time(NULL);
+			sleep(1);
+		}
+		
+		unsigned char cmd;
+		short status;
+		Lock lk(&client->mutex);
+		int m = client->Read(&cmd, &status, buf, sizeof(buf));
+		
+		if(m == ERR_CONNECTIONLOST) 
+		{
+			client->connected = 0;
+			Signal(&client->cond); 
+			continue;
+		}
+		else if(m == ERR_TIMEOUT)
+		{
+			Signal(&client->cond); 
+			continue;
+		}
+		else if(m >= 0)
+		{
+			if(cmd == CMD_LOGIN)
+			{
+				CLog::Log(LOG_LEVEL_NOMAL, "Dispatch: Read login %d\n", m);
+			}
+			else if(cmd == CMD_COMP_HEARTBEAT)
+			{
+				keeplive_compclient* ka = (keeplive_compclient*)buf;
+				CLog::Log(LOG_LEVEL_NOMAL, "Dispatch: Special Hearbreak [%d,%d]\n", ka->tasks, ka->blocks);
+				client->fetch = (ka->tasks > 0);
+				
+				for(int i = 0; i < ka->blocks; i++)
+				{
+					CLog::Log(LOG_LEVEL_NOMAL, "Dispatch: Stop workitem [guid=%s]\n", ka->guids[i]);
+					CrackManager::Get().StopCrack(ka->guids[i]);
+				}
+			}
+			else if(cmd == CMD_REPLAY_HEARTBEAT)
+			{
+				CLog::Log(LOG_LEVEL_NOMAL, "Dispatch: Normal Hearbreak %d\n", m);
+				client->fetch = true;
+			}
+			else if(cmd == CMD_WORKITEM_STATUS)
+			{
+				//CLog::Log(LOG_LEVEL_NOMAL, "Dispatch: status %d\n", m);
+			}
+			else if(cmd == CMD_WORKITEM_RESULT)
+			{
+				CLog::Log(LOG_LEVEL_NOMAL, "Dispatch: result %d\n", m);
+				Signal(&client->cond); 
+			}
+			else if(cmd == CMD_GET_A_WORKITEM)
+			{
+				CLog::Log(LOG_LEVEL_NOMAL, "Dispatch: get workitem %d\n", m);
+				if(status == 0 && m == sizeof(crack_block))
+				{
+					crack_block item;
+					memcpy(&item, buf, sizeof(item));
+					blocks.push_back(item);
+				}
+	
+				Signal(&client->cond); 
+			}
+			else if(cmd == CMD_DOWNLOAD_FILE)
+			{
+			}
+			else if(cmd == CMD_START_DOWNLOAD)
+			{
+			}
+			else if(cmd == CMD_END_DOWNLOAD)
+			{
+			}
+		}
+		
+		time_t t1 = time(NULL);
+		if(t1 - t0 >= 600)
+		{	
+			t0 = t1;
+			client->fetch = true;
+		}
+	}
+}
 
 void* Client::MonitorThread(void* p)
 {
@@ -99,7 +224,6 @@ void* Client::MonitorThread(void* p)
 		}
 		CLog::Log(LOG_LEVEL_NOMAL, "------------------------------\n");
 			
-		time_t t0 = time(NULL);
 		client->fetch = true;
 		while(1)
 		{
@@ -112,35 +236,6 @@ void* Client::MonitorThread(void* p)
 			int n = client->Write(cmd, NULL, 0);
 			if(n == ERR_CONNECTIONLOST) 
 				break;
-			
-			//后续考虑心跳包里面是否有结束某个workitem的解密工作
-			short status;
-			int m = client->Read(&cmd, &status, buf, sizeof(buf));
-			
-			if(cmd == CMD_COMP_HEARTBEAT)
-			{
-				keeplive_compclient* ka = (keeplive_compclient*)buf;
-				CLog::Log(LOG_LEVEL_NOMAL, "Client: Special Hearbreak cmd %d [%d,%d]\n", cmd, ka->tasks, ka->blocks);
-				client->fetch = (ka->tasks > 0);
-				
-				for(int i = 0; i < ka->blocks; i++)
-				{
-					CLog::Log(LOG_LEVEL_NOMAL, "Client: Stop workitem [guid=%s]\n", ka->guids[i]);
-					CrackManager::Get().StopCrack(ka->guids[i]);
-				}
-			}
-			else
-			{
-				CLog::Log(LOG_LEVEL_NOMAL, "Client: Normal Hearbreak cmd %d %d\n", cmd, m);
-				client->fetch = true;
-			}
-			
-			time_t t1 = time(NULL);
-			if(t1 - t0 >= 600)
-			{	
-				t0 = t1;
-				client->fetch = true;
-			}
 		}
 	}
 	
@@ -162,6 +257,14 @@ int Client::Connect(const char* ip, unsigned short port)
 		pthread_attr_init(&attr);
 		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 		pthread_create(&tid, &attr, MonitorThread, (void *)this);
+	}
+	
+	if(tid2 == 0)
+	{
+		pthread_attr_t attr;
+		pthread_attr_init(&attr);
+		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+		pthread_create(&tid2, &attr, DispatchThread, (void *)this);
 	}
 	
 	sck = socket(AF_INET, SOCK_STREAM, 0);
@@ -189,6 +292,7 @@ int Client::Connect(const char* ip, unsigned short port)
 	}
 	
 	connected = 2;
+	CLog::Log(LOG_LEVEL_SUCCEED, "Client: connected to %s:%d\n", ip, port);
 	
 	//int flag = fcntl(sck, F_GETFL, 0);
 	//fcntl(sck, F_SETFL, flag|O_NONBLOCK);
@@ -237,8 +341,8 @@ int Client::Connect(const char* ip, unsigned short port)
 	short status;
 	char buf[1024];
 	int n = Write(cmd, &linfo, sizeof(linfo));
-	int m = Read(&cmd, &status, buf, sizeof(buf));
-	CLog::Log(LOG_LEVEL_NOMAL, "Client: Read login %d %d\n", m, cmd);
+	//int m = Read(&cmd, &status, buf, sizeof(buf));
+	//CLog::Log(LOG_LEVEL_NOMAL, "Client: Read login %d %d\n", m, cmd);
 			
 	return 0;
 }
@@ -473,13 +577,7 @@ int Client::ReportStatusToServer(crack_status* status)
 	int m = Write(cmd, status, sizeof(*status));
 	if(m == ERR_CONNECTIONLOST) 
 		return m;
-	
-	short st;
-	char buf[1024];
-	Read(&cmd, &st, buf, sizeof(buf));
-	if(cmd != CMD_WORKITEM_STATUS)
-		Read(&cmd, &st, buf, sizeof(buf));
-	return m;
+	return 1;
 }
 	
 int Client::ReportResultToServer(crack_result* result)
@@ -491,43 +589,34 @@ int Client::ReportResultToServer(crack_result* result)
 	if(m <= 0)
 		return m;
 	
-	short status;
-	char buf[1024];
-	int n = Read(&cmd, &status, buf, sizeof(buf));
-	if(n < 0)
-		return n;
+	Wait(&mutex, &cond);  
 	
-	if(cmd != CMD_WORKITEM_RESULT)
-		n = Read(&cmd, &status, buf, sizeof(buf));
-	if(n < 0)
-		return n;
-		
-	return m;
+	return 1;
 }
 
 int Client::GetWorkItemFromServer(crack_block* item)
 {
-	char buffer[1024*2] = {0};
 	unsigned char cmd = CMD_GET_A_WORKITEM;
-	short status;
+	int m = 0;
 	Lock lk(&mutex);
+	if(blocks.size() != 0)
+		goto got;
 	
-	int m = Write(cmd, NULL, 0);
+	m = Write(cmd, NULL, 0);
 	if(m < 0) 
 		return m;
 	
-	int n = Read(&cmd, &status, buffer, sizeof(buffer));
-	CLog::Log(LOG_LEVEL_NOMAL, "Client: Read workitem %d %d %d\n", cmd, n, sizeof(*item));
+	Wait(&mutex, &cond); 
 	
-	if(cmd != CMD_GET_A_WORKITEM)
-		n = Read(&cmd, &status, buffer, sizeof(buffer));
-		
-	if(cmd == CMD_GET_A_WORKITEM && status == 0)
+got:
+	if(blocks.size() != 0)
 	{
-		memcpy(item, buffer, sizeof(*item));
-		return n;
+		int ssize = sizeof(crack_block);
+		memcpy(item, &blocks[0], ssize);
+		blocks.pop_front();
+		return ssize;
 	}
-	return n;
+	return 0;
 }
 
 bool Client::Connected()const

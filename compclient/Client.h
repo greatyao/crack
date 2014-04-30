@@ -39,6 +39,7 @@ public:
 	int DownloadFile(const char* filename, const char* path);
 	
 	static void* MonitorThread(void* p);
+	static void* DispatchThread(void* p);
 	
 	//是否从服务器上取workitem（根据心跳包里面）
 	bool WillFetchItemFromServer()const;
@@ -60,7 +61,9 @@ private:
 	int connected;//0表示断开，1表示正在连，2表示连接上了
 	bool stop;
 	pthread_t tid;
+	pthread_t tid2;
 	pthread_mutex_t mutex;
+	pthread_cond_t cond;
 	bool fetch;
 };
 
