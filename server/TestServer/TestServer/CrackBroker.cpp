@@ -773,7 +773,7 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 	switch(pReq->status){
 
 		case WI_STATUS_UNLOCK:
-			CLog::Log(LOG_LEVEL_WARNING, "** Reuse workitem [guid=%s, algo=%d, type=%d] **\n",pReq->guid, pCB->algo, pCB->type);
+			CLog::Log(LOG_LEVEL_NOTICE, "** Reuse workitem [guid=%s, algo=%d, type=%d] **\n",pReq->guid, pCB->algo, pCB->type);
 			
 			pCB->m_status = WI_STATUS_READY;
 			((CCrackTask *)(pCB->task))->m_runing_num -=1;
@@ -789,7 +789,7 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 
 			pCB->m_status = WI_STATUS_RUNNING;
 
-			CLog::Log(LOG_LEVEL_WARNING, "** Running workitem [guid=%s, tool=%s, algo=%d, type=%d] **\n", pReq->guid, pReq->password, pCB->algo, pCB->type);
+			CLog::Log(LOG_LEVEL_SUCCEED, "** Running workitem [guid=%s, tool=%s, algo=%d, type=%d] **\n", pReq->guid, pReq->password, pCB->algo, pCB->type);
 			
 			//判断是否是第一个开始运行的Block ,如果是的话更新任务计时器
 			pCT = (CCrackTask *)pCB->task;
@@ -799,7 +799,7 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 			checkReadyQueue((CCrackTask *)(pCB->task));
 			break;
 		case WI_STATUS_CRACKED:
-			CLog::Log(LOG_LEVEL_WARNING, "** Recover workitem [guid=%s] password=\"%s\" **\n",pReq->guid,pReq->password);
+			CLog::Log(LOG_LEVEL_SUCCEED, "** Recover workitem [guid=%s] password=\"%s\" **\n",pReq->guid,pReq->password);
 			pCB->m_status = WI_STATUS_CRACKED;
 			pCT =(CCrackTask *)pCB->task;
 
@@ -823,7 +823,7 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 		//	m_cracktask_cs.Unlock();
 			break;
 		case WI_STATUS_NO_PWD:
-			CLog::Log(LOG_LEVEL_WARNING, "** UnRecovered workitem [guid=%s] NON password **\n",pReq->guid);
+			CLog::Log(LOG_LEVEL_SUCCEED, "** UnRecovered workitem [guid=%s] NON password **\n",pReq->guid);
 			
 			pCB->m_status = WI_STATUS_NO_PWD;
 			pCT = (CCrackTask *)pCB->task;

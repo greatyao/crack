@@ -75,7 +75,7 @@ INT CSockServer::StartServer(void)
 
 		m_nCurrentThread +=1 ;
 
-		CLog::Log(LOG_LEVEL_WARNING,"Client Conn count is : %d\n",m_nCurrentThread);
+		//CLog::Log(LOG_LEVEL_WARNING,"Client Conn count is:%d\n",m_nCurrentThread);
 		CLog::Log(LOG_LEVEL_WARNING,"Incoming a new client [%s:%d]\n",inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
 		
 		//处理用户登录请求
@@ -88,7 +88,7 @@ INT CSockServer::StartServer(void)
 
 
 		SOCKET* s = new SOCKET(clientSocket);
-		hThread = CreateThread(NULL,0,reinterpret_cast<LPTHREAD_START_ROUTINE>(&DispatchThread),(LPVOID)s,0,NULL);
+		hThread = CreateThread(NULL, 0, LPTHREAD_START_ROUTINE(&DispatchThread),(LPVOID)s, 0, NULL);
 		if (hThread == 0){
 			CLog::Log(LOG_LEVEL_WARNING,"Create Thread Process Client Connection Error.\n");
 			break;

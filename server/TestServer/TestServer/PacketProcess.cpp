@@ -145,7 +145,7 @@ int cc_task_upload(void *pclient, unsigned char * pdata, UINT len){
 
 	if (len != sizeof(crack_task)){
 
-		CLog::Log(LOG_LEVEL_WARNING,"Upload Task : Data len no crack_task size Error\n");
+		CLog::Log(LOG_LEVEL_WARNING,"Upload Task: Data len no crack_task size Error\n");
 		return -2;
 
 	}
@@ -180,9 +180,10 @@ int cc_task_upload(void *pclient, unsigned char * pdata, UINT len){
 
 	m = Write(*(SOCKET*)pclient, CMD_TASK_UPLOAD, nRet, &task_upload,resLen,true);
 	if (m < 0){
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Upload Task :Send Response Error %d \n",ip,port,m);
+		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Upload Task: Send Response Error %d \n",ip,port,m);
 		
-	}else	CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client Upload Task OK\n",ip,port);
+	}else	
+		CLog::Log(LOG_LEVEL_NOMAL,"[%s:%d] Client Upload Task OK\n",ip,port);
 
 	return nRet;
 }
@@ -190,7 +191,7 @@ int cc_task_upload(void *pclient, unsigned char * pdata, UINT len){
 
 int cc_task_start(void *pclient, unsigned char * pdata, UINT len){
 
-	CLog::Log(LOG_LEVEL_WARNING,"this is task start new\n");
+	CLog::Log(LOG_LEVEL_NOMAL, "this is task start new\n");
 	
 	int nRet = 0;
 	unsigned int resLen = 0;
@@ -204,12 +205,12 @@ int cc_task_start(void *pclient, unsigned char * pdata, UINT len){
 	getClientIPInfo(pclient,ip,&port);
 
 	if (len != sizeof(task_start_req)){
-		CLog::Log(LOG_LEVEL_WARNING,"Start Task : Data len not task_start_req size Error\n");
+		CLog::Log(LOG_LEVEL_WARNING,"Start Task:Data len not task_start_req size Error\n");
 		return -2;
 	}
 
 	pStartReq = (task_start_req *)pdata;
-	CLog::Log(LOG_LEVEL_WARNING,"Req Start Task guid : %s\n",pStartReq->guid);
+	CLog::Log(LOG_LEVEL_NOMAL, "Req Start Task guid:%s\n",pStartReq->guid);
 		
 	memset(&taskres,0,sizeof(struct task_status_res));
 	memcpy(taskres.guid,pStartReq->guid,strlen((char *)pStartReq->guid));
@@ -227,7 +228,7 @@ int cc_task_start(void *pclient, unsigned char * pdata, UINT len){
 	if (m < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Start Task :Send Response Error %d \n",ip,port,m);
 	}else
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client Start Task OK\n",ip,port);
+		CLog::Log(LOG_LEVEL_NOMAL,"[%s:%d] Client Start Task OK\n",ip,port);
 
 	return nRet;
 }
@@ -236,7 +237,7 @@ int cc_task_start(void *pclient, unsigned char * pdata, UINT len){
 
 int cc_task_stop(void *pclient, unsigned char * pdata, UINT len){
 
-	CLog::Log(LOG_LEVEL_WARNING,"this is task Stop new\n");
+	CLog::Log(LOG_LEVEL_NOMAL, "this is task Stop new\n");
 	int nRet = 0;
 	unsigned int resLen = 0;
 
@@ -257,7 +258,7 @@ int cc_task_stop(void *pclient, unsigned char * pdata, UINT len){
 
 	}
 	pStopReq = (struct task_stop_req *)pdata;
-	CLog::Log(LOG_LEVEL_WARNING,"Stop Task guid : %s\n",pStopReq->guid);
+	CLog::Log(LOG_LEVEL_NOMAL,"Stop Task guid:%s\n",pStopReq->guid);
 		
 	memset(&taskres,0,sizeof(struct task_status_res));
 	memcpy(taskres.guid,pStopReq->guid,strlen((char *)pStopReq->guid));
@@ -275,7 +276,7 @@ int cc_task_stop(void *pclient, unsigned char * pdata, UINT len){
 	if (m < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Stop Task :Send Response Error %d \n",ip,port,m);
 	}else
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client Stop Task OK\n",ip,port);
+		CLog::Log(LOG_LEVEL_NOMAL,"[%s:%d] Client Stop Task OK\n",ip,port);
 
 	return nRet;
 }
@@ -285,7 +286,7 @@ int cc_task_stop(void *pclient, unsigned char * pdata, UINT len){
 
 int cc_task_pause(void *pclient, unsigned char * pdata, UINT len){
 
-	CLog::Log(LOG_LEVEL_WARNING,"this is task pause new\n");
+	CLog::Log(LOG_LEVEL_NOMAL,"this is task pause new\n");
 	
 	int nRet = 0;
 	unsigned int resLen = 0;
@@ -306,7 +307,7 @@ int cc_task_pause(void *pclient, unsigned char * pdata, UINT len){
 
 	pPauseReq = (task_pause_req *)pdata;
 
-	CLog::Log(LOG_LEVEL_WARNING,"Pause Task guid : %s\n",pPauseReq->guid);
+	CLog::Log(LOG_LEVEL_NOMAL,"Pause Task guid:%s\n",pPauseReq->guid);
 		
 	memset(&taskres,0,sizeof(struct task_status_res));
 	memcpy(taskres.guid,pPauseReq->guid,strlen((char *)pPauseReq->guid));
@@ -324,7 +325,7 @@ int cc_task_pause(void *pclient, unsigned char * pdata, UINT len){
 	if (m < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Pause Task :Send Response Error %d \n",ip,port,m);
 	}else
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client Pause Task OK\n",ip,port);
+		CLog::Log(LOG_LEVEL_NOMAL,"[%s:%d] Client Pause Task OK\n",ip,port);
 
 	return nRet;
 }
@@ -333,7 +334,7 @@ int cc_task_pause(void *pclient, unsigned char * pdata, UINT len){
 
 int cc_task_delete(void *pclient, unsigned char * pdata, UINT len){
 
-	CLog::Log(LOG_LEVEL_WARNING,"this is task Delete new\n");
+	CLog::Log(LOG_LEVEL_NOMAL,"this is task Delete new\n");
 	
 	int nRet = 0;
 	unsigned int resLen = 0;
@@ -356,17 +357,17 @@ int cc_task_delete(void *pclient, unsigned char * pdata, UINT len){
 
 	pDeleteReq = (task_delete_req *)pdata;
 
-	CLog::Log(LOG_LEVEL_WARNING,"Delete Task guid : %s\n",pDeleteReq->guid);
+	CLog::Log(LOG_LEVEL_NOMAL,"Delete Task guid: %s\n",pDeleteReq->guid);
 
 	memcpy(taskres.guid,pDeleteReq->guid,strlen((char *)pDeleteReq->guid));
 
 	//处理业务逻辑
 	nRet = g_CrackBroker.DeleteTask(pDeleteReq);
 	if (nRet < 0){
-		CLog::Log(LOG_LEVEL_WARNING,"Broker Delete Task %s ErrorCode : %d\n",pDeleteReq->guid,nRet);
+		CLog::Log(LOG_LEVEL_WARNING,"Broker Delete Task %s ErrorCode: %d\n",pDeleteReq->guid,nRet);
 		resLen = 0;
 	}else{
-		CLog::Log(LOG_LEVEL_WARNING,"Broker Delete Task %s OK\n",pDeleteReq->guid);
+		CLog::Log(LOG_LEVEL_NOMAL,"Broker Delete Task %s OK\n",pDeleteReq->guid);
 		resLen = sizeof(struct task_status_res);
 	}
 
@@ -375,7 +376,7 @@ int cc_task_delete(void *pclient, unsigned char * pdata, UINT len){
 	if (m < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Delete Task :Send Response Error %d \n",ip,port,m);
 	}else
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client Delete Task OK\n",ip,port);
+		CLog::Log(LOG_LEVEL_NOMAL,"[%s:%d] Client Delete Task OK\n",ip,port);
 
 	return nRet;
 }
@@ -403,12 +404,12 @@ int cc_get_task_result(void *pclient, unsigned char * pdata, UINT len){
 
 	pResReq = (task_result_req *)pdata;
 
-	CLog::Log(LOG_LEVEL_WARNING,"Get a Task result guid : %s\n",pResReq->guid);
+	CLog::Log(LOG_LEVEL_NOMAL,"Get a Task result guid: %s\n",pResReq->guid);
 	
 	//处理业务逻辑
 	nRet = g_CrackBroker.GetTaskResult(pResReq,&pres,&resNum);
 	if (nRet < 0){
-		CLog::Log(LOG_LEVEL_WARNING,"Broker Get Task %s Result ,ErrorCode : %d\n",pResReq->guid,nRet);
+		CLog::Log(LOG_LEVEL_WARNING,"Broker Get Task %s Result, ErrorCode : %d\n",pResReq->guid,nRet);
 		resLen = 0;
 	}else{
 		//CLog::Log(LOG_LEVEL_WARNING,"Broker Get Task %s Result OK\n",pResReq->guid);
@@ -418,7 +419,7 @@ int cc_get_task_result(void *pclient, unsigned char * pdata, UINT len){
 	//产生应答报文，并发送
 	int m = Write(*(SOCKET*)pclient, CMD_TASK_RESULT, nRet, pres,resLen,true);
 	if (m < 0){
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get Task %s Result :Send Response Error %d \n",ip,port,pResReq->guid,m);
+		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get Task %s Result: Send Response Error %d \n",ip,port,pResReq->guid,m);
 	}else{
 		//CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client Get Task %s Result OK\n",ip,port,pResReq->guid);
 	}
@@ -487,14 +488,14 @@ int cc_get_client_list(void *pclient, unsigned char * pdata, UINT len){
 		CLog::Log(LOG_LEVEL_WARNING,"Broker Get Clients ,number is %d ,ErrorCode : %d\n",resNum,nRet);
 	
 	}else{
-		CLog::Log(LOG_LEVEL_WARNING,"Broker Get Clients ,number is %d OK\n",resNum);
+		CLog::Log(LOG_LEVEL_NOMAL,"Broker Get Clients, number is %d OK\n",resNum);
 		resLen = sizeof(struct compute_node_info) * resNum;
 	}
 	
 	//产生应答报文，并发送
 	int m = Write(*(SOCKET*)pclient, CMD_GET_CLIENT_LIST, nRet, pClients,resLen,true);
 	if (m < 0){
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get Client Info :Send Response Error %d \n",ip,port,m);
+		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get Client Info: Send Response Error %d \n",ip,port,m);
 	}else{
 		//CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client Get Client Info OK\n",ip,port);
 	}
@@ -548,7 +549,7 @@ int cc_task_file_download(void *pclient, unsigned char * pdata,UINT len){
 		fileinfo.len = filelen;
 		fileinfo.offset = 0;
 
-		CLog::Log(LOG_LEVEL_WARNING,"pfile %p,len:%d ,offset:%d, guid:%s\n",fileinfo.f,fileinfo.len,fileinfo.offset,preq->guid);
+		CLog::Log(LOG_LEVEL_NOMAL,"pfile %p, len:%d, offset:%d, guid:%s\n",fileinfo.f,fileinfo.len,fileinfo.offset,preq->guid);
 
 		resLen = sizeof(struct file_info);
 	}
@@ -559,7 +560,7 @@ resp:
 	if (m < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get Task File Downnload :Send Response Error %d \n",ip,port,m);
 	}else
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client Get Task File Download OK\n",ip,port);
+		CLog::Log(LOG_LEVEL_NOMAL,"[%s:%d] Client Get Task File Download OK\n",ip,port);
 	
 	return ret;
 }
@@ -568,7 +569,7 @@ resp:
 //download file start
 int cc_task_file_download_start(void *pclient,unsigned char *pdata,UINT len){
 	
-	CLog::Log(LOG_LEVEL_WARNING,"this is file download ...\n");
+	CLog::Log(LOG_LEVEL_NOMAL,"this is file download ...\n");
 	int ret = 0;
 	int rdlen = 0;
 	int readLen = 0;
@@ -586,7 +587,7 @@ int cc_task_file_download_start(void *pclient,unsigned char *pdata,UINT len){
 	pFileInfo = (file_info *)pdata;
 	pfile = (FILE *)pFileInfo->f;
 
-	CLog::Log(LOG_LEVEL_WARNING,"pfile %p,len : %d ,offset:%d \n",pFileInfo->f,pFileInfo->len,pFileInfo->offset);
+	CLog::Log(LOG_LEVEL_NOMAL,"pfile %p, len:%d, offset:%d\n",pFileInfo->f,pFileInfo->len,pFileInfo->offset);
 
 	if (pFileInfo->len > 8196){		
 		rdlen = 8196;
@@ -630,7 +631,7 @@ int cc_task_file_download_start(void *pclient,unsigned char *pdata,UINT len){
 	if (ret < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get Task File Download ... :Send Response Error %d \n",ip,port,ret);
 
-	}else	CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client Task File Download ...OK\n",ip,port);
+	}else	CLog::Log(LOG_LEVEL_NOMAL,"[%s:%d] Client Task File Download ...OK\n",ip,port);
 
 	return ret;
 }
@@ -640,7 +641,7 @@ int cc_task_file_download_start(void *pclient,unsigned char *pdata,UINT len){
 //download file end
 int cc_task_file_download_end(void *pclient,unsigned char *pdata,UINT len){
 
-	CLog::Log(LOG_LEVEL_WARNING,"this is file download end\n");
+	CLog::Log(LOG_LEVEL_NOMAL,"this is file download end\n");
 	int ret = 0;
 	unsigned int resLen = 0;
 	file_info *pFileInfo = NULL;
@@ -670,7 +671,7 @@ int cc_task_file_download_end(void *pclient,unsigned char *pdata,UINT len){
 	if (m < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get Task File Downnload End :Send Response Error %d \n",ip,port,m);
 	}else
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client Get Task File Download End OK\n",ip,port);
+		CLog::Log(LOG_LEVEL_NOMAL,"[%s:%d] Client Get Task File Download End OK\n",ip,port);
 
 	return ret;
 }
@@ -680,7 +681,7 @@ int cc_task_file_download_end(void *pclient,unsigned char *pdata,UINT len){
 //upload file req  
 int cc_task_upload_file(void *pclient,unsigned char *pdata,UINT len){
 
-	CLog::Log(LOG_LEVEL_WARNING,"this is file upload\n");
+	CLog::Log(LOG_LEVEL_NOMAL,"this is file upload\n");
 	int ret = 0;
 	unsigned int resLen = 0;
 	FILE *pfile = NULL;
@@ -712,7 +713,7 @@ int cc_task_upload_file(void *pclient,unsigned char *pdata,UINT len){
 		if (retval == 0){
 			CLog::Log(LOG_LEVEL_WARNING,"DIR %s Create Eroor\n",FILE_DIR);
 		}else{
-			CLog::Log(LOG_LEVEL_WARNING,"DIR %s Create OK\n",FILE_DIR);
+			CLog::Log(LOG_LEVEL_NOMAL,"DIR %s Create OK\n",FILE_DIR);
 		}
 	}
 
@@ -732,14 +733,14 @@ int cc_task_upload_file(void *pclient,unsigned char *pdata,UINT len){
 
 	resLen = sizeof(struct file_upload_res);
 
-	CLog::Log(LOG_LEVEL_WARNING,"Upload File : pfile %p,len : %d ,offset:%d, guid : %s \n",uploadres.f,uploadres.len,uploadres.offset,uploadres.guid);
+	CLog::Log(LOG_LEVEL_NOMAL,"Upload File: pfile %p, len:%d ,offset:%d, guid:%s\n",uploadres.f,uploadres.len,uploadres.offset,uploadres.guid);
 
 	//产生应答报文，并发送
 	int m = Write(*(SOCKET*)pclient, CMD_UPLOAD_FILE, ret, &uploadres,resLen,true);
 	if (m < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get Task File Upload :Send Response Error %d \n",ip,port,m);
 	}else
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client Get Task File Upload OK\n",ip,port);
+		CLog::Log(LOG_LEVEL_NOMAL,"[%s:%d] Client Get Task File Upload OK\n",ip,port);
 
 	return ret;
 }
@@ -747,7 +748,7 @@ int cc_task_upload_file(void *pclient,unsigned char *pdata,UINT len){
 //upload file start req  
 int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 	
-	CLog::Log(LOG_LEVEL_WARNING,"this is file upload .... \n");
+	CLog::Log(LOG_LEVEL_NOMAL,"this is file upload .... \n");
 	int ret = 0;
 	FILE *pfile = NULL;
 
@@ -770,7 +771,7 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 	preq = (file_upload_start_req *)pdata;
 	filelen = preq->len;
 	pfile = (FILE *)preq->f;
-	CLog::Log(LOG_LEVEL_WARNING,"upload start guid: %s  file : %p, filelen : %d,\n",preq->guid,preq->f,preq->len);
+	CLog::Log(LOG_LEVEL_NOMAL,"upload start guid:%s  file:%p, filelen:%d,\n",preq->guid,preq->f,preq->len);
 	
 	if (!pfile){
 		CLog::Log(LOG_LEVEL_WARNING,"file is null\n");
@@ -780,13 +781,12 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 	memset(tmpguid,0,40);
 	memcpy(tmpguid,preq->guid,40);
 
-	CLog::Log(LOG_LEVEL_WARNING,"upload start guid: %s \n",preq->guid);
+	CLog::Log(LOG_LEVEL_NOMAL,"upload start guid:%s\n",preq->guid);
 	memset(filename,0,128);
 	sprintf((char *)filename,"%s%s",".\\tempdir\\",(char *)tmpguid);
 
-	CLog::Log(LOG_LEVEL_WARNING,"filename : %s \n",filename);
-
-	CLog::Log(LOG_LEVEL_WARNING,"pfile %p,len : %d ,offset:%d, guid : %s \n",preq->f,preq->len,preq->offset,preq->guid);
+	CLog::Log(LOG_LEVEL_NOMAL,"filename: %s \n",filename);
+	CLog::Log(LOG_LEVEL_NOMAL,"pfile %p, len:%d, offset:%d, guid:%s\n",preq->f,preq->len,preq->offset,preq->guid);
 
 	unsigned int curlen = 0;
 	
@@ -824,7 +824,7 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 
 int cc_task_upload_file_end(void *pclient,unsigned char *pdata,UINT len){
 
-	CLog::Log(LOG_LEVEL_WARNING,"this is file upload End \n");
+	CLog::Log(LOG_LEVEL_NOMAL,"this is file upload End \n");
 	int ret = 0;
 	int nRet = 0;
 	FILE *pfile = NULL;
@@ -855,7 +855,7 @@ int cc_task_upload_file_end(void *pclient,unsigned char *pdata,UINT len){
 		pfile = NULL;
 		resLen = sizeof(struct file_upload_end_res);
 
-		CLog::Log(LOG_LEVEL_WARNING,"file upload end  req guid %s,Close File %p\n",preq->guid,uploadres.f);
+		CLog::Log(LOG_LEVEL_NOMAL,"file upload end  req guid %s, Close File %p\n",preq->guid,uploadres.f);
 	}
 
 	memcpy(uploadres.guid,preq->guid,40);
@@ -876,11 +876,11 @@ int cc_task_upload_file_end(void *pclient,unsigned char *pdata,UINT len){
 			//删除新创建任务
 			nRet = g_CrackBroker.deleteTask((char *)uploadres.guid);
 			if (nRet < 0 ){
-				CLog::Log(LOG_LEVEL_WARNING,"Delete Task %s ,Error : %d,Split ErrorCode : %d\n",(char *)uploadres.guid,nRet,ret);
+				CLog::Log(LOG_LEVEL_WARNING,"Delete Task %s, Error:%d, Split ErrorCode:%d\n",(char *)uploadres.guid,nRet,ret);
 				ret = -100;  //删除任务错误
 			}
 		}else{
-			CLog::Log(LOG_LEVEL_WARNING,"Broker Get Clients ,number is %d OK\n",ret);
+			CLog::Log(LOG_LEVEL_NOMAL, "SplitTask OK\n",ret);
 		}
 	}
 
@@ -889,7 +889,7 @@ int cc_task_upload_file_end(void *pclient,unsigned char *pdata,UINT len){
 	if (m < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get Task File Upload End:Send Response Error %d \n",ip,port,m);
 	}else
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client Get Task File Upload End .ret %d OK\n",ip,port,ret);
+		CLog::Log(LOG_LEVEL_NOMAL,"[%s:%d] Client Get Task File Upload End OK\n",ip,port);
 
 	return ret;
 }
@@ -910,17 +910,19 @@ int comp_get_a_workitem(void *pclient,unsigned char *pdata,UINT len){
 	//ret = g_CrackBroker.GetAWorkItem(&pcrackblock);
 	ret = g_CrackBroker.GetAWorkItem2(ip,&pcrackblock);
 	if (ret < 0 ){
-		CLog::Log(LOG_LEVEL_WARNING,"Get A WorkItem 2 Error %d\n", ret);
+		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get WorkItem Error %d\n", ip, port, ret);
 		resLen = 0;	
 	}else {
-		CLog::Log(LOG_LEVEL_WARNING,"Get A WorkItem 2 OK\n");
+		CLog::Log(LOG_LEVEL_NOMAL, "[%s:%d] Get WorkItem OK [guid=%s, algo=%d, type=%d]\n", 
+			ip, port, pcrackblock->guid, pcrackblock->algo, pcrackblock->type);
 		resLen = sizeof(struct crack_block);
 	}
 
 	//产生应答报文，并发送
 	int m = Write(*(SOCKET*)pclient, CMD_GET_A_WORKITEM, ret, pcrackblock,resLen,true);
 	if (m < 0){
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get A WorkItem 2:Send Response Error %d \n",ip,port,m);
+		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get WorkItem:Send Response Error %d \n",ip,port,m);
+
 	}else{
 		//CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client Get A WorkItem OK\n",ip,port);
 	}
@@ -974,7 +976,7 @@ int comp_get_workitem_res(void *pclient,unsigned char *pdata,UINT len){
 	pres = (struct crack_result *)pdata;
 	ret = g_CrackBroker.GetWIResult(pres);
 	if (ret < 0 ){
-		CLog::Log(LOG_LEVEL_WARNING,"Get A WorkItem Result Error %d\n", ret);
+		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get A WorkItem Result Error %d\n", ip,port, ret);
 	}else {
 		//CLog::Log(LOG_LEVEL_WARNING,"Get A WorkItem Result OK\n");
 	}
@@ -982,7 +984,7 @@ int comp_get_workitem_res(void *pclient,unsigned char *pdata,UINT len){
 	//产生应答报文，并发送
 	int m = Write(*(SOCKET*)pclient, CMD_WORKITEM_RESULT, ret, NULL,0,true);
 	if (m < 0){
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get A WorkItem %s Result :Send Response Error %d \n",ip,port,pres->guid,m);
+		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get A WorkItem %s Result: Send Response Error %d \n",ip,port,pres->guid,m);
 	}else{
 		//CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client Get A WorkItem %s Result OK\n",ip,port,pres->guid);
 	}
@@ -1006,7 +1008,7 @@ int client_quit(void *pclient,unsigned char *pdata,UINT len){
 
 		ret = -1;
 	}else{
-		CLog::Log(LOG_LEVEL_WARNING,"Client Quit [%s:%d] OK\n",ip,port);
+		CLog::Log(LOG_LEVEL_NOMAL,"Client Quit [%s:%d] OK\n",ip,port);
 	}
 	return ret;
 }

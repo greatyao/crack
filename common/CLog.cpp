@@ -163,12 +163,18 @@ int CLog::Printf(unsigned int uLevel,const char * buffer)
 	saved_attributes = consoleInfo.wAttributes;
 
 	//…Ë÷√—’…´
-	WORD wColor = 7;
+	WORD wColor = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;  
+
 	if( LOG_LEVEL_WARNING== uLevel)
-		wColor = 11;
-	if( LOG_LEVEL_ERROR== uLevel)
-		wColor = 12;
-	SetConsoleTextAttribute(m_hOutputConsole, wColor);
+		wColor = FOREGROUND_RED | FOREGROUND_GREEN;
+	else if( LOG_LEVEL_ERROR== uLevel)
+		wColor = FOREGROUND_RED;
+	else if( LOG_LEVEL_SUCCEED == uLevel)
+		wColor = FOREGROUND_GREEN;
+	else if(LOG_LEVEL_NOTICE == uLevel)
+		wColor =  FOREGROUND_BLUE| FOREGROUND_RED;
+	
+	SetConsoleTextAttribute(m_hOutputConsole, wColor|FOREGROUND_INTENSITY);
 	// ‰≥ˆ		
 	WriteFile(  GetStdHandle(STD_OUTPUT_HANDLE), buffer, lstrlenA(buffer),&cbWritten, 0 );
 	//ª÷∏¥
