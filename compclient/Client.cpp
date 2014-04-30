@@ -53,7 +53,7 @@ class Wait{
 public:
 	Wait(pthread_mutex_t* mutex, pthread_cond_t* cond)
 	{
-		pthread_cond_wait(cond, mutex, &tensecs);
+		pthread_cond_timedwait(cond, mutex, &tensecs);
 	}
 };
 
@@ -110,7 +110,6 @@ void Client::Destory()
 void* Client::DispatchThread(void* p)
 {
 	Client* client = (Client*)p;
-	int ret;
 	char buf[1024*4];
 	time_t t0 = time(NULL);
 	while(1)
@@ -201,13 +200,13 @@ void* Client::DispatchThread(void* p)
 			client->fetch = true;
 		}
 	}
+	return NULL;
 }
 
 void* Client::MonitorThread(void* p)
 {
 	Client* client = (Client*)p;
 	int ret;
-	char buf[1024*4];
 		
 	sleep(5);
 
@@ -338,11 +337,7 @@ int Client::Connect(const char* ip, unsigned short port)
 					linfo.m_ip, linfo.m_port);
 	}
 	
-	short status;
-	char buf[1024];
-	int n = Write(cmd, &linfo, sizeof(linfo));
-	//int m = Read(&cmd, &status, buf, sizeof(buf));
-	//CLog::Log(LOG_LEVEL_NOMAL, "Client: Read login %d %d\n", m, cmd);
+	Write(cmd, &linfo, sizeof(linfo));
 			
 	return 0;
 }
