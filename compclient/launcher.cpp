@@ -18,7 +18,6 @@ clauncher::clauncher()
 {
 	m_bStop = true;
 	m_bThreadRunning = false;
-	CrackManager::Get().RegisterCallback(ReportDone, ReportStatus);
 }
 
 clauncher::~clauncher()
@@ -27,43 +26,6 @@ clauncher::~clauncher()
 	{
 		Stop();
 	}
-}
-
-int clauncher::ReportDone(char* guid, bool cracked, const char* passwd, bool report)
-{
-	//struct _resourceslotpool *prsp;
-	//prsp = ResourcePool::Get().QueryByGuid(guid);
-	//if(!prsp)	return -1;
-	struct _resourceslotpool* rs[MAX_PARALLEL_NUM];
-	int k = ResourcePool::Get().QueryByGuid(rs, MAX_PARALLEL_NUM, guid);
-	if(k == 0)	return -1;
-	
-	ResourcePool::Lock lk(ResourcePool::Get().GetMutex());
-	
-	if(cracked)
-		CLog::Log(LOG_LEVEL_SUCCEED, "clauncher: Crack password %s [guid=%s]\n", passwd, guid);
-	else
-		CLog::Log(LOG_LEVEL_ERROR, "clauncher: Crack non password [guid=%s]\n", guid);
-	
-	//ResourcePool::Get().SetToRecover(prsp, cracked, passwd, report);
-	ResourcePool::Get().SetToRecover(rs, k, cracked, passwd, report);
-	
-	return 0;
-}
-
-int clauncher::ReportStatus(char* guid, int progress, float speed, unsigned int remainTime)
-{
-	CLog::Log(LOG_LEVEL_NOMAL, "clauncher: Progress:%d%% Speed:%g c/s Remaing %u sec\n", 
-		progress, speed, remainTime);
-		
-	crack_status status;
-	strncpy(status.guid, guid, sizeof(status.guid));
-	status.progress = progress;
-	status.speed = speed;
-	status.remainTime = remainTime;
-	Client::Get().ReportStatusToServer(&status);
-	
-	return 0;
 }
 
 void *clauncher::Thread(void*par)//扫描线程

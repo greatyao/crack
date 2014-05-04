@@ -4,12 +4,7 @@ Coordinator,最后编辑 2014年1月23日
 #ifndef __COORDINATOR__H___
 #define __COORDINATOR__H___
 
-#include <string>
-#include <vector>
-
-#include "pthread.h"
-
-using namespace std;
+#include <pthread.h>
 
 /***************************************************************
 Coordinator
@@ -29,6 +24,10 @@ public:
 	static void *Thread(void *);	//扫描线程
 	void Start(void);		//开始扫描线程
 	void Stop(void);		//停止扫描线程
+	
+	static int ReportDone(char* guid, bool cracked, const char* passwd, bool report);
+
+	static int ReportStatus(char* guid, int progress, float speed, unsigned int remainTime);
 };
 
 

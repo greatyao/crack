@@ -16,10 +16,19 @@
 #include "CrackManager.h"
 #include "algorithm_types.h"
 
+#include <string>
+#include <map>
+
+using namespace std;
+
+static map<string, crack_status> running_status;
+static pthread_mutex_t running_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 ccoordinator::ccoordinator()
 {
 	m_bStop = 0;
 	m_bThreadRunning = 0;
+	CrackManager::Get().RegisterCallback(ReportDone, ReportStatus);
 }
 ccoordinator::~ccoordinator()
 {
@@ -29,10 +38,41 @@ ccoordinator::~ccoordinator()
 	}
 }
 
-//static int Report(struct crack_result* result)
-//{
-//	return Client::Get().ReportResultToServer(result);
-//}
+int ccoordinator::ReportDone(char* guid, bool cracked, const char* passwd, bool report)
+{
+	struct _resourceslotpool* rs[MAX_PARALLEL_NUM];
+	int k = ResourcePool::Get().QueryByGuid(rs, MAX_PARALLEL_NUM, guid);
+	if(k == 0)	return -1;
+	
+	ResourcePool::Lock lk(ResourcePool::Get().GetMutex());
+	
+	if(cracked)
+		CLog::Log(LOG_LEVEL_SUCCEED, "ccoordinator: Crack password %s [guid=%s]\n", passwd, guid);
+	else
+		CLog::Log(LOG_LEVEL_ERROR, "ccoordinator: Crack non password [guid=%s]\n", guid);
+	
+	//ResourcePool::Get().SetToRecover(prsp, cracked, passwd, report);
+	ResourcePool::Get().SetToRecover(rs, k, cracked, passwd, report);
+	
+	return 0;
+}
+
+int ccoordinator::ReportStatus(char* guid, int progress, float speed, unsigned int remainTime)
+{
+	CLog::Log(LOG_LEVEL_NOMAL, "ccoordinator: Progress:%d%% Speed:%g c/s Remaing %u sec\n", 
+		progress, speed, remainTime);
+		
+	crack_status status;
+	strncpy(status.guid, guid, sizeof(status.guid));
+	status.progress = progress;
+	status.speed = speed;
+	status.remainTime = remainTime;
+	
+	ResourcePool::Lock lk(&running_mutex);
+	running_status[guid] = status;
+	
+	return 0;
+}
 
 void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 {
@@ -49,6 +89,16 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 		if(p->m_bStop) break;
 			
 		sleep(3);
+		
+		//上报任务状态
+		if(Client::Get().Connected() && running_status.size() > 0)
+		{
+			ResourcePool::Lock lk(&running_mutex);
+			for(map<string, crack_status>::iterator it = running_status.begin(); 
+				it != running_status.end(); it++)
+				Client::Get().ReportStatusToServer(&it->second);
+			running_status.clear();
+		}
 		
 		//资源池中上次还未成功上报的任务
 		if(Client::Get().Connected() && pool.GetDoneSize() > 0)

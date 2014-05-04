@@ -112,6 +112,8 @@ void* Client::DispatchThread(void* p)
 	Client* client = (Client*)p;
 	char buf[1024*4];
 	time_t t0 = time(NULL);
+	struct timespec to = {0,1000};
+
 	while(1)
 	{
 		if(client->stop) return NULL;
@@ -121,6 +123,8 @@ void* Client::DispatchThread(void* p)
 			t0 = time(NULL);
 			sleep(1);
 		}
+		
+		nanosleep(&to, NULL);
 		
 		unsigned char cmd;
 		short status;
@@ -344,6 +348,9 @@ int Client::Connect(const char* ip, unsigned short port)
 
 bool Client::WillFetchItemFromServer()const
 {
+	if(blocks.size() != 0)
+		return true;
+	
 	if(connected != 2)
 		return false;
 		
@@ -616,6 +623,9 @@ got:
 
 bool Client::Connected()const
 {
+	if(blocks.size() != 0)
+		return true;
+		
 	return connected == 2;
 }
 
