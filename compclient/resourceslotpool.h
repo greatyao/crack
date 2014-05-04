@@ -71,7 +71,6 @@ private:
 	pthread_mutex_t mutex;
 	
 	vector <struct _resourceslotpool *> m_rs_pool;//存放所有的计算资源
-	vector <struct crack_result *> m_done_results;//存放计算结束的资源，必要时清空
 
 	unsigned m_base_coordinator;
 	unsigned m_base_launcher;
@@ -110,23 +109,6 @@ public:
 	
 	int QueryByGuid(resourceslot* plots[], int n, const char* guid);
 	
-	void SaveOneDone(struct crack_result* result);
-	
-	template <typename Function> 
-	void ReportDoneAgain(Function func)
-	{
-		typedef vector <struct crack_result *>::iterator iterator;
-		for(iterator it = m_done_results.begin(); it != m_done_results.end(); )
-		{
-			if(func(*it) <= 0)
-				it ++;
-			else
-				it = m_done_results.erase(it);
-		}
-	}
-	
-	int GetDoneSize()const;
-		
 	/***************************************************************
 	处理接口
 	***************************************************************/

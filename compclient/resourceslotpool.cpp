@@ -362,14 +362,3 @@ void ResourcePool::SetToRecover(resourceslot* plots[], int n, bool cracked, cons
 		plots[i]->m_shared = plots[0]->m_device;
 	}
 }
-
-void ResourcePool::SaveOneDone(struct crack_result* result)
-{
-	struct crack_result* cp = new struct crack_result(*result);
-	m_done_results.push_back(cp);
-}
-
-int ResourcePool::GetDoneSize()const
-{
-	return m_done_results.size();
-}

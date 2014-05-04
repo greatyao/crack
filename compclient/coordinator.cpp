@@ -17,11 +17,13 @@
 #include "algorithm_types.h"
 
 #include <string>
+#include <vector>
 #include <map>
 
 using namespace std;
 
 static map<string, crack_status> running_status;
+static vector<crack_result> done_results;
 static pthread_mutex_t running_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 ccoordinator::ccoordinator()
@@ -90,24 +92,27 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 			
 		sleep(3);
 		
-		//上报任务状态
-		if(Client::Get().Connected() && running_status.size() > 0)
+		//上报任务状态和上次提交失败的已解密结束的任务
+		if(Client::Get().Connected() && 
+			(running_status.size() > 0 || done_results.size() > 0))
 		{
 			ResourcePool::Lock lk(&running_mutex);
+			
 			for(map<string, crack_status>::iterator it = running_status.begin(); 
 				it != running_status.end(); it++)
 				Client::Get().ReportStatusToServer(&it->second);
 			running_status.clear();
+				
+			for(vector<crack_result>::iterator it = done_results.begin(); 
+				it != done_results.end(); )
+			{
+				if(Client::Get().ReportResultToServer(&(*it)) <= 0)
+					it ++;
+				else
+					it = done_results.erase(it);
+			}
 		}
-		
-		//资源池中上次还未成功上报的任务
-		if(Client::Get().Connected() && pool.GetDoneSize() > 0)
-		{
-			CLog::Log(LOG_LEVEL_NOTICE, "ccoordinator: Server online and Submit %d results\n", pool.GetDoneSize());
-			//pool.ReportDoneAgain(&Report);
-			pool.ReportDoneAgain(bind1st(mem_fun(&Client::ReportResultToServer), &Client::Get()));
-		}
-		
+				
 		//从资源池获取可用的计算单元
 		ResourcePool::Lock lk(pool.GetMutex());
 		//prsp = pool.CoordinatorQuery(status, crack_device);
@@ -162,8 +167,9 @@ void *ccoordinator::Thread(void*par)//扫描线程 + 从socket获取item
 			//TODO:需要考虑如果服务器宕机，需要将解密结果持久化:-)
 			if(exit_signal == 0 && report && Client::Get().ReportResultToServer(&result) <= 0)
 			{
-				CLog::Log(LOG_LEVEL_NOTICE, "ccoordinator: Server offline and Save result[guid=%s]\n", rs[0]->m_guid);
-				pool.SaveOneDone(&result);
+				CLog::Log(LOG_LEVEL_NOTICE, "ccoordinator: Server offline, save result[guid=%s]\n", rs[0]->m_guid);
+				ResourcePool::Lock lk(&running_mutex);
+				done_results.push_back(result);
 			}
 			pool.SetToReady(rs, k);
 		}
