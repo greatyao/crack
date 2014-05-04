@@ -89,7 +89,7 @@ static struct hash_parameter all_support_hashes[] =
 	{algo_sl3,          {"-p sl3 -b%d:%d:%s %s %s", "-p sl3 -r %s %s %s"}},
 	{algo_smf,          {"-p smf -b%d:%d:%s %s %s", "-p smf -r %s %s %s"}},
 	{algo_wordpress,    {"-p wordpress -r brute -a %d:%d:%s %s %s", "-p wordpress -r %s %s %s"}},
-	{algo_wpa,          {"-p wpa -b%d:%d:%s %s %s", "-p wpa -r %s %s %s"}},
+	{algo_wpa,          {"-p wpa -r brute -a %d:%d:%s %s %s", "-p wpa -r %s %s %s"}},
 	{algo_pdf,          {"-p pdf -r brute -a %d:%d:%s %s %s", "-p pdf -r %s %s %s"}},
 };
 
