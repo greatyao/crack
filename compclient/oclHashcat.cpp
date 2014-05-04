@@ -267,8 +267,7 @@ int oclHashcat::Launcher(const crack_block* item, bool gpu, unsigned short* devi
 					sprintf(local_mask,"%s%s",local_mask,"?1");}
 				else if(item->charset==charset_ualphanum){
 					sprintf(local_mask,"%s%s",local_mask,"?1");}
-				else if(item->charset==charset_alphanum){
-					sprintf(local_mask,"%s%s",local_mask,"?1");}
+				else if(item->charset==charset_alphanum){					sprintf(local_mask,"%s%s",local_mask,"?1");}
 				else
 					sprintf(local_mask,"%s%s",local_mask,"?a");
 			}
@@ -427,7 +426,7 @@ speed0:
 		idx = s.rfind("Speed.GPU.#*...:");
 		if(idx == string::npos)
 			idx = s.rfind("Speed.GPU.#1...:");
-		if(idx != string::npos){
+		if(idx != string::npos && t1 - t2 >= 2){
 			idx += strlen("Speed.GPU.#1...:");
 			idx2 = s.find("\n",idx);
 			if(idx2 != string::npos){
@@ -443,7 +442,7 @@ speed0:
 							int ret = sscanf(s2.c_str(),"%*llu/%*llu (%lf%%)",&percent);
 
 							if(ret == 1){
-								CLog::Log(LOG_LEVEL_NOMAL,"Progress is %f \n",percent);
+								//CLog::Log(LOG_LEVEL_NOMAL,"Progress is %f \n",percent);
 								unsigned int ct = t1-t0;
 								unsigned rt = (percent==0.0f)?0xFFFFFFFF : (unsigned)(100.0/percent*ct)-ct;
 								if(ocl_hashcat->statusFunc)
