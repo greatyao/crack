@@ -159,7 +159,7 @@ int HashKill::Launcher(const crack_block* item, bool gpu, unsigned short* device
 		sprintf(others, "-c -C %d", ndevices);
 	else 
 	{
-		sprintf(others, "-t %d -A ", platformId);
+		sprintf(others, "-t %d -B ", platformId);
 		for(j = 0; j < ndevices-1; j++)
 			sprintf(others, "%s%d,", others, ids[j]);
 		sprintf(others, "%s%d", others, ids[j]);
