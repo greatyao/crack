@@ -1,4 +1,6 @@
 MKDIR_P = mkdir -p
+INSTALL = install
+DEST_DIR = /usr/local/trimps
 
 OS_NAME = $(shell uname -o)
 LC_OS_NAME = $(shell echo $(OS_NAME) | tr '[A-Z]' '[a-z]')
@@ -36,9 +38,6 @@ SRCS+= CLog.cpp
 
 VPATH+= ../plugins/
 SRCS+= $(shell find ../plugins/ -name "*.cpp")
-#SRCS+= plugin.cpp
-#SRCS+= loadfiles.cpp
-#SRCS+= md5.cpp
 
  
 CPPFLAGS+= -D_XOPEN_SOURCE -D_GNU_SOURCE -DTEST
@@ -70,3 +69,10 @@ compclient: $(OBJS)
 
 clean:
 	rm -rf $(OBJS)
+	
+install:	
+	test -z "$(DEST_DIR)" || { \
+	  $(MKDIR_P) "$(DEST_DIR)"; \
+	}
+	$(INSTALL) -m 777 ../bin/$(ARCH)/compclient $(DEST_DIR)
+	$(INSTALL) -m 644 example.conf $(DEST_DIR)/compclient.conf
