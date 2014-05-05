@@ -339,7 +339,7 @@ void *oclHashcat::MonitorThread(void *p)
 	char guid[40];
 	memcpy(guid, param->guid, sizeof(guid));
 	free(param);
-	time_t t0 = time(NULL), t1, t2 = t0;
+	time_t t0 = time(NULL), t1, t2 = t0, t3 = t1;
   	bool cracked = false;	
 	char buffer[2048] = {0};
 	int n;
@@ -426,7 +426,7 @@ speed0:
 		idx = s.rfind("Speed.GPU.#*...:");
 		if(idx == string::npos)
 			idx = s.rfind("Speed.GPU.#1...:");
-		if(idx != string::npos && t1 - t2 >= 2){
+		if(idx != string::npos){
 			idx += strlen("Speed.GPU.#1...:");
 			idx2 = s.find("\n",idx);
 			if(idx2 != string::npos){
@@ -441,8 +441,9 @@ speed0:
 							string s2 = s.substr(idx,idx2-idx);
 							int ret = sscanf(s2.c_str(),"%*llu/%*llu (%lf%%)",&percent);
 
-							if(ret == 1){
+							if(ret == 1  && t1 - t3 >= 2){
 								//CLog::Log(LOG_LEVEL_NOMAL,"Progress is %f \n",percent);
+								t3 = t1;
 								unsigned int ct = t1-t0;
 								unsigned rt = (percent==0.0f)?0xFFFFFFFF : (unsigned)(100.0/percent*ct)-ct;
 								if(ocl_hashcat->statusFunc)
