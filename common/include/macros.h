@@ -74,6 +74,7 @@ enum
 	CMD_START_UPLOAD,			//开始上传文件
 	CMD_END_DOWNLOAD,			//结束下载文件
 	CMD_END_UPLOAD,				//结束上传文件
+	CMD_FILE_CONTENT,			//文件内容
 
 	CMD_TEST_CMD,
 	CMD_MAX_VALUE
