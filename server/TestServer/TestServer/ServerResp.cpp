@@ -8,6 +8,29 @@
 
 static unsigned char pack_flag[5] = {'G', '&', 'C', 'P', 'U'};
 
+static int read_timeout(int fd, unsigned int wait_seconds)
+{    
+	int ret = 0;    
+	if (wait_seconds > 0)    
+	{             
+		fd_set read_fdset;        
+		struct timeval timeout;             
+		
+		FD_ZERO(&read_fdset);        
+		FD_SET(fd, &read_fdset);             
+		timeout.tv_sec = wait_seconds;        
+		timeout.tv_usec = 0;             
+		
+		ret = select(fd + 1, &read_fdset, NULL, NULL, &timeout); 
+		
+		if (ret == 0){            
+			ret = -1;                 
+		} else if (ret == 1)            
+			return 0;         
+	}         
+	return ret;
+}
+
 int Read(int sck, unsigned char *cmd, short* status, void* data, int size)
 {
 	control_header hdr;
@@ -42,7 +65,10 @@ int Read(int sck, unsigned char *cmd, short* status, void* data, int size)
 	
 	int total = 0;
 	int n;
-	do{	
+	do{
+		if(read_timeout(sck, 1) < 0)
+			continue;
+
 		if((n=recv(sck, (char *)buf+total, m-total, 0)) <= 0)
 		{
 			delete []buf;

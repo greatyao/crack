@@ -3,6 +3,7 @@
 #include "SocketClient.h"
 #include "CLog.h"
 #include "err.h"
+#include <time.h>
 
 CPackManager g_packmanager;
 
@@ -247,8 +248,8 @@ int CPackManager::DoKeeplivePack(){
 
 	memset(recbuf,0,1024*4);
 
-	CLog::Log(LOG_LEVEL_WARNING,"Send HeartBeat Req...\n");
 	LockSocket();
+	CLog::Log(LOG_LEVEL_WARNING,"Send HeartBeat Req...\n");
 	ret = m_sockclient.Write(CMD_HEARTBEAT,0,NULL,0);
 	if (ret < 0){
 
@@ -267,8 +268,6 @@ int CPackManager::DoKeeplivePack(){
 	}
 	CLog::Log(LOG_LEVEL_WARNING,"Recv HeartBeat Res OK\n");
 	return status;
-
-
 }
 	
 int CPackManager::DoTaskUploadPack(crack_task req,task_upload_res *res){
@@ -283,7 +282,7 @@ int CPackManager::DoTaskUploadPack(crack_task req,task_upload_res *res){
 
 	memset(recbuf,0,1024*4);
 
-	CLog::Log(LOG_LEVEL_WARNING,"Send task Upload Req ...\n");
+	CLog::Log(LOG_LEVEL_WARNING,"Send task Upload Req [%d,%s]...\n", req.algo, req.filename);
 	LockSocket();
 	ret = m_sockclient.Write(CMD_TASK_UPLOAD,0,&req,sizeof(crack_task));
 	if (ret <0){
@@ -540,7 +539,7 @@ int CPackManager::GenTaskStatusPack(task_status_info **res){
 
 	memset(recbuf,0,1024*4);
 
-	CLog::Log(LOG_LEVEL_WARNING,"Send Get Tasks Status Req ...\n");
+	//CLog::Log(LOG_LEVEL_WARNING,"Send Get Tasks Status Req ...\n");
 	LockSocket();
 	ret = m_sockclient.Write(CMD_REFRESH_STATUS,0,NULL,0);
 	if (ret < 0){
@@ -557,7 +556,7 @@ int CPackManager::GenTaskStatusPack(task_status_info **res){
 		return ret;
 
 	}
-	CLog::Log(LOG_LEVEL_WARNING,"Recv Tasks Status Res OK\n");
+	//CLog::Log(LOG_LEVEL_WARNING,"Recv Tasks Status Res OK\n");
 	if ((status == 0 ) && (ret > 0)){
 
 		pres = _malloc(ret);
@@ -648,7 +647,7 @@ int CPackManager::GenNewFileUploadPack(file_upload_req req,file_upload_res *res)
 
 	memset(recbuf,0,1024*4);
 
-	CLog::Log(LOG_LEVEL_WARNING,"Send File Upload Req ...\n");
+	CLog::Log(LOG_LEVEL_WARNING,"Send File Upload Req...\n");
 	LockSocket();
 	ret = m_sockclient.Write(CMD_UPLOAD_FILE,0,&req,sizeof(file_upload_req));
 	if (ret < 0){
@@ -714,6 +713,7 @@ int CPackManager::GenNewFileUploadStartPack(file_upload_start_res *res){
 	req.len = filelen;
 
 	CLog::Log(LOG_LEVEL_WARNING,"Send File Upload Start Req ...\n");
+	CLog::Log(LOG_LEVEL_NOMAL,"guid=%s fd=%p len=%d\n", m_cur_upload_guid, fp, filelen);
 	LockSocket();
 	ret = m_sockclient.Write(CMD_START_UPLOAD,0,&req,sizeof(file_upload_start_req));
 	if (ret < 0){
@@ -739,16 +739,19 @@ int CPackManager::GenNewFileUploadingPack(){
 	short status;
 	unsigned int readLen = 0;
 	unsigned char sendbuf[1024*4];
+	unsigned int totalLen = 0;;
 	FILE *fp = NULL;
-
+	int step = 1;
+	
 	//file read 
 	
 	fp = (FILE *)this->m_file_desc;
+	CLog::Log(LOG_LEVEL_NOMAL, "Send file content fd=%p ...\n",fp);
 	
 	LockSocket();
 	while(!feof(fp)){
-		memset(sendbuf,0,1024*4);
-		readLen = fread(sendbuf,1,1024,fp);
+		memset(sendbuf,0,sizeof(sendbuf));
+		readLen = fread(sendbuf,1,sizeof(sendbuf)/step,fp);
 		if (readLen < 0 ){
 			UnLockSocket();
 			CLog::Log(LOG_LEVEL_WARNING,"read file Error\n");
@@ -758,17 +761,31 @@ int CPackManager::GenNewFileUploadingPack(){
 			break;
 		}
 
-	//	memcpy(sendbuf,(unsigned char *)&clthdr,sizeof(control_header));
-
 		//send file buffer 
-		ret = m_sockclient.WriteNoCompress(CMD_START_UPLOAD,0,sendbuf,readLen);
+		//CLog::Log(LOG_LEVEL_WARNING,"read %d bytes and send ...\n", readLen);
+		clock_t t1 = clock();
+		ret = m_sockclient.WriteNoCompress(CMD_FILE_CONTENT,0,sendbuf,readLen);
 		if(ret < 0 ){
 
-			printf("Send file buffer error\n");
+			CLog::Log(LOG_LEVEL_WARNING,"Send file buffer error %d\n", ret);
 			break;
 		}
-
-		printf("Send file buffer %d vs %d ok\n",ret,m_cur_upload_file_len);
+		double t = 1.0*(clock() - t1)/CLOCKS_PER_SEC;
+		if(t < 1e-3)
+			t = 0.0005;
+		int speed=readLen/t;
+		if(speed >= 2000000)
+			step = 1;
+		else if(speed >= 800000)
+			step = 2;
+		else if(speed >= 100000)
+			step = 4;
+		else if(speed >= 40000)
+			step = 8;
+		else 
+			step = 16;
+		totalLen += readLen;
+		//CLog::Log(LOG_LEVEL_NOMAL,"Send file buffer %d/%d [speed=%d]\n",totalLen,m_cur_upload_file_len, speed);
 		//
 	}
 	UnLockSocket();

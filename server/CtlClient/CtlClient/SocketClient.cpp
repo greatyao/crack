@@ -59,10 +59,35 @@ int CSocketClient::Init(char *ip,int port){
 	return 0;
 }
 
-
+static int read_timeout(int fd, unsigned int wait_seconds)
+{    
+	int ret = 0;    
+	if (wait_seconds > 0)    
+	{             
+		fd_set read_fdset;        
+		struct timeval timeout;             
+		
+		FD_ZERO(&read_fdset);        
+		FD_SET(fd, &read_fdset);             
+		timeout.tv_sec = wait_seconds;        
+		timeout.tv_usec = 0;             
+		
+		ret = select(fd + 1, &read_fdset, NULL, NULL, &timeout); 
+		
+		if (ret == 0){            
+			ret = -1;            
+			errno = ETIMEDOUT;        
+		} else if (ret == 1)            
+			return 0;         
+	}         
+	return ret;
+}
 
 int CSocketClient::Read(unsigned char *cmd, short* status, void* data, int size, unsigned int* seq)
 {
+	if(read_timeout(m_clientsocket, 5) < 0)
+		return ERR_TIMEOUT;
+	
 	control_header hdr;
 	if(recv(m_clientsocket, (char*)&hdr, sizeof(hdr), 0) <= 0) 
 		return ERR_CONNECTIONLOST;
@@ -124,7 +149,10 @@ static int mysend(SOCKET s, void* buf, int size, int flag)
 	int n;
 	do{	
 		if((n=send(s, (char *)buf+total, size-total, flag)) < 0)
+		{
+			CLog::Log(LOG_LEVEL_WARNING, "failed to send %d\n", GetLastError());
 			return -1;
+		}
 		total += n;
 		if(total == size) break;
 	}while(1);	

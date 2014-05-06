@@ -766,6 +766,13 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 	char ip[20];
 	int port = 0;
 	time_t tmpTime = 0;
+	
+	if(len != sizeof(file_upload_start_req))
+	{
+		CLog::Log(LOG_LEVEL_WARNING,"invalid data\n");
+		return -1;
+	}
+
 	getClientIPInfo(pclient,ip,&port);
 
 	preq = (file_upload_start_req *)pdata;
@@ -794,6 +801,12 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 		
 		memset(resBuf,0,MAX_BUF_LEN);
 		readLen = Read(sock,&cmd,&status,resBuf,MAX_BUF_LEN);
+		if(cmd != CMD_FILE_CONTENT)
+		{
+			CLog::Log(LOG_LEVEL_WARNING, "Recv unneed cmd %d ...\n", cmd);
+			return -3;
+		}
+
 		if (readLen < 0 ){
 			
 			CLog::Log(LOG_LEVEL_WARNING,"Recv client upload file %s ...\n",filename);
@@ -811,7 +824,7 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 				break;
 
 			}else{	
-				//CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get Task File Upload writelen %d OK\n",ip,port,writeFileLen);					
+				//CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get File Upload %d: %d/%d OK\n",ip,port,writeFileLen, curlen, filelen);					
 			}
 		}
 	}
