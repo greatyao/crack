@@ -22,5 +22,7 @@
 #define ERR_NO_SUPPORT_TYPE		-17		//不支持该破解类型
 #define ERR_NO_DICT				-18		//不支持指定的字典
 #define ERR_FAILED_MKDIR		-19		//创建目录失败
+#define ERR_AUTHENTICATION		-20		//验证失败
+#define ERR_PRIVILEDGE			-21		//权限不够
 
 #endif
