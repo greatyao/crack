@@ -835,9 +835,7 @@ int comp_get_a_workitem(void *pclient,unsigned char *pdata,UINT len){
 	char* owner = client->GetOwner();
 	SOCKET cliSocket = client->GetSocket();
 
-
 	//处理业务逻辑
-	//ret = g_CrackBroker.GetAWorkItem(&pcrackblock);
 	ret = g_CrackBroker.GetAWorkItem2(ip,&pcrackblock);
 	if (ret < 0 ){
 		CLog::Log(LOG_LEVEL_WARNING,"[%s, %s:%d] Get WorkItem Error %d\n", owner, ip, port, ret);
@@ -852,7 +850,15 @@ int comp_get_a_workitem(void *pclient,unsigned char *pdata,UINT len){
 	int m = Write(cliSocket, CMD_GET_A_WORKITEM, ret, pcrackblock,resLen,true);
 	if (m < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"[%s, %s:%d] Get WorkItem:Send Response Error %d\n",owner,ip,port,m);
-		//TODO
+		//发送失败,重置workitem
+		if(resLen == sizeof(struct crack_block))
+		{
+			crack_result unlock = {0};
+			unlock.status = WI_STATUS_UNLOCK;
+			memcpy(unlock.guid, pcrackblock->guid, sizeof(unlock.guid));
+			g_CrackBroker.GetWIResult(&unlock);
+		}
+
 	}else{
 		CLog::Log(LOG_LEVEL_DEBUG,"[%s, %s:%d] Client Get A WorkItem OK\n",ip,port);
 	}
