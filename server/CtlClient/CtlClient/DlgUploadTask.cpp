@@ -88,7 +88,7 @@ VOID CDlgUploadTask::ComboInit(){
 	m_comboalgo.InsertString(2,_T("algo_md5md5"));
 	m_comboalgo.InsertString(3,_T("algo_md5unix"));
 	m_comboalgo.InsertString(4,_T("algo_mediawiki"));
-	m_comboalgo.InsertString(5,_T("algo_malgo_oscommerce"));
+	m_comboalgo.InsertString(5,_T("algo_oscommerce"));
 	m_comboalgo.InsertString(6,_T("algo_ipb2"));
 	m_comboalgo.InsertString(7,_T("algo_joomla"));
 	m_comboalgo.InsertString(8,_T("algo_vbulletin"));
@@ -224,7 +224,7 @@ void CDlgUploadTask::OnBnClickedButton1()
 {
 	OPENFILENAME	ofn ;
 	static TCHAR pszFileName[MAX_PATH]={0};
-	static TCHAR szFilter[] = TEXT ("选择hash文件 (*.hashes)\0*.hashes\0选择全部\0*.*\0");
+	static TCHAR szFilter[] = TEXT ("hash文件 (*.hashes)\0*.hashes\0所有文件\0*.*\0");
 	     
 	ofn.lStructSize       = sizeof (OPENFILENAME) ;
 	ofn.hwndOwner         = this->m_hWnd ;

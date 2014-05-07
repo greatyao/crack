@@ -28,8 +28,11 @@
 #define IDC_EDIT_PORT                   1007
 #define IDC_EDIT3                       1008
 #define IDC_EDIT_FILE_PATH              1008
+#define IDC_EDIT_USER                   1008
 #define IDC_BUTTON1                     1009
 #define IDC_BUTTON_SEL_FILE             1009
+#define IDC_EDIT5                       1009
+#define IDC_EDIT_PASSWORD               1009
 #define IDC_TASK_LIST                   1010
 #define IDC_EDIT_TYPE_TYPE              1010
 #define IDC_BTN_PAUSE                   1011

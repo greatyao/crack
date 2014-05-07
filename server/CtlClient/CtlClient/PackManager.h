@@ -18,11 +18,13 @@ class CPackManager
 {
 	int m_nPort;
 	char m_sIp[MAX_PATH];
+	char m_user[32];
+	char m_passwd[32];
 
 	void ReadConfigure(void);
 public:
-	int SetConfigure(char *ip,int port);
-	void ReadConfigure(char *ip,int *port);
+	int SetConfigure(const char *ip,int port,const char* user,const char* passwd);
+	void ReadConfigure(char *ip,int *port,char*user,char* passwd);
 
 public:
 	CPackManager(void);

@@ -9,9 +9,6 @@ CPackManager g_packmanager;
 
 CPackManager::CPackManager(void)
 {
-	
-	//m_nPort = 6010;
-	//sprintf(m_sIp,"127.0.0.1");
 	ReadConfigure();
 
 	CLog::InitLogSystem(LOG_TO_FILE,TRUE,"ControlClient.log");
@@ -32,17 +29,21 @@ void CPackManager::ReadConfigure(void)
 	GetModuleFileNameA(NULL,ini_file,MAX_PATH);
 	strcat(ini_file,".ini");
 
+	GetPrivateProfileString("config","user","",m_user,sizeof(m_user),ini_file);
+	GetPrivateProfileString("config","password","",m_passwd,sizeof(m_passwd),ini_file);
 	GetPrivateProfileString("config","ip","192.168.18.115",m_sIp,MAX_PATH-1,ini_file);
 	GetPrivateProfileString("config","port","6010",buffer,20,ini_file);
 	m_nPort = atoi(buffer);
 }
-void CPackManager::ReadConfigure(char *ip,int *port)
+void CPackManager::ReadConfigure(char *ip,int *port,char*user,char* passwd)
 {
 	sprintf(ip,"%s",m_sIp);
 	port[0] = m_nPort;
+	sprintf(user,"%s",m_user);
+	sprintf(passwd,"%s",m_passwd);
 }
 
-int CPackManager::SetConfigure(char *ip,int port)
+int CPackManager::SetConfigure(const char *ip,int port, const char*user, const char* passwd)
 {
 	char buffer[20];
 	//直接读配置
@@ -50,12 +51,27 @@ int CPackManager::SetConfigure(char *ip,int port)
 	GetModuleFileNameA(NULL,ini_file,MAX_PATH);
 	strcat(ini_file,".ini");
 
+	WritePrivateProfileString("config","user",user,ini_file);
+	WritePrivateProfileString("config","password",passwd,ini_file);
 	WritePrivateProfileString("config","ip",ip,ini_file);
 	sprintf(buffer,"%d",port);
 	WritePrivateProfileString("config","port",buffer,ini_file);
 	
 	m_nPort = port;
-	sprintf(m_sIp,"%s",ip);
+
+	bool login = false;
+	if(strcmp(m_user, user) != 0 || strcmp(m_passwd, passwd) != 0)
+		login = true;
+
+	_snprintf(m_sIp,sizeof(m_sIp),"%s",ip);
+	_snprintf(m_user,sizeof(m_user),"%s",user);
+	_snprintf(m_passwd,sizeof(m_passwd), "%s",passwd);
+
+	if(login)
+	{
+		m_sockclient.Finish();
+		m_connected = 0;
+	}
 	return 1;
 }
 
@@ -184,7 +200,9 @@ int CPackManager::StartClient(void)
 	req.m_gputhreads = -1;		//GPU数目
 	req.m_cputhreads = s_info.dwNumberOfProcessors;
 	req.m_clientsock = -1;
-
+	strncpy(req.m_user, m_user, sizeof(m_user));
+	strncpy(req.m_password, m_passwd, sizeof(m_passwd));
+	
 	DoLoginPack(req);
 
 	return 1;

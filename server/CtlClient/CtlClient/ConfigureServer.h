@@ -23,5 +23,7 @@ public:
 	virtual BOOL OnInitDialog();
 	CEdit m_nPort;
 	CEdit m_sServer;
+	CEdit m_user;
+	CEdit m_passwd;
 	afx_msg void OnBnClickedOk();
 };
