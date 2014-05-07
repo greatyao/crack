@@ -56,14 +56,14 @@ public:
 	//出始化相关内容
 	int Init(crack_task *pCrackTask);
 
-	int SplitTaskFile(char *pguid, const char* john = NULL);
+	int SplitTaskFile(const char *guid, const char* john = NULL);
 	
 	int SetStatus(char status);
 
 	CCrackBlock *GetAReadyWorkItem();
 
 
-	CCrackBlock *GetAReadyWorkItem2(char *ipinfo);
+	CCrackBlock *GetAReadyWorkItem2(const char *ipinfo);
 
 	
 	int updateStatusToFinish(struct crack_result *result,int hash_index);
@@ -104,7 +104,7 @@ public:
 	CB_MAP::iterator cur_crack_block;
 
 	//CCriticalSection m_crackblock_cs;
-
+	char m_owner[64]; //task的创建者
 
 
 	CRACK_HASH_LIST m_crackhash_list;

@@ -9,7 +9,7 @@
 
 static unsigned char pack_flag[5] = {'G', '&', 'C', 'P', 'U'};
 
-static int read_timeout(int fd, unsigned int wait_seconds)
+static int read_timeout(UINT_PTR fd, unsigned int wait_seconds)
 {    
 	int ret = 0;    
 	if (wait_seconds > 0)    
@@ -32,7 +32,7 @@ static int read_timeout(int fd, unsigned int wait_seconds)
 	return ret;
 }
 
-int Read(int sck, unsigned char *cmd, short* status, void* data, int size)
+int Read(UINT_PTR sck, unsigned char *cmd, short* status, void* data, int size)
 {
 	control_header hdr;
 	if(recv(sck, (char*)&hdr, sizeof(hdr), 0) <= 0) 
@@ -91,7 +91,7 @@ int Read(int sck, unsigned char *cmd, short* status, void* data, int size)
 	return uncompressLen;
 }
 
-static int mysend(int sck, void* buf, int size, int flag)
+static int mysend(UINT_PTR sck, void* buf, int size, int flag)
 {
 	int total = 0;
 	int n;
@@ -105,7 +105,7 @@ static int mysend(int sck, void* buf, int size, int flag)
 	return size;
 }
 
-int Write(int sck, unsigned char cmd, short status, const void* data, int size,bool bCompress)
+int Write(UINT_PTR sck, unsigned char cmd, short status, const void* data, int size,bool bCompress)
 {
 	struct control_header hdr = INITIALIZE_EMPTY_HEADER(cmd);
 	hdr.response = status;
@@ -156,9 +156,9 @@ int Write(int sck, unsigned char cmd, short status, const void* data, int size,b
 
 void DispatchThread(void* p){
 	CClientInfo* client = (CClientInfo*)p;
-	char* ip = client->m_ip;
-	int port = client->m_port;
-	SOCKET cliSocket = client->m_clientsock;
+	char* ip = client->GetIP();
+	int port = client->GetPort();
+	SOCKET cliSocket = client->GetSocket();
 
 	INT nRet = 0;
 	UINT len = 0;
@@ -182,11 +182,11 @@ void DispatchThread(void* p){
 		}else if(m == ERR_INVALIDDATA || m == ERR_UNCOMPRESS)
 			continue;
 		
-		//CLog::Log(LOG_LEVEL_WARNING, "%s:%d recv cmd %d status %d body %d\n",ip, port, cmd, status, m);
+		//CLog::Log(LOG_LEVEL_DEBUG, "%s:%d recv cmd %d status %d body %d\n",ip, port, cmd, status, m);
 
 		doRecvData(p, recvBuf, m, cmd);
 	}
 
-	delete p;
 	CLog::Log(LOG_LEVEL_WARNING, "Client [%s:%d] Quit!\n",ip,port);
+	delete p;
 }

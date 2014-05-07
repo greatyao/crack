@@ -1,6 +1,7 @@
 #include "CrackBroker.h"
 #include "CompClient.h"
-
+#include "ClientInfo.h"
+#include "err.h"
 
 CCrackBroker::CCrackBroker(void)
 {
@@ -10,10 +11,14 @@ CCrackBroker::~CCrackBroker(void)
 {
 }
 
+//处理登录
 int CCrackBroker::ClientLogin2(const void* data, const char* ip, int port, unsigned int sock, CClientInfo ** res)
 {
 	CClientInfo *pCI = NULL;
 	client_login_req *login = (client_login_req*)data;
+	
+	//TODO:这里需要验证client
+
 	if(login->m_type == COMPUTE_TYPE_CLIENT)
 		pCI = new CCompClient;
 	else
@@ -22,43 +27,20 @@ int CCrackBroker::ClientLogin2(const void* data, const char* ip, int port, unsig
 	m_client_list.push_back(pCI);
 	*res = pCI;
 
-	return 0;
-}
-
-//处理登录
-int CCrackBroker::ClientLogin(client_login_req *pReq){
-
-	int ret = 0;
-	CClientInfo *pCI = NULL;
-	time_t tempTm ;
-
-	if(pReq->m_type == COMPUTE_TYPE_CLIENT)
+	//如果client之前退出又再次登陆,则需要将其先前创建的task重新接管
+	for(CT_MAP::iterator it = m_cracktask_map.begin(); it!= m_cracktask_map.end(); it++)
 	{
-		pCI = new CCompClient;
-		pCI->SetCPUGPU(pReq->m_cputhreads, pReq->m_gputhreads);
+		if(strcmp(it->second->m_owner, pCI->GetOwner()) == 0)
+			pCI->InsetTask(it->first, it->second);
 	}
-	else
-		pCI = new CClientInfo;
-	pCI->m_clientsock = pReq->m_clientsock;
-	pCI->m_type = pReq->m_type;
-	memcpy(pCI->m_ip,pReq->m_ip,16);
-	memcpy(pCI->m_osinfo,pReq->m_osinfo,sizeof(pCI->m_osinfo));
-	memcpy(pCI->m_hostname,pReq->m_hostinfo, sizeof(pCI->m_hostname));
-	pCI->m_port = pReq->m_port;
-	time(&tempTm);
-	pCI->m_logintime = tempTm;
-
-	//m_client_cs.Lock();
-	m_client_list.push_back(pCI);
-	//m_client_cs.Unlock();
-
-	return ret;
+	
+	return 0;
 }
 
 //处理心跳
 int CCrackBroker::ClientKeepLive2(const char *ip, void* s, unsigned char* cmd, void** data)
 {
-	unsigned int sock = *(unsigned int *)s;
+	SOCKET sock = (SOCKET)s;
 	CClientInfo *pCI = NULL;
 	CBN_VECTOR tmpcbn;
 	int len = 0;
@@ -112,13 +94,12 @@ int CCrackBroker::ClientKeepLive2(const char *ip, void* s, unsigned char* cmd, v
 //控制节点业务逻辑处理函数
 
 //创建新任务
-int	CCrackBroker::CreateTask(struct crack_task *pReq,unsigned char *pguid){
-
+int	CCrackBroker::CreateTask(struct crack_task *pReq, void* pclient){
+	CClientInfo* client = (CClientInfo*)pclient;
 	int ret = 0;
 	CCrackTask *pTask = NULL;
 	CT_MAP::iterator temp_iter;
 
-	memcpy(pguid,pReq->guid,sizeof(pReq->guid));
 	pTask = new CCrackTask;
 	ret = pTask->Init(pReq);
 	if (ret < 0 ){
@@ -130,32 +111,33 @@ int	CCrackBroker::CreateTask(struct crack_task *pReq,unsigned char *pguid){
 //	m_cracktask_cs.Lock();
 	
 	m_cracktask_map.insert(CT_MAP::value_type(pTask->guid,pTask));
+	client->InsetTask(pTask->guid, pTask);
+	strncpy(pTask->m_owner, client->GetOwner(), sizeof(pTask->m_owner));
 
 //	m_cracktask_cs.Unlock();
 	return ret;
 }
 
-
 //切分任务接口
-int CCrackBroker::SplitTask(char *pguid, const char* john){
+int CCrackBroker::SplitTask(const char *guid, const char* john){
 	
 	int ret = 0;
 	CT_MAP::iterator iter_task;
 	CCrackTask *pCT = NULL;
 		
-	iter_task = m_cracktask_map.find(pguid);
+	iter_task = m_cracktask_map.find((char*)guid);
 	if (iter_task == m_cracktask_map.end()){
 		
-		CLog::Log(LOG_LEVEL_WARNING,"Can't find Task With GUID %s\n",pguid);
+		CLog::Log(LOG_LEVEL_WARNING,"Can't find Task With GUID %s\n",guid);
 		return NOT_FIND_GUID_TASK;
 	}
 
 	pCT = iter_task->second;
 	
-	ret = pCT->SplitTaskFile(pguid, john);
+	ret = pCT->SplitTaskFile(guid, john);
 	if (ret < 0 ){
 		
-		CLog::Log(LOG_LEVEL_WARNING,"Task GUID %s ,Split Error\n",pguid);
+		CLog::Log(LOG_LEVEL_WARNING,"Task GUID %s ,Split Error\n",guid);
 		return TASK_SPLIT_ERR;
 		
 	}
@@ -165,19 +147,24 @@ int CCrackBroker::SplitTask(char *pguid, const char* john){
 	return ret;
 }
 
-
 //开始新任务
-int	CCrackBroker::StartTask(struct task_start_req *pReq){
+int	CCrackBroker::StartTask(struct task_start_req *pReq, void* pclient){
 
 	int ret = 0;
 	CT_MAP::iterator iter_task;
 	CCrackTask *pCT = NULL;
+	CClientInfo* client = (CClientInfo*)pclient;
 
 	if (!pReq){
 
 		CLog::Log(LOG_LEVEL_DEBUG,"Start Task Req NULL Error\n");
 		return START_TASK_ERR;
 
+	}
+
+	if(!client->OwnTask((char *)pReq->guid)){
+		CLog::Log(LOG_LEVEL_WARNING, "User %s has no priviledge to control task\n", client->GetOwner());
+		return ERR_PRIVILEDGE;
 	}
 	
 //	m_cracktask_cs.Lock();
@@ -204,7 +191,7 @@ int	CCrackBroker::StartTask(struct task_start_req *pReq){
 	return ret;
 }
 	
-int CCrackBroker::StopTask(struct task_stop_req *pReq){
+int CCrackBroker::StopTask(struct task_stop_req *pReq, void* pclient){
 
 	int ret = 0;
 	CT_MAP::iterator iter_task;
@@ -212,12 +199,17 @@ int CCrackBroker::StopTask(struct task_stop_req *pReq){
 	CB_MAP::iterator iter_block_end;
 	CCrackBlock *pCB = NULL;
 	CCrackTask *pCT = NULL;
+	CClientInfo* client = (CClientInfo*)pclient;
 
 	if (!pReq){
 
 		CLog::Log(LOG_LEVEL_WARNING,"Stop Task Req NULL Error\n");
 		return STOP_TASK_ERR;
 
+	}
+	if(!client->OwnTask((char *)pReq->guid)){
+		CLog::Log(LOG_LEVEL_WARNING, "User %s has no priviledge to control task\n", client->GetOwner());
+		return ERR_PRIVILEDGE;
 	}
 	
 	//m_cracktask_cs.Lock();
@@ -253,11 +245,7 @@ int CCrackBroker::StopTask(struct task_stop_req *pReq){
 	//如果停止任务成功
 	if (ret == 0){
 
-		removeFromQueue(pReq->guid);
-		
-		
-
-
+		removeFromQueue((char*)pReq->guid);
 	}
 	
 	
@@ -265,19 +253,25 @@ int CCrackBroker::StopTask(struct task_stop_req *pReq){
 	return ret;
 }
 
-int CCrackBroker::DeleteTask(struct task_delete_req *pReq){
-
+int CCrackBroker::DeleteTask(struct task_delete_req *pReq, void* pclient){
+	
 	int ret = 0;
 	CT_MAP::iterator iter_task;
 	CCrackTask *pCT = NULL;
 	CB_MAP::iterator iter_block;
 	CB_MAP::iterator iter_block_end;
 	CCrackBlock *pCB = NULL;
-
+	CClientInfo* client = (CClientInfo*)pclient;
+	
 	if (!pReq){
 
 		CLog::Log(LOG_LEVEL_WARNING,"Delete Task Req NULL Error\n");
 		return DEL_TASK_ERR;
+	}
+
+	if(!client->OwnTask((char *)pReq->guid)){
+		CLog::Log(LOG_LEVEL_WARNING, "User %s has no priviledge to control task\n", client->GetOwner());
+		return ERR_PRIVILEDGE;
 	}
 	
 //	m_cracktask_cs.Lock();
@@ -321,26 +315,31 @@ int CCrackBroker::DeleteTask(struct task_delete_req *pReq){
 
 
 		//暴力删除,直接删除相关任务，及其hash 和crackblock
-		this->deleteTask((char *)pReq->guid);
+		this->deleteTask((char *)pReq->guid, pclient);
 	}
 
 	//从调度队列中移除
-	removeFromQueue(pReq->guid);
+	removeFromQueue((char*)pReq->guid);
 	
 	//m_cracktask_cs.Unlock();
 	return ret;
 }
 
-int CCrackBroker::PauseTask(struct task_pause_req *pReq){
+int CCrackBroker::PauseTask(struct task_pause_req *pReq, void* pclient){
 
 	int ret = 0;
 	CT_MAP::iterator iter_task;
 	CCrackTask *pCT = NULL;
+	CClientInfo* client = (CClientInfo*)pclient;
 
 	if (!pReq){
 
 		CLog::Log(LOG_LEVEL_WARNING,"Pause Task Req NULL Error\n");
 		return PAUSE_TASK_ERR;
+	}
+	if(!client->OwnTask((char *)pReq->guid)){
+		CLog::Log(LOG_LEVEL_WARNING, "User %s has no priviledge to control task\n", client->GetOwner());
+		return ERR_PRIVILEDGE;
 	}
 	
 //	m_cracktask_cs.Lock();
@@ -360,21 +359,22 @@ int CCrackBroker::PauseTask(struct task_pause_req *pReq){
 	}
 	
 	//从调度队列中移除
-	 removeFromQueue(pReq->guid);
+	 removeFromQueue((char*)pReq->guid);
 	
 //	m_cracktask_cs.Unlock();
 	return ret;
 }
 
-int CCrackBroker::GetTaskResult(struct task_result_req *pReq,struct task_result_info **pRes,int *resNum){
+int CCrackBroker::GetTaskResult(struct task_result_req *pReq,struct task_result_info **pRes,int *resNum, void* pclient){
 
 	int ret = 0;
 	CT_MAP::iterator iter_task;
 	int hashnum = 0;
 	CCrackTask *pCT = NULL;
 	struct task_result_info *pres = NULL;
-
-//	m_cracktask_cs.Lock();
+	CClientInfo* client = (CClientInfo*)pclient;
+	char* owner = client->GetOwner();
+	bool super = client->SuperUser();
 	
 	iter_task = m_cracktask_map.find((char *)pReq->guid);
 	if (iter_task == m_cracktask_map.end()){
@@ -384,8 +384,10 @@ int CCrackBroker::GetTaskResult(struct task_result_req *pReq,struct task_result_
 	}else{
 
 		pCT = iter_task->second;
+		if(!super && strcmp(pCT->m_owner, owner) != 0){
+			return ERR_PRIVILEDGE;
+		}
 
-	//	hashnum = pCT->count;
 		hashnum = pCT->m_crackhash_list.size();
 
 		pres = (struct task_result_info *)Alloc(sizeof(struct task_result_info)*hashnum);
@@ -410,7 +412,7 @@ int CCrackBroker::GetTaskResult(struct task_result_req *pReq,struct task_result_
 	return ret;
 }
 
-int CCrackBroker::GetTasksStatus(struct task_status_info **pRes,unsigned int *resNum){
+int CCrackBroker::GetTasksStatus(struct task_status_info **pRes,unsigned int *resNum, void* pclient){
 	
 	int ret = 0;
 	int task_num = 0;
@@ -418,30 +420,32 @@ int CCrackBroker::GetTasksStatus(struct task_status_info **pRes,unsigned int *re
 	struct task_status_info *pres = NULL;
 	CCrackTask *pCT = NULL;
 	int j = 0;
+	CClientInfo* client = (CClientInfo*)pclient;
+	char* owner = client->GetOwner();
+	bool super = client->SuperUser();
 
-	//m_cracktask_cs.Lock();
-
-	//task_num = m_cracktask_queue.size();
 	task_num = m_cracktask_map.size();
 
 	pres = (struct task_status_info *)Alloc(sizeof(struct task_status_info)*task_num);
 	if (!pres)
 	{	
 		CLog::Log(LOG_LEVEL_WARNING,"Alloc Get Running Task Status Error\n");
-	//	m_cracktask_cs.Unlock();
 		return ALLOC_TASK_STATUS_ERR;
 	}
 	
 	for(iter_task = m_cracktask_map.begin();iter_task != m_cracktask_map.end();iter_task++){
 		
 		pCT = iter_task->second;
-		getStatusFromTask(pCT,&pres[j]);
-		j++;
+		//超级用户或者该task的创建者
+		if(super || strcmp(owner, pCT->m_owner) == 0)
+		{
+			getStatusFromTask(pCT,&pres[j]);
+			j++;
+		}
 	}
 
 	*pRes = pres;
 	*resNum = j;
-	//m_cracktask_cs.Unlock();
 
 	return ret;
 }
@@ -586,9 +590,8 @@ int CCrackBroker::GetAWorkItem(struct crack_block **pRes){
 	return ret;
 }
 
-
 //新增加的获取block 的函数，添加了对计算节点和block 之间的对应关系
-int CCrackBroker::GetAWorkItem2(char *ipinfo,struct crack_block **pRes){
+int CCrackBroker::GetAWorkItem2(const char *ipinfo,struct crack_block **pRes){
 
 	int ret = 0;
 	CT_MAP::iterator iter_task;
@@ -683,8 +686,6 @@ int CCrackBroker::GetAWorkItem2(char *ipinfo,struct crack_block **pRes){
 	return ret;
 }
 
-
-
 int CCrackBroker::QueryTaskByWI(char* task_guid, const char* block_guid)
 {
 	CB_MAP::iterator iter_block;
@@ -717,7 +718,7 @@ int CCrackBroker::GetWIStatus(struct crack_status *pReq){
 	iter_block = m_total_crackblock_map.find(pReq->guid);
 	if (iter_block == m_total_crackblock_map.end()){
 
-		//CLog::Log(LOG_LEVEL_DEBUG,"Can't find Crack Block With GUID %s\n",pReq->guid);
+		//CLog::Log(LOG_LEVEL_NOMAL,"Can't find item With GUID %s %d\n",pReq->guid, pReq->progress);
 		ret =  NOT_FIND_GUID_BLOCK;
 		return ret;
 	}
@@ -800,7 +801,7 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 			ret = pCT->updateStatusToFinish(pReq,index);
 			if (ret == 1){
 
-				removeFromQueue((unsigned char *)pCT->guid);
+				removeFromQueue(pCT->guid);
 			}
 
 		//	m_cracktask_cs.Unlock();
@@ -825,7 +826,7 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 
 			if (ret == 1){
 
-				removeFromQueue((unsigned char *)pReq->guid);
+				removeFromQueue(pReq->guid);
 			}
 
 		//	m_cracktask_cs.Unlock();
@@ -860,9 +861,7 @@ int CCrackBroker::GetComputeNodesNum(){
 	return count;
 }
 
-
-
-int CCrackBroker::removeFromQueue(unsigned char *guid){
+int CCrackBroker::removeFromQueue(const char *guid){
 
 	int ret = 0;
 	CT_DEQUE::iterator iter_queue;
@@ -894,7 +893,6 @@ int CCrackBroker::removeFromQueue(unsigned char *guid){
 
 	return ret;
 }
-
 
 //老的任务结果返回处理
 int CCrackBroker::getResultFromTask(CCrackTask *pCT,struct task_status_res *pRes){
@@ -978,7 +976,7 @@ int CCrackBroker::getBlockFromCrackBlock(CCrackBlock *pCB,struct crack_block *pR
 	return ret;
 }
 
-int CCrackBroker::DoClientQuit(char *ip,int port){
+int CCrackBroker::DoClientQuit(const char *ip,int port){
 	
 	int ret = 0;
 	int i = 0;
@@ -1010,7 +1008,6 @@ int CCrackBroker::DoClientQuit(char *ip,int port){
 	getBlockByComp(ip,tmpcbn,STATUS_NOTICE_RUN);
 
 	if (tmpcbn.size() == 0){
-
 		
 		return 0;
 	}
@@ -1040,15 +1037,7 @@ int CCrackBroker::DoClientQuit(char *ip,int port){
 		//将相关任务放入就绪队列
 		((CCrackTask *)(pCB->task))->m_runing_num-=1;
 		updateReadyQueue(pCB);
-		
-		
-
 	}
-
-	
-	
-	
-	
 
 	return ret;
 }
@@ -1076,8 +1065,8 @@ void CCrackBroker::updateReadyQueue(CCrackBlock *pCB){
 
 }
 
-int CCrackBroker::deleteTask(char *guid){
-
+int CCrackBroker::deleteTask(const char *guid, void* pclient){
+	CClientInfo* client = (CClientInfo*)pclient;
 	int ret = 0;
 	CCrackTask *pCT = NULL;
 	CCrackHash *pCH = NULL;
@@ -1088,9 +1077,11 @@ int CCrackBroker::deleteTask(char *guid){
 	CB_MAP::iterator total_block_end;
 	CB_MAP tmp_cb_map;
 
+	client->EraseTask(guid, NULL);
+
 	total_block_end = m_total_crackblock_map.end();
 
-	CT_MAP::iterator iter_task = m_cracktask_map.find(guid);
+	CT_MAP::iterator iter_task = m_cracktask_map.find((char*)guid);
 	if (iter_task == m_cracktask_map.end()){
 		
 		CLog::Log(LOG_LEVEL_WARNING,"Delete Task ,Can't find Crack Task With GUID %s\n",guid);
@@ -1139,7 +1130,6 @@ int CCrackBroker::deleteTask(char *guid){
 	return ret;
 }
 
-
 void CCrackBroker::checkReadyQueue(CCrackTask *pCT){
 
 	CB_MAP::iterator iter_block;
@@ -1147,7 +1137,6 @@ void CCrackBroker::checkReadyQueue(CCrackTask *pCT){
 	CB_MAP::iterator begin_iter = pCT->m_crackblock_map.begin();
 	CB_MAP::iterator end_iter = pCT->m_crackblock_map.end();
 	int i = 0;
-	
 
 	for(iter_block = begin_iter; iter_block!=end_iter;iter_block ++ ){
 
@@ -1166,9 +1155,7 @@ void CCrackBroker::checkReadyQueue(CCrackTask *pCT){
 			if (strcmp(pCT->guid,m_cracktask_ready_queue[i]) == 0){
 					
 				break;
-
 			}
-
 		}
 
 		if (i < m_cracktask_ready_queue.size()){
@@ -1178,11 +1165,7 @@ void CCrackBroker::checkReadyQueue(CCrackTask *pCT){
 	//	m_cracktask_ready_queue.erase(pCT->guid);
 
 	}
-
-
 }
-
-
 
 //添加新的block 
 /*
@@ -1257,7 +1240,7 @@ int CCrackBroker::addNewCompBlock(char *ipinfo,char *blockguid,char status){
 
 */
 //从映射表中删除block
-int CCrackBroker::deleteCompBlock(char *ipinfo,char *blockguid){
+int CCrackBroker::deleteCompBlock(const char *ipinfo,char *blockguid){
 
 	int ret =0;
 	int size = 0;
@@ -1304,7 +1287,7 @@ int CCrackBroker::deleteCompBlock(char *ipinfo,char *blockguid){
 }
 
 //修改映射表中block状态
-int CCrackBroker::setCompBlockStatus(char *ipinfo,char *blockguid,char status){
+int CCrackBroker::setCompBlockStatus(const char *ipinfo,char *blockguid,char status){
 
 	int ret =0;
 	int size = 0;
@@ -1374,9 +1357,8 @@ int CCrackBroker::setCompBlockStatus(char *ipinfo,char *blockguid,char status){
 	return ret;
 }
 
-
 //得到映射表中的特定状态block 列表
-int CCrackBroker::getBlockByComp(char *ipinfo,CBN_VECTOR &cbnvector,char status){
+int CCrackBroker::getBlockByComp(const char *ipinfo,CBN_VECTOR &cbnvector,char status){
 
 	int ret =0;
 	int size = 0;
@@ -1460,7 +1442,6 @@ int CCrackBroker::setNoticByHash(CCrackBlock *pCB,int index){
 
 	return ret;
 }
-
 
 void *CCrackBroker::Alloc(int size){
 	

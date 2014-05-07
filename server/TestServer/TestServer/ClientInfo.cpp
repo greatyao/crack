@@ -21,6 +21,39 @@ CClientInfo::~CClientInfo(void)
 		closesocket(m_clientsock);
 }
 
+bool CClientInfo::OwnTask(const char* guid)
+{
+	if(m_type == SUPER_CONTROL_TYPE_CLIENT) return true;
+	return m_mytasks.find(guid) != m_mytasks.end();
+}
+
+void CClientInfo::InsetTask(const char* guid, CCrackTask* task)
+{
+	m_mytasks[guid] = task;
+}
+
+void CClientInfo::EraseTask(const char* guid, CCrackTask* task)
+{
+	if(guid)
+	{
+		CT_MAP2::iterator it = m_mytasks.find(guid);
+		if(it != m_mytasks.end())
+			m_mytasks.erase(it);
+	}
+	else if(task)
+	{
+		CT_MAP2::iterator it;
+		for(it = m_mytasks.begin(); it != m_mytasks.end(); it++)
+		{
+			if(it->second == task)
+			{
+				m_mytasks.erase(it);
+				break;
+			}
+		}
+	}
+}
+
 int CClientInfo::Init(const void* data, const char* ip, int port, unsigned int sock)
 {
 	client_login_req *pC = (client_login_req *)data;
@@ -33,6 +66,8 @@ int CClientInfo::Init(const void* data, const char* ip, int port, unsigned int s
 	memcpy(this->m_osinfo, pC->m_osinfo,sizeof(this->m_osinfo));
 	memcpy(this->m_hostname,pC->m_hostinfo, sizeof(this->m_hostname));
 	this->m_logintime = time(NULL);
+	//这里guid是client的唯一标志,
+	memcpy(this->m_guid, pC->m_hostinfo, sizeof(this->m_guid));
 
 	if(this->m_type == COMPUTE_TYPE_CLIENT)
 	{

@@ -41,7 +41,7 @@ int CCrackTask::Init(crack_task *pCrackTask)
 }
 
 
-int CCrackTask::SplitTaskFile(char *pguid, const char* john){
+int CCrackTask::SplitTaskFile(const char *guid, const char* john){
 
 	int ret = 0;
 	CCrackBlock *pCb = NULL;
@@ -54,7 +54,7 @@ int CCrackTask::SplitTaskFile(char *pguid, const char* john){
 	int mcount = 0;
 	int i = 0;
 
-	memcpy(guid,pguid,40);
+	memcpy(this->guid, guid,40);
 
 	count = 0;
 
@@ -166,7 +166,7 @@ CCrackBlock *CCrackTask::GetAReadyWorkItem(){
 
 
 //新增加的获取block 函数，增加了对block 中的comp_guid 的赋值
-CCrackBlock *CCrackTask::GetAReadyWorkItem2(char *ipinfo){
+CCrackBlock *CCrackTask::GetAReadyWorkItem2(const char *ipinfo){
 
 	CCrackBlock *pCB = NULL;
 	CB_MAP::iterator iter_block;

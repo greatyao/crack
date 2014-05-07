@@ -93,7 +93,7 @@ INT CSockServer::StartServer(void)
 		int m = Read(clientSocket, &cmd, &status, recvBuf, sizeof(recvBuf));
 		if(m <= 0 || cmd != CMD_LOGIN)
 		{
-			CLog::Log(LOG_LEVEL_WARNING, "[%s:%d] is not a valid client, close it\n", ip, port);
+			CLog::Log(LOG_LEVEL_WARNING, "[%s:%d] Invalid client, close it\n", ip, port);
 			closesocket(clientSocket);
 			continue;
 		}
@@ -101,7 +101,14 @@ INT CSockServer::StartServer(void)
 		CClientInfo* client;
 		m = g_CrackBroker.ClientLogin2(recvBuf, ip, port, clientSocket, &client);
 		Write(clientSocket, CMD_LOGIN, m, NULL,0,true);
-		CLog::Log(LOG_LEVEL_WARNING, "[%s:%d] valid client, enjoy it\n", ip, port);
+		if(m != 0)
+		{
+			CLog::Log(LOG_LEVEL_WARNING, "[%s:%d] Authentication failure, close it\n", ip, port);
+			closesocket(clientSocket);
+			continue;
+		}
+
+		CLog::Log(LOG_LEVEL_NOTICE, "[%s:%d] Authentication OK, enjoy it\n", ip, port);
 		
 		hThread = CreateThread(NULL, 0, LPTHREAD_START_ROUTINE(&DispatchThread), client, 0, NULL);
 		if (hThread == 0){

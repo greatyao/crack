@@ -5,7 +5,6 @@
 #include <deque>
 #include <string>
 
-#include "ClientInfo.h"
 #include "CrackTask.h"
 #include "CLog.h"
 #include "ReqPacket.h"
@@ -14,6 +13,7 @@
 #include "BlockNotice.h"
 
 using std::string;
+class CClientInfo;
 
 #define STANDARD_ERR -1000
 
@@ -85,35 +85,36 @@ public:
 	CCrackBroker(void);
 	~CCrackBroker(void);
 
-	int ClientLogin(client_login_req *pReq);
+	//登陆
 	int ClientLogin2(const void* data, const char* ip, int port, unsigned int sock, CClientInfo ** res);
 
+	//keepalive
 	int ClientKeepLive2(const char *ip, void* s, unsigned char* cmd, void** data);
 
 	//控制节点业务逻辑处理函数
 
 	//并未对任务进行切分
-	int	CreateTask(struct crack_task *pReq,unsigned char *pguid);
+	int	CreateTask(struct crack_task *pReq, void* pclient);
 
 	//文件上传成功后，对任务进行切分
-	int SplitTask(char *pguid, const char* john = NULL);
+	int SplitTask(const char *guid, const char* john = NULL);
 
-	int	StartTask(struct task_start_req *pReq);
+	int	StartTask(struct task_start_req *pReq, void* pclient);
 	
-	int StopTask(struct task_stop_req *pReq);
-	int DeleteTask(struct task_delete_req *pReq);
+	int StopTask(struct task_stop_req *pReq, void* pclient);
+	int DeleteTask(struct task_delete_req *pReq, void* pclient);
 
-	int PauseTask(struct task_pause_req *pReq);
-	int GetTaskResult(struct task_result_req *pReq,struct task_result_info **pRes,int *resNum);
+	int PauseTask(struct task_pause_req *pReq, void* pclient);
+	int GetTaskResult(struct task_result_req *pReq,struct task_result_info **pRes,int *resNum, void* pclient);
 
-	int GetTasksStatus(struct task_status_info **pRes,unsigned int *resNum);
+	int GetTasksStatus(struct task_status_info **pRes,unsigned int *resNum, void* pclient);
 	int GetClientList(struct compute_node_info **pRes,unsigned int *resNum);
 
 	
 	//计算节点业务逻辑处理函数
 	int GetAWorkItem(struct crack_block **pRes);
 
-	int GetAWorkItem2(char *ipinfo, struct crack_block **pRes); //增加传入参数计算节点ip地址和端口
+	int GetAWorkItem2(const char *ipinfo, struct crack_block **pRes); //增加传入参数计算节点ip地址和端口
 
 
 	int GetWIStatus(struct crack_status *pReq);
@@ -123,10 +124,10 @@ public:
 	int QueryTaskByWI(char* task_guid, const char* block_guid);
 
 	
-	int DoClientQuit(char *ip,int port);
+	int DoClientQuit(const char *ip,int port);
 
 
-	int deleteTask(char *guid);	//由于切分任务失败，删除刚创建的任务
+	int deleteTask(const char *guid, void* pclient);	//由于切分任务失败，删除刚创建的任务
 
 
 	void *Alloc(int size);
@@ -134,7 +135,7 @@ public:
 
 private:
 	int GetComputeNodesNum();
-	int removeFromQueue(unsigned char *guid);
+	int removeFromQueue(const char *guid);
 
 	int getResultFromTask(CCrackTask *pCT,struct task_status_res *pRes);	//返回单个结果
 	int	getResultFromTaskNew(CCrackTask *pCT,struct task_result_info *pRes); //返回多个结果
@@ -151,10 +152,10 @@ private:
 
 	///add the block<---->computer op
 	//int addNewCompBlock(char *ipinfo,char *blockguid,char status);
-	int deleteCompBlock(char *ipinfo,char *blockguid);
-	int setCompBlockStatus(char *ipinfo,char *blockguid,char status);
+	int deleteCompBlock(const char *ipinfo,char *blockguid);
+	int setCompBlockStatus(const char *ipinfo,char *blockguid,char status);
 
-	int getBlockByComp(char *ipinfo,CBN_VECTOR& cbnvector,char status);
+	int getBlockByComp(const char *ipinfo,CBN_VECTOR& cbnvector,char status);
 
 	int setNoticByHash(CCrackBlock *pCB,int index);
 
