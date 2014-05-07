@@ -3,13 +3,63 @@
 
 #include "SockServer.h"
 #include "CLog.h"
+#include <string>
+using std::string;
+
+static int logtype = LOG_TO_SCREEN;
+static int loglevel = LOG_LEVEL_NOMAL;
+static int port = 6010;
+
+inline void printUsage(const char* exec)
+{
+    fprintf(stderr, "Usage: %s [--port=port] [--logtype=type] "
+					"[--loglevel=level] [--help]\n\n"
+					"  --port\tServer binding port\n"
+					"  --logtype\t1:file, 2:screen\n"
+					"  --loglevel\tlog level [0-5]\n"
+					"  --help\t\tprints this help message.\n", exec);
+}
+
+void parseOptions(int argc, char ** argv)
+{
+	if(argc == 1)
+		return;
+
+    if ((string)argv[1] == "--help")
+    {
+        printUsage(argv[0]);
+        exit(EXIT_SUCCESS);
+    }
+
+    string temp;
+    for (int i = 1; i < argc - 1; ++i)
+    {
+        temp = (string)argv[i];
+        if (temp.substr(0, 7) == "--port=")
+        {
+            port = atoi(temp.substr(7).c_str());
+        }
+        else if (temp.substr(0, 10) == "--logtype=")
+        {
+            logtype = atoi(temp.substr(10).c_str());
+        }
+        else if (temp.substr(0, 11) == "--loglevel=")
+        {
+            loglevel = atoi(temp.substr(11).c_str());
+        }
+    }
+}
 
 int main(int argc, char* argv[]){
-	CLog::InitLogSystem(LOG_TO_SCREEN, TRUE,"ScheduleServer.log");
+	
+	parseOptions(argc, argv);
+
+	CLog::InitLogSystem(logtype, TRUE,"ScheduleServer.log");
+	CLog::SetLevel(loglevel);
 
 	CSockServer *g_Server = new CSockServer;
 
-	int ret = g_Server->Initialize(6010,10);
+	int ret = g_Server->Initialize(port,10);
 	if (ret < 0 ){
 	
 		CLog::Log(LOG_LEVEL_WARNING,"initalize error %d\n",ret);

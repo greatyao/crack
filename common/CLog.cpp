@@ -39,6 +39,7 @@ FILE* CLog::m_hOutputFile = NULL;
 int CLog::currDay;
 int CLog::lastDay;
 char CLog::suffix[256] = {0};
+unsigned int CLog::m_level = LOG_LEVEL_NOMAL;
 
 static int GetDay(char* buffer, int size, bool hms)
 {
@@ -321,8 +322,8 @@ bool CLog::ReleaseLogSystem(void)
 /*****************************************************************************/
 void CLog::Log(unsigned int uLevel, const char* pszFormat, ... )
 {
-	if(!m_bInited) return;
-	
+	if(!m_bInited || m_level > uLevel) return;
+
 	const int len_buffer = 1024 * 4;
 	char	buffer[len_buffer] = {0};	
 	if(m_bLogDate)
@@ -343,3 +344,8 @@ void CLog::Log(unsigned int uLevel, const char* pszFormat, ... )
 	va_end (arglist);
 
 };
+
+void CLog::SetLevel(unsigned int uLevel)
+{
+	m_level = uLevel;
+}

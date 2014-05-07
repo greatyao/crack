@@ -27,6 +27,7 @@
 //日志等级
 enum LOG_LEVEL
 {
+	LOG_LEVEL_DEBUG = 0,
 	LOG_LEVEL_NOMAL = 1,
 	LOG_LEVEL_WARNING,
 	LOG_LEVEL_ERROR,
@@ -56,6 +57,7 @@ private:
 	static bool   m_bLogDate;		//记录日期时间	
 	static int lastDay, currDay;
 	static char suffix[256];
+	static unsigned int m_level;
 	/*****************************************************************************/
 	// 同步互斥锁机制
 	/*****************************************************************************/
@@ -107,6 +109,8 @@ public:
 	//     ...  :内容
 	/*****************************************************************************/
 	static void Log(unsigned int uLevel, const char* pszFormat, ... );
+
+	static void SetLevel(unsigned int uLevel);
 };
 
 #endif
