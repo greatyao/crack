@@ -170,6 +170,9 @@ typedef struct login_info {
 	int m_cputhreads;		//CPU数目
 	
 	unsigned int m_clientsock;
+
+	char m_user[32];		//用户名
+	char m_password[32];	//密码
 }client_login_req;
 
 #define	MAX_WRITE_RETRY			15 // 重试写入文件次数
