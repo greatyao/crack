@@ -7,6 +7,7 @@ class CCompClient :
 public:
 	CCompClient(void);
 	~CCompClient(void);
+	void SetCPUGPU(int cpu, int gpu);
 
 public:
 	int m_gputhreads;

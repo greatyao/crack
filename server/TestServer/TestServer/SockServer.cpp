@@ -1,7 +1,9 @@
 #include "SockServer.h"
 #include "ServerResp.h"
 #include "CLog.h"
-
+#include "macros.h"
+#include "CrackBroker.h"
+#include "ClientInfo.h"
 
 CSockServer::CSockServer(void)
 {
@@ -76,22 +78,36 @@ INT CSockServer::StartServer(void)
 		m_nCurrentThread +=1 ;
 
 		//CLog::Log(LOG_LEVEL_WARNING,"Client Conn count is:%d\n",m_nCurrentThread);
-		CLog::Log(LOG_LEVEL_WARNING,"Incoming a new client [%s:%d]\n",inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
+		char ip[16];
+		int port;
+		strncpy(ip, inet_ntoa(clientAddr.sin_addr), 16);
+		port = ntohs(clientAddr.sin_port);
+		CLog::Log(LOG_LEVEL_NOMAL,"Incoming a connection [%s:%d]\n", ip, port);
 		
 		//处理用户登录请求
-	
-
 		//用户登录成功，创建线程处理用户业务，用户登录失败拒绝该连接
+		INT cmdheader = sizeof(control_header);
+		unsigned char cmd;
+		short status;
+		BYTE recvBuf[4096];
+		int m = Read(clientSocket, &cmd, &status, recvBuf, sizeof(recvBuf));
+		if(m <= 0 || cmd != CMD_LOGIN)
+		{
+			CLog::Log(LOG_LEVEL_WARNING, "[%s:%d] is not a valid client, close it\n", ip, port);
+			closesocket(clientSocket);
+			continue;
+		}
+
+		CClientInfo* client;
+		m = g_CrackBroker.ClientLogin2(recvBuf, ip, port, clientSocket, &client);
+		Write(clientSocket, CMD_LOGIN, m, NULL,0,true);
+		CLog::Log(LOG_LEVEL_WARNING, "[%s:%d] valid client, enjoy it\n", ip, port);
 		
-
-
-
-
-		SOCKET* s = new SOCKET(clientSocket);
-		hThread = CreateThread(NULL, 0, LPTHREAD_START_ROUTINE(&DispatchThread),(LPVOID)s, 0, NULL);
+		hThread = CreateThread(NULL, 0, LPTHREAD_START_ROUTINE(&DispatchThread), client, 0, NULL);
 		if (hThread == 0){
 			CLog::Log(LOG_LEVEL_WARNING,"Create Thread Process Client Connection Error.\n");
-			break;
+			closesocket(clientSocket);
+			continue;
 		}
 
 		CloseHandle(hThread);
@@ -107,60 +123,3 @@ int CSockServer::ShutDown(void)
 	WSACleanup();
 	return 0;
 }
-
-/*
-
-int CSockServer::clientlogin(void *pclient, unsigned char * pdata, UINT len){
-
-	//send the result data
-	INT nRet = 0;
-	char buf[40];
-	char ip[20];
-	int port = 0;
-
-	client_login_req *pC = (client_login_req *)pdata;
-	client_login_req myclient;
-
-	getClientIPInfo(pclient,ip,&port);
-
-	if (pdata == NULL){
-		
-		memset(&myclient,0,sizeof(client_login_req));
-		memset(buf,0,40);
-		sprintf(buf,"%u",*(SOCKET *)pclient);
-		myclient.m_clientsock = *(SOCKET *)pclient;
-		myclient.m_cputhreads = myclient.m_gputhreads = 0;
-		myclient.m_type = 0;
-		memcpy(myclient.m_ip,ip,16);
-
-		pC = &myclient;
-		
-	}
-
-	pC->m_port = port;
-	pC->m_clientsock = *(SOCKET *)pclient;
-	memcpy(pC->m_ip,ip,strlen(ip));
-	//处理业务逻辑
-
-	nRet = g_CrackBroker.ClientLogin(pC);
-	if (nRet < 0){
-		CLog::Log(LOG_LEVEL_WARNING,"Client Login IP %s port %d Error\n",ip,port);
-	}else {
-		//CLog::Log(LOG_LEVEL_WARNING,"Client Login IP %s port %d OK\n",ip,port);
-	}
-	////////////////////////////////////
-
-	//产生应答报文，并发送
-
-	int m = Write(*(SOCKET*)pclient, CMD_LOGIN, 0, NULL,0,true);
-	if (m < 0){
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Login :Send Response Error %d \n",ip,port,m);
-		
-	}else{
-		//CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client Login OK\n",ip,port);
-	}
-
-	return nRet;
-}
-
-*/

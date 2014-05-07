@@ -81,7 +81,7 @@ int CCrackTask::SplitTaskFile(char *pguid, const char* john){
 		m_crackhash_list.push_back(&pCCH[i]);
 
 		if(this->special == 0)
-			CLog::Log(LOG_LEVEL_NOMAL, "Crack Hash is %s,%s,%s\n",hashes[i].hash,hashes[i].salt,hashes[i].salt2);
+			CLog::Log(LOG_LEVEL_DEBUG, "Crack Hash is %s,%s,%s\n",hashes[i].hash,hashes[i].salt,hashes[i].salt2);
 	}
 
 	//出始化相关工作项
@@ -111,11 +111,11 @@ int CCrackTask::SplitTaskFile(char *pguid, const char* john){
 		if(this->special == 0)
 		{
 			if(pCb[i].type == bruteforce)
-				CLog::Log(LOG_LEVEL_NOMAL,"crack_block %s [%d,%d] %s\n",pCb[i].guid, pCb[i].start, pCb[i].end, pCb[i].john);
+				CLog::Log(LOG_LEVEL_NOMAL,"crack_block guid=%s [%d,%d] algo=%d\n",pCb[i].guid, pCb[i].start, pCb[i].end, pCb[i].algo);
 			else if(pCb[i].type == dict)
-				CLog::Log(LOG_LEVEL_NOMAL,"crack_block %s [dict=%d] %s\n",pCb[i].guid, pCb[i].dict_idx, pCb[i].john);
+				CLog::Log(LOG_LEVEL_NOMAL,"crack_block guid=%s [dict=%d] algo=%d\n",pCb[i].guid, pCb[i].dict_idx, pCb[i].algo);
 			if(pCb[i].type == mask && pCb[i].flag == 0)
-				CLog::Log(LOG_LEVEL_NOMAL,"crack_block %s [%d, %s] %s\n",pCb[i].guid, pCb[i].maskLength, pCb[i].masks, pCb[i].john);
+				CLog::Log(LOG_LEVEL_NOMAL,"crack_block guid=%s [%d, %s] algo=%d\n",pCb[i].guid, pCb[i].maskLength, pCb[i].masks, pCb[i].algo);
 		}
 	}
 

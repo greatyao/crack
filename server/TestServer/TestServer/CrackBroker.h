@@ -77,6 +77,8 @@ typedef std::map<string,CBN_VECTOR,MapLessCompare> CCB_MAP; //computer<----> blo
 //typedef std::queue<char *> CT_QUEUE;
 typedef std::deque<char *> CT_DEQUE;
 
+class CClientInfo;
+
 class CCrackBroker
 {
 public:
@@ -84,8 +86,8 @@ public:
 	~CCrackBroker(void);
 
 	int ClientLogin(client_login_req *pReq);
+	int ClientLogin2(const void* data, const char* ip, int port, unsigned int sock, CClientInfo ** res);
 
-	int ClientKeepLive(char *ip);
 	int ClientKeepLive2(const char *ip, void* s, unsigned char* cmd, void** data);
 
 	//控制节点业务逻辑处理函数
@@ -178,4 +180,5 @@ public :
 
 };
 
+extern CCrackBroker g_CrackBroker;
 

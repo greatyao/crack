@@ -9,3 +9,9 @@ CCompClient::CCompClient(void)
 CCompClient::~CCompClient(void)
 {
 }
+
+void CCompClient::SetCPUGPU(int cpu, int gpu)
+{
+	m_gputhreads = gpu;
+	m_cputhreads = cpu;
+}

@@ -10,6 +10,21 @@ CCrackBroker::~CCrackBroker(void)
 {
 }
 
+int CCrackBroker::ClientLogin2(const void* data, const char* ip, int port, unsigned int sock, CClientInfo ** res)
+{
+	CClientInfo *pCI = NULL;
+	client_login_req *login = (client_login_req*)data;
+	if(login->m_type == COMPUTE_TYPE_CLIENT)
+		pCI = new CCompClient;
+	else
+		pCI = new CClientInfo;
+	pCI->Init(data, ip, port, sock);
+	m_client_list.push_back(pCI);
+	*res = pCI;
+
+	return 0;
+}
+
 //处理登录
 int CCrackBroker::ClientLogin(client_login_req *pReq){
 
@@ -20,8 +35,7 @@ int CCrackBroker::ClientLogin(client_login_req *pReq){
 	if(pReq->m_type == COMPUTE_TYPE_CLIENT)
 	{
 		pCI = new CCompClient;
-		((CCompClient *)pCI)->m_gputhreads = pReq->m_gputhreads;
-		((CCompClient *)pCI)->m_cputhreads = pReq->m_cputhreads;
+		pCI->SetCPUGPU(pReq->m_cputhreads, pReq->m_gputhreads);
 	}
 	else
 		pCI = new CClientInfo;
@@ -95,31 +109,6 @@ int CCrackBroker::ClientKeepLive2(const char *ip, void* s, unsigned char* cmd, v
 	return len;
 }
 
-//处理心跳
-int CCrackBroker::ClientKeepLive(char *ip){
-	
-	int ret = 0;
-	int i = 0;
-	CClientInfo *pCI = NULL;
-	time_t temptm;
-
-	time(&temptm);
-	//m_client_cs.Lock();
-
-	for (i = 0 ;i < m_client_list.size(); i ++){
-
-			pCI= m_client_list[i];
-			if (memcmp(pCI->m_ip,ip,16) == 0){
-
-				pCI->m_keeplivetime = temptm;
-				break;
-			}
-	}
-	
-//	m_client_cs.Unlock();
-	return ret;
-}
-
 //控制节点业务逻辑处理函数
 
 //创建新任务
@@ -141,12 +130,6 @@ int	CCrackBroker::CreateTask(struct crack_task *pReq,unsigned char *pguid){
 //	m_cracktask_cs.Lock();
 	
 	m_cracktask_map.insert(CT_MAP::value_type(pTask->guid,pTask));
-
-	for(temp_iter = m_cracktask_map.begin(); temp_iter != m_cracktask_map.end();temp_iter ++ ){
-		
-		pTask = temp_iter->second;
-		CLog::Log(LOG_LEVEL_WARNING,"New task guid=%s, Algo=%d, Charset=%d\n",pTask->guid,pTask->algo,pTask->charset);
-	}
 
 //	m_cracktask_cs.Unlock();
 	return ret;
@@ -192,7 +175,7 @@ int	CCrackBroker::StartTask(struct task_start_req *pReq){
 
 	if (!pReq){
 
-		CLog::Log(LOG_LEVEL_WARNING,"Start Task Req NULL Error\n");
+		CLog::Log(LOG_LEVEL_DEBUG,"Start Task Req NULL Error\n");
 		return START_TASK_ERR;
 
 	}
@@ -213,7 +196,7 @@ int	CCrackBroker::StartTask(struct task_start_req *pReq){
 		//任务被放入循环队列队尾，等待调度
 		if(ret == 0){	//必须确保SetStatus执行成功
 			m_cracktask_ready_queue.push_back(pCT->guid);
-			CLog::Log(LOG_LEVEL_WARNING,"CrackTask: Set %s Ready and Start\n", pCT->guid);
+			CLog::Log(LOG_LEVEL_NOMAL,"CrackTask: Set %s Ready and Start\n", pCT->guid);
 		}
 	}
 //	m_cracktask_cs.Unlock();
@@ -483,7 +466,7 @@ int CCrackBroker::GetClientList(struct compute_node_info **pRes,unsigned int *re
 	pres = (struct compute_node_info *)Alloc(sizeof(struct compute_node_info)*client_num);
 	if (!pres)
 	{	
-		CLog::Log(LOG_LEVEL_WARNING,"Alloc Computer Client Error\n");
+		CLog::Log(LOG_LEVEL_DEBUG,"Alloc Computer Client Error\n");
 	//	m_client_cs.Unlock();
 		return ALLOC_COMP_CLIENT_ERR;
 	}
@@ -507,7 +490,7 @@ int CCrackBroker::GetClientList(struct compute_node_info **pRes,unsigned int *re
 		pres[j].gputhreads = ((CCompClient *)pCI)->m_gputhreads;
 		pres[j].cputhreads = ((CCompClient *)pCI)->m_cputhreads;
 
-		CLog::Log(LOG_LEVEL_WARNING,"CompClient %d: OS=\"%s\" Host=\"%s\" [%d %d]\n", j, pres[j].os, pres[j].hostname,
+		CLog::Log(LOG_LEVEL_DEBUG, "CompClient %d: OS=\"%s\" Host=\"%s\" [%d %d]\n", j, pres[j].os, pres[j].hostname,
 			pres[j].gputhreads, pres[j].cputhreads );
 	
 		j++;
@@ -734,7 +717,7 @@ int CCrackBroker::GetWIStatus(struct crack_status *pReq){
 	iter_block = m_total_crackblock_map.find(pReq->guid);
 	if (iter_block == m_total_crackblock_map.end()){
 
-		//CLog::Log(LOG_LEVEL_WARNING,"Can't find Crack Block With GUID %s\n",pReq->guid);
+		//CLog::Log(LOG_LEVEL_DEBUG,"Can't find Crack Block With GUID %s\n",pReq->guid);
 		ret =  NOT_FIND_GUID_BLOCK;
 		return ret;
 	}
@@ -763,7 +746,7 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 	iter_block = m_total_crackblock_map.find(pReq->guid);
 	if (iter_block == m_total_crackblock_map.end()){
 
-		CLog::Log(LOG_LEVEL_WARNING,"Can't find Crack Block With GUID %s\n",pReq->guid);
+		CLog::Log(LOG_LEVEL_DEBUG,"Can't find Crack Block With GUID %s\n",pReq->guid);
 		ret =  NOT_FIND_GUID_BLOCK;
 		return ret;
 	}

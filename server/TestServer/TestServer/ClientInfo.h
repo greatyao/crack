@@ -2,11 +2,17 @@
 
 #include <time.h>
 
+struct login_info;
+
 class CClientInfo
 {
 public:
 	CClientInfo(void);
 	~CClientInfo(void);
+
+	int Init(const void* data, const char* ip, int port, unsigned int sock);
+
+	virtual void SetCPUGPU(int cpu, int gpu){}
 
 public:
 	

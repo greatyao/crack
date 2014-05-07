@@ -5,6 +5,7 @@
 #include "zlib.h"
 #include "algorithm_types.h"
 #include "PacketProcess.h"
+#include "ClientInfo.h"
 
 static unsigned char pack_flag[5] = {'G', '&', 'C', 'P', 'U'};
 
@@ -154,8 +155,11 @@ int Write(int sck, unsigned char cmd, short status, const void* data, int size,b
 
 
 void DispatchThread(void* p){
-	SOCKET cliSocket = *(SOCKET *)p;
-	
+	CClientInfo* client = (CClientInfo*)p;
+	char* ip = client->m_ip;
+	int port = client->m_port;
+	SOCKET cliSocket = client->m_clientsock;
+
 	INT nRet = 0;
 	UINT len = 0;
 
@@ -163,14 +167,6 @@ void DispatchThread(void* p){
 	INT cmdheader = sizeof(control_header);
 	unsigned char cmd;
 	short status;
-	
-	struct sockaddr_in addr;
-	int len2 = sizeof(addr);
-	getpeername(cliSocket, (sockaddr *)&addr, &len2);
-	char ip[16];
-	memset(ip,0,16);
-	strcpy(ip, inet_ntoa(addr.sin_addr));
-	int port = ntohs(addr.sin_port);
 
 	while(1)
 	{
@@ -191,7 +187,6 @@ void DispatchThread(void* p){
 		doRecvData(p, recvBuf, m, cmd);
 	}
 
-	closesocket(cliSocket);
 	delete p;
 	CLog::Log(LOG_LEVEL_WARNING, "Client [%s:%d] Quit!\n",ip,port);
 }

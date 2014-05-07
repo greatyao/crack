@@ -23,104 +23,27 @@
 
 CCrackBroker g_CrackBroker;
 
-int getClientIPInfo(void *pclient,char *pip,int *port){
-	
-	SOCKET clisock = *(SOCKET *)pclient;
-
-	struct sockaddr_in addr;
-	int addrlen = sizeof(addr);
-	getpeername(clisock, (sockaddr *)&addr, &addrlen);
-
-	strcpy(pip, inet_ntoa(addr.sin_addr));
-	*port = ntohs(addr.sin_port);
-
-	return 0;
-}
-
-int client_login(void *pclient, unsigned char * pdata, UINT len){
-
-	//send the result data
-	INT nRet = 0;
-	char buf[40];
-	char ip[20];
-	int port = 0;
-
-	client_login_req *pC = (client_login_req *)pdata;
-	client_login_req myclient;
-
-	getClientIPInfo(pclient,ip,&port);
-
-	if (pdata == NULL){
-		
-		memset(&myclient,0,sizeof(client_login_req));
-		memset(buf,0,40);
-		sprintf(buf,"%u",*(SOCKET *)pclient);
-		myclient.m_clientsock = *(SOCKET *)pclient;
-		myclient.m_cputhreads = myclient.m_gputhreads = 0;
-		myclient.m_type = 0;
-		memcpy(myclient.m_ip,ip,16);
-
-		pC = &myclient;
-		
-	}
-
-	pC->m_port = port;
-	pC->m_clientsock = *(SOCKET *)pclient;
-	memcpy(pC->m_ip,ip,strlen(ip));
-	//处理业务逻辑
-
-	nRet = g_CrackBroker.ClientLogin(pC);
-	if (nRet < 0){
-		CLog::Log(LOG_LEVEL_WARNING,"Client Login IP %s port %d Error\n",ip,port);
-	}else {
-		//CLog::Log(LOG_LEVEL_WARNING,"Client Login IP %s port %d OK\n",ip,port);
-	}
-	////////////////////////////////////
-
-	//产生应答报文，并发送
-
-	int m = Write(*(SOCKET*)pclient, CMD_LOGIN, 0, NULL,0,true);
-	if (m < 0){
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Login :Send Response Error %d \n",ip,port,m);
-		
-	}else{
-		//CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client Login OK\n",ip,port);
-	}
-
-	return nRet;
-}
-
 //同步心跳回应
 int client_keeplive(void *pclient, unsigned char * pdata, UINT len){
 
 	//send the result data
 	INT nRet = 0;
-	//CLog::Log(LOG_LEVEL_WARNING,"This is a client keeplive\n");
-	//struct client_keeplive_req *pKeeplive = (struct client_keeplive_req *)pdata;
-	//struct client_keeplive_req keeplive;
-	char ip[20];
-	int port = 0;
 	time_t tmpTime = 0;
+	CClientInfo* client = (CClientInfo*)pclient;
+	char* ip = client->m_ip;
+	int port = client->m_port;
+	SOCKET cliSocket = client->m_clientsock;
 
-	getClientIPInfo(pclient,ip,&port);
-
-#if 0		
-	nRet = g_CrackBroker.ClientKeepLive(ip);
-
-	//生成应答并返回
-	int m = Write(*(SOCKET*)pclient, COMMAND_REPLAY_HEARTBEAT, 0, NULL,0,true);
-#else
 	unsigned char cmd;
 	char* data = NULL;
 	nRet = g_CrackBroker.ClientKeepLive2(ip, pclient, &cmd, (void **)&data);
-	int m = Write(*(SOCKET*)pclient, cmd, 0, data, nRet, true);
+	int m = Write(cliSocket, cmd, 0, data, nRet, true);
 	g_CrackBroker.Free(data);
-#endif
 	
 	if (m < 0){
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Keeplive :Send Response Error %d \n",ip,port,m);
+		CLog::Log(LOG_LEVEL_DEBUG,"[%s:%d] Keeplive :Send Response Error %d \n",ip,port,m);
 	}else	{
-		//CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client KeepLive %d OK\n",ip, port, cmd);
+		//CLog::Log(LOG_LEVEL_DEBUG,"[%s:%d] Client KeepLive %d OK\n",ip, port, cmd);
 	}
 
 	return nRet;
@@ -136,12 +59,12 @@ int cc_task_upload(void *pclient, unsigned char * pdata, UINT len){
 
 	crack_task *pCrackTask = NULL;
 	task_upload_res task_upload;
-	char ip[20];
-	int port = 0;
+	CClientInfo* client = (CClientInfo*)pclient;
+	char* ip = client->m_ip;
+	int port = client->m_port;
+	SOCKET cliSocket = client->m_clientsock;
+
 	time_t tmpTime = 0;
-
-	getClientIPInfo(pclient,ip,&port);
-
 
 	if (len != sizeof(crack_task)){
 
@@ -178,7 +101,7 @@ int cc_task_upload(void *pclient, unsigned char * pdata, UINT len){
 	
 	memcpy(task_upload.guid,pCrackTask->guid,40);
 
-	m = Write(*(SOCKET*)pclient, CMD_TASK_UPLOAD, nRet, &task_upload,resLen,true);
+	m = Write(cliSocket, CMD_TASK_UPLOAD, nRet, &task_upload,resLen,true);
 	if (m < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Upload Task: Send Response Error %d \n",ip,port,m);
 		
@@ -191,21 +114,19 @@ int cc_task_upload(void *pclient, unsigned char * pdata, UINT len){
 
 int cc_task_start(void *pclient, unsigned char * pdata, UINT len){
 
-	CLog::Log(LOG_LEVEL_NOMAL, "this is task start new\n");
+	CLog::Log(LOG_LEVEL_DEBUG, "this is task start new\n");
 	
 	int nRet = 0;
 	unsigned int resLen = 0;
 	task_start_req *pStartReq = NULL;
 	task_status_res taskres;
-	char ip[20];
-	int port = 0;
-
-	memset(ip,0,20);
-
-	getClientIPInfo(pclient,ip,&port);
+	CClientInfo* client = (CClientInfo*)pclient;
+	char* ip = client->m_ip;
+	int port = client->m_port;
+	SOCKET cliSocket = client->m_clientsock;
 
 	if (len != sizeof(task_start_req)){
-		CLog::Log(LOG_LEVEL_WARNING,"Start Task:Data len not task_start_req size Error\n");
+		CLog::Log(LOG_LEVEL_DEBUG,"Start Task:Data len not task_start_req size Error\n");
 		return -2;
 	}
 
@@ -224,11 +145,11 @@ int cc_task_start(void *pclient, unsigned char * pdata, UINT len){
 	}
 
 	//产生应答报文，并发送
-	int m = Write(*(SOCKET*)pclient, CMD_TASK_START, nRet, &taskres,resLen,true);
+	int m = Write(cliSocket, CMD_TASK_START, nRet, &taskres,resLen,true);
 	if (m < 0){
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Start Task :Send Response Error %d \n",ip,port,m);
+		CLog::Log(LOG_LEVEL_DEBUG,"[%s:%d] Start Task :Send Response Error %d \n",ip,port,m);
 	}else
-		CLog::Log(LOG_LEVEL_NOMAL,"[%s:%d] Client Start Task OK\n",ip,port);
+		CLog::Log(LOG_LEVEL_DEBUG,"[%s:%d] Client Start Task OK\n",ip,port);
 
 	return nRet;
 }
@@ -237,19 +158,17 @@ int cc_task_start(void *pclient, unsigned char * pdata, UINT len){
 
 int cc_task_stop(void *pclient, unsigned char * pdata, UINT len){
 
-	CLog::Log(LOG_LEVEL_NOMAL, "this is task Stop new\n");
+	CLog::Log(LOG_LEVEL_DEBUG, "this is task Stop new\n");
 	int nRet = 0;
 	unsigned int resLen = 0;
 
 	control_header reshdr = INITIALIZE_EMPTY_HEADER(CMD_TASK_STOP);
 	struct task_stop_req *pStopReq = NULL;
 	struct task_status_res taskres;
-	char ip[20];
-	int port = 0;
-
-	memset(ip,0,20);
-
-	getClientIPInfo(pclient,ip,&port);
+	CClientInfo* client = (CClientInfo*)pclient;
+	char* ip = client->m_ip;
+	int port = client->m_port;
+	SOCKET cliSocket = client->m_clientsock;
 
 	if (len != sizeof(task_stop_req)){
 
@@ -272,7 +191,7 @@ int cc_task_stop(void *pclient, unsigned char * pdata, UINT len){
 	}
 
 	//产生应答报文，并发送
-	int m = Write(*(SOCKET*)pclient, CMD_TASK_STOP, nRet, &taskres,resLen,true);
+	int m = Write(cliSocket, CMD_TASK_STOP, nRet, &taskres,resLen,true);
 	if (m < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Stop Task :Send Response Error %d \n",ip,port,m);
 	}else
@@ -286,19 +205,17 @@ int cc_task_stop(void *pclient, unsigned char * pdata, UINT len){
 
 int cc_task_pause(void *pclient, unsigned char * pdata, UINT len){
 
-	CLog::Log(LOG_LEVEL_NOMAL,"this is task pause new\n");
+	CLog::Log(LOG_LEVEL_DEBUG,"this is task pause new\n");
 	
 	int nRet = 0;
 	unsigned int resLen = 0;
 	task_pause_req *pPauseReq = NULL;
 	task_status_res taskres;
 
-	char ip[20];
-	int port = 0;
-
-	memset(ip,0,20);
-
-	getClientIPInfo(pclient,ip,&port);
+	CClientInfo* client = (CClientInfo*)pclient;
+	char* ip = client->m_ip;
+	int port = client->m_port;
+	SOCKET cliSocket = client->m_clientsock;
 
 	if (len != sizeof(task_pause_req)){
 		CLog::Log(LOG_LEVEL_WARNING,"Pause Task : Data len not task_pause_req size Error\n");
@@ -321,7 +238,7 @@ int cc_task_pause(void *pclient, unsigned char * pdata, UINT len){
 	}
 
 	//产生应答报文，并发送
-	int m = Write(*(SOCKET*)pclient, CMD_TASK_PAUSE, nRet, &taskres,resLen,true);
+	int m = Write(cliSocket, CMD_TASK_PAUSE, nRet, &taskres,resLen,true);
 	if (m < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Pause Task :Send Response Error %d \n",ip,port,m);
 	}else
@@ -334,19 +251,17 @@ int cc_task_pause(void *pclient, unsigned char * pdata, UINT len){
 
 int cc_task_delete(void *pclient, unsigned char * pdata, UINT len){
 
-	CLog::Log(LOG_LEVEL_NOMAL,"this is task Delete new\n");
+	CLog::Log(LOG_LEVEL_DEBUG,"this is task Delete new\n");
 	
 	int nRet = 0;
 	unsigned int resLen = 0;
 	task_delete_req *pDeleteReq = NULL;
 	task_status_res taskres;
 
-	char ip[20];
-	int port = 0;
-
-	memset(ip,0,20);
-
-	getClientIPInfo(pclient,ip,&port);
+	CClientInfo* client = (CClientInfo*)pclient;
+	char* ip = client->m_ip;
+	int port = client->m_port;
+	SOCKET cliSocket = client->m_clientsock;
 
 	memset(&taskres,0,sizeof(struct task_status_res));
 	if (len != sizeof(task_delete_req)){
@@ -372,7 +287,7 @@ int cc_task_delete(void *pclient, unsigned char * pdata, UINT len){
 	}
 
 	//产生应答报文，并发送
-	int m = Write(*(SOCKET*)pclient, CMD_TASK_DELETE, nRet, &taskres,resLen,true);
+	int m = Write(cliSocket, CMD_TASK_DELETE, nRet, &taskres,resLen,true);
 	if (m < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Delete Task :Send Response Error %d \n",ip,port,m);
 	}else
@@ -391,12 +306,11 @@ int cc_get_task_result(void *pclient, unsigned char * pdata, UINT len){
 	task_result_info *pres = NULL;
 	int resNum = 0;
 
-	char ip[20];
-	int port = 0;
+	CClientInfo* client = (CClientInfo*)pclient;
+	char* ip = client->m_ip;
+	int port = client->m_port;
+	SOCKET cliSocket = client->m_clientsock;
 
-	memset(ip,0,20);
-
-	getClientIPInfo(pclient,ip,&port);
 	if (len != sizeof(task_result_req)){
 		CLog::Log(LOG_LEVEL_WARNING,"Get A Task Result: Data len not task_result_req size Error\n");
 		return -2;
@@ -404,12 +318,12 @@ int cc_get_task_result(void *pclient, unsigned char * pdata, UINT len){
 
 	pResReq = (task_result_req *)pdata;
 
-	CLog::Log(LOG_LEVEL_NOMAL,"Get a Task result guid: %s\n",pResReq->guid);
+	CLog::Log(LOG_LEVEL_DEBUG, "Get a Task result guid: %s\n",pResReq->guid);
 	
 	//处理业务逻辑
 	nRet = g_CrackBroker.GetTaskResult(pResReq,&pres,&resNum);
 	if (nRet < 0){
-		CLog::Log(LOG_LEVEL_WARNING,"Broker Get Task %s Result, ErrorCode : %d\n",pResReq->guid,nRet);
+		CLog::Log(LOG_LEVEL_DEBUG,"Broker Get Task %s Result, ErrorCode : %d\n",pResReq->guid,nRet);
 		resLen = 0;
 	}else{
 		//CLog::Log(LOG_LEVEL_WARNING,"Broker Get Task %s Result OK\n",pResReq->guid);
@@ -417,11 +331,11 @@ int cc_get_task_result(void *pclient, unsigned char * pdata, UINT len){
 	}
 
 	//产生应答报文，并发送
-	int m = Write(*(SOCKET*)pclient, CMD_TASK_RESULT, nRet, pres,resLen,true);
+	int m = Write(cliSocket, CMD_TASK_RESULT, nRet, pres,resLen,true);
 	if (m < 0){
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get Task %s Result: Send Response Error %d \n",ip,port,pResReq->guid,m);
+		CLog::Log(LOG_LEVEL_DEBUG,"[%s:%d] Get Task %s Result: Send Response Error %d \n",ip,port,pResReq->guid,m);
 	}else{
-		//CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client Get Task %s Result OK\n",ip,port,pResReq->guid);
+		//CLog::Log(LOG_LEVEL_DEBUG,"[%s:%d] Client Get Task %s Result OK\n",ip,port,pResReq->guid);
 	}
 
 	g_CrackBroker.Free(pres);
@@ -438,17 +352,15 @@ int cc_refresh_status(void *pclient, unsigned char * pdata, UINT len){
 	struct task_status_info *pTasksStatus = NULL;
 	unsigned int resNum = 0;
 
-	char ip[20];
-	int port = 0;
-
-	memset(ip,0,20);
-
-	getClientIPInfo(pclient,ip,&port);
+	CClientInfo* client = (CClientInfo*)pclient;
+	char* ip = client->m_ip;
+	int port = client->m_port;
+	SOCKET cliSocket = client->m_clientsock;
 		
 	//处理业务逻辑
 	nRet = g_CrackBroker.GetTasksStatus(&pTasksStatus,&resNum);
 	if (nRet < 0){
-		CLog::Log(LOG_LEVEL_WARNING,"Broker Get Task Status %d Result ,ErrorCode : %d\n",resNum,nRet);
+		CLog::Log(LOG_LEVEL_DEBUG, "Broker Get Task Status %d Result ,ErrorCode : %d\n",resNum,nRet);
 		resLen = 0;
 	}else{
 		//CLog::Log(LOG_LEVEL_WARNING,"Broker Get Task Status %d Result OK\n",resNum);
@@ -456,11 +368,11 @@ int cc_refresh_status(void *pclient, unsigned char * pdata, UINT len){
 	}
 	
 	//产生应答报文，并发送
-	int m = Write(*(SOCKET*)pclient, CMD_REFRESH_STATUS, nRet, pTasksStatus,resLen,true);
+	int m = Write(cliSocket, CMD_REFRESH_STATUS, nRet, pTasksStatus,resLen,true);
 	if (m < 0){
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get Task Status :Send Response Error %d \n",ip,port,m);
+		CLog::Log(LOG_LEVEL_DEBUG,"[%s:%d] Get Task Status :Send Response Error %d \n",ip,port,m);
 	}else{
-		//CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client Get Task Status OK\n",ip,port);
+		//CLog::Log(LOG_LEVEL_DEBUG,"[%s:%d] Client Get Task Status OK\n",ip,port);
 	}
 
 	g_CrackBroker.Free(pTasksStatus);
@@ -476,24 +388,23 @@ int cc_get_client_list(void *pclient, unsigned char * pdata, UINT len){
 	struct compute_node_info *pClients = NULL;
 	unsigned int resNum = 0;
 
-	char ip[20];
-	int port = 0;
+	CClientInfo* client = (CClientInfo*)pclient;
+	char* ip = client->m_ip;
+	int port = client->m_port;
+	SOCKET cliSocket = client->m_clientsock;
 
-	memset(ip,0,20);
-
-	getClientIPInfo(pclient,ip,&port);
 	//处理业务逻辑
 	nRet = g_CrackBroker.GetClientList(&pClients,&resNum);
 	if (nRet < 0){
-		CLog::Log(LOG_LEVEL_WARNING,"Broker Get Clients ,number is %d ,ErrorCode : %d\n",resNum,nRet);
+		CLog::Log(LOG_LEVEL_DEBUG, "Broker Get Clients ,number is %d ,ErrorCode : %d\n",resNum,nRet);
 	
 	}else{
-		CLog::Log(LOG_LEVEL_NOMAL,"Broker Get Clients, number is %d OK\n",resNum);
+		CLog::Log(LOG_LEVEL_DEBUG, "Broker Get Clients, number is %d OK\n",resNum);
 		resLen = sizeof(struct compute_node_info) * resNum;
 	}
 	
 	//产生应答报文，并发送
-	int m = Write(*(SOCKET*)pclient, CMD_GET_CLIENT_LIST, nRet, pClients,resLen,true);
+	int m = Write(cliSocket, CMD_GET_CLIENT_LIST, nRet, pClients,resLen,true);
 	if (m < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get Client Info: Send Response Error %d \n",ip,port,m);
 	}else{
@@ -517,11 +428,12 @@ int cc_task_file_download(void *pclient, unsigned char * pdata,UINT len){
 	unsigned int filelen =  0;
 	int resLen = 0;
 
-	char ip[20];
-	int port = 0;
-	time_t tmpTime = 0;
+	CClientInfo* client = (CClientInfo*)pclient;
+	char* ip = client->m_ip;
+	int port = client->m_port;
+	SOCKET cliSocket = client->m_clientsock;
 
-	getClientIPInfo(pclient,ip,&port);
+	time_t tmpTime = 0;
 
 	preq = (struct download_file_req *)pdata;
 	char task_guid[40];
@@ -556,7 +468,7 @@ int cc_task_file_download(void *pclient, unsigned char * pdata,UINT len){
 
 resp:
 	//产生应答报文，并发送
-	int m = Write(*(SOCKET*)pclient, CMD_DOWNLOAD_FILE, ret, &fileinfo,resLen,true);
+	int m = Write(cliSocket, CMD_DOWNLOAD_FILE, ret, &fileinfo,resLen,true);
 	if (m < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get Task File Downnload :Send Response Error %d \n",ip,port,m);
 	}else
@@ -574,15 +486,15 @@ int cc_task_file_download_start(void *pclient,unsigned char *pdata,UINT len){
 	int rdlen = 0;
 	int readLen = 0;
 	FILE *pfile = NULL;
-	SOCKET sock = *(SOCKET *)pclient;
 	BYTE resBuf[MAX_BUF_LEN];
 	file_info *pFileInfo = NULL;
 
-	char ip[20];
-	int port = 0;
-	time_t tmpTime = 0;
+	CClientInfo* client = (CClientInfo*)pclient;
+	char* ip = client->m_ip;
+	int port = client->m_port;
+	SOCKET sock = client->m_clientsock;
 
-	getClientIPInfo(pclient,ip,&port);
+	time_t tmpTime = 0;
 
 	pFileInfo = (file_info *)pdata;
 	pfile = (FILE *)pFileInfo->f;
@@ -641,17 +553,18 @@ int cc_task_file_download_start(void *pclient,unsigned char *pdata,UINT len){
 //download file end
 int cc_task_file_download_end(void *pclient,unsigned char *pdata,UINT len){
 
-	CLog::Log(LOG_LEVEL_NOMAL,"this is file download end\n");
+	CLog::Log(LOG_LEVEL_DEBUG,"this is file download end\n");
 	int ret = 0;
 	unsigned int resLen = 0;
 	file_info *pFileInfo = NULL;
 	file_info finfo;
 	FILE *pfile = NULL;
-	char ip[20];
-	int port = 0;
-	time_t tmpTime = 0;
+	CClientInfo* client = (CClientInfo*)pclient;
+	char* ip = client->m_ip;
+	int port = client->m_port;
+	SOCKET cliSocket = client->m_clientsock;
 
-	getClientIPInfo(pclient,ip,&port);
+	time_t tmpTime = 0;
 	
 	pFileInfo = (file_info *)pdata;
 	pfile = (FILE *)pFileInfo->f;
@@ -667,11 +580,11 @@ int cc_task_file_download_end(void *pclient,unsigned char *pdata,UINT len){
 
 
 	//产生应答报文，并发送
-	int m = Write(*(SOCKET*)pclient, CMD_END_DOWNLOAD, 0, &finfo,resLen,true);
+	int m = Write(cliSocket, CMD_END_DOWNLOAD, 0, &finfo,resLen,true);
 	if (m < 0){
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get Task File Downnload End :Send Response Error %d \n",ip,port,m);
+		CLog::Log(LOG_LEVEL_DEBUG,"[%s:%d] Get Task File Downnload End :Send Response Error %d \n",ip,port,m);
 	}else
-		CLog::Log(LOG_LEVEL_NOMAL,"[%s:%d] Client Get Task File Download End OK\n",ip,port);
+		CLog::Log(LOG_LEVEL_DEBUG,"[%s:%d] Client Get Task File Download End OK\n",ip,port);
 
 	return ret;
 }
@@ -681,19 +594,19 @@ int cc_task_file_download_end(void *pclient,unsigned char *pdata,UINT len){
 //upload file req  
 int cc_task_upload_file(void *pclient,unsigned char *pdata,UINT len){
 
-	CLog::Log(LOG_LEVEL_NOMAL,"this is file upload\n");
+	CLog::Log(LOG_LEVEL_DEBUG,"this is file upload\n");
 	int ret = 0;
 	unsigned int resLen = 0;
 	FILE *pfile = NULL;
 
 	file_upload_res uploadres;
 	file_upload_req *preq = NULL;
-	char ip[20];
-	int port = 0;
 	char filename[128];
 	time_t tmpTime = 0;
-
-	getClientIPInfo(pclient,ip,&port);
+	CClientInfo* client = (CClientInfo*)pclient;
+	char* ip = client->m_ip;
+	int port = client->m_port;
+	SOCKET cliSocket = client->m_clientsock;
 
 	preq = (struct file_upload_req *)pdata;
 
@@ -706,20 +619,20 @@ int cc_task_upload_file(void *pclient,unsigned char *pdata,UINT len){
 
 	int retval = PathFileExistsA(FILE_DIR);
 	if (retval == 1){
-		CLog::Log(LOG_LEVEL_WARNING,"DIR %s Exists\n",FILE_DIR);
+		CLog::Log(LOG_LEVEL_DEBUG,"DIR %s Exists\n",FILE_DIR);
 
 	}else{
 		retval = CreateDirectoryA(FILE_DIR,NULL);
 		if (retval == 0){
-			CLog::Log(LOG_LEVEL_WARNING,"DIR %s Create Eroor\n",FILE_DIR);
+			CLog::Log(LOG_LEVEL_DEBUG,"DIR %s Create Eroor\n",FILE_DIR);
 		}else{
-			CLog::Log(LOG_LEVEL_NOMAL,"DIR %s Create OK\n",FILE_DIR);
+			CLog::Log(LOG_LEVEL_DEBUG,"DIR %s Create OK\n",FILE_DIR);
 		}
 	}
 
 	pfile = fopen((char *)filename,"wb");
 	if (!pfile){
-		CLog::Log(LOG_LEVEL_WARNING,"File %s open error\n",filename);	
+		CLog::Log(LOG_LEVEL_DEBUG,"File %s open error\n",filename);	
 		ret = -1;
 		uploadres.f = NULL;
 
@@ -736,11 +649,11 @@ int cc_task_upload_file(void *pclient,unsigned char *pdata,UINT len){
 	CLog::Log(LOG_LEVEL_NOMAL,"Upload File: pfile %p, len:%d ,offset:%d, guid:%s\n",uploadres.f,uploadres.len,uploadres.offset,uploadres.guid);
 
 	//产生应答报文，并发送
-	int m = Write(*(SOCKET*)pclient, CMD_UPLOAD_FILE, ret, &uploadres,resLen,true);
+	int m = Write(cliSocket, CMD_UPLOAD_FILE, ret, &uploadres,resLen,true);
 	if (m < 0){
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get Task File Upload :Send Response Error %d \n",ip,port,m);
+		CLog::Log(LOG_LEVEL_DEBUG,"[%s:%d] Get Task File Upload :Send Response Error %d \n",ip,port,m);
 	}else
-		CLog::Log(LOG_LEVEL_NOMAL,"[%s:%d] Client Get Task File Upload OK\n",ip,port);
+		CLog::Log(LOG_LEVEL_DEBUG,"[%s:%d] Client Get Task File Upload OK\n",ip,port);
 
 	return ret;
 }
@@ -748,11 +661,10 @@ int cc_task_upload_file(void *pclient,unsigned char *pdata,UINT len){
 //upload file start req  
 int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 	
-	CLog::Log(LOG_LEVEL_NOMAL,"this is file upload .... \n");
+	CLog::Log(LOG_LEVEL_DEBUG,"this is file upload .... \n");
 	int ret = 0;
 	FILE *pfile = NULL;
 
-	SOCKET sock = *(SOCKET *)pclient;
 	file_upload_start_req *preq = NULL;
 	unsigned int filelen =  0;
 	unsigned int readLen = 0;
@@ -763,17 +675,18 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 	unsigned char resBuf[MAX_BUF_LEN];
 	char tmpguid[40];
 	
-	char ip[20];
-	int port = 0;
+	CClientInfo* client = (CClientInfo*)pclient;
+	char* ip = client->m_ip;
+	int port = client->m_port;
+	SOCKET sock = client->m_clientsock;
+
 	time_t tmpTime = 0;
 	
 	if(len != sizeof(file_upload_start_req))
 	{
-		CLog::Log(LOG_LEVEL_WARNING,"invalid data\n");
+		CLog::Log(LOG_LEVEL_DEBUG,"invalid data\n");
 		return -1;
 	}
-
-	getClientIPInfo(pclient,ip,&port);
 
 	preq = (file_upload_start_req *)pdata;
 	filelen = preq->len;
@@ -803,13 +716,13 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 		readLen = Read(sock,&cmd,&status,resBuf,MAX_BUF_LEN);
 		if(cmd != CMD_FILE_CONTENT)
 		{
-			CLog::Log(LOG_LEVEL_WARNING, "Recv unneed cmd %d ...\n", cmd);
+			CLog::Log(LOG_LEVEL_DEBUG, "Recv unneed cmd %d ...\n", cmd);
 			return -3;
 		}
 
 		if (readLen < 0 ){
 			
-			CLog::Log(LOG_LEVEL_WARNING,"Recv client upload file %s ...\n",filename);
+			CLog::Log(LOG_LEVEL_DEBUG,"Recv client upload file %s ...\n",filename);
 			ret = -2;
 			break;
 
@@ -824,7 +737,7 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 				break;
 
 			}else{	
-				//CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get File Upload %d: %d/%d OK\n",ip,port,writeFileLen, curlen, filelen);					
+				CLog::Log(LOG_LEVEL_DEBUG,"[%s:%d] Get File Upload %d: %d/%d OK\n",ip,port,writeFileLen, curlen, filelen);					
 			}
 		}
 	}
@@ -846,11 +759,12 @@ int cc_task_upload_file_end(void *pclient,unsigned char *pdata,UINT len){
 	file_upload_end_res uploadres;
 	control_header reshdr = INITIALIZE_EMPTY_HEADER(CMD_END_UPLOAD);
 	unsigned int filelen =  0;
-	char ip[20];
-	int port = 0;
 	time_t tmpTime = 0;
-
-	getClientIPInfo(pclient,ip,&port);
+	CClientInfo* client = (CClientInfo*)pclient;
+	char* ip = client->m_ip;
+	int port = client->m_port;
+	SOCKET cliSocket = client->m_clientsock;
+	
 	preq = (struct file_upload_end_req *)pdata;
 	memset(&uploadres,0,sizeof(struct file_upload_end_res));
 
@@ -898,7 +812,7 @@ int cc_task_upload_file_end(void *pclient,unsigned char *pdata,UINT len){
 	}
 
 	//产生应答报文，并发送
-	int m = Write(*(SOCKET*)pclient, CMD_END_UPLOAD, ret, &uploadres,resLen,true);
+	int m = Write(cliSocket, CMD_END_UPLOAD, ret, &uploadres,resLen,true);
 	if (m < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get Task File Upload End:Send Response Error %d \n",ip,port,m);
 	}else
@@ -913,11 +827,11 @@ int comp_get_a_workitem(void *pclient,unsigned char *pdata,UINT len){
 	int ret = 0;
 	struct crack_block *pcrackblock = NULL;
 	unsigned int resLen = 0;
-	char ip[20];
-	int port = 0;
+	CClientInfo* client = (CClientInfo*)pclient;
+	char* ip = client->m_ip;
+	int port = client->m_port;
+	SOCKET cliSocket = client->m_clientsock;
 
-	memset(ip,0,20);
-	getClientIPInfo(pclient,ip,&port);
 
 	//处理业务逻辑
 	//ret = g_CrackBroker.GetAWorkItem(&pcrackblock);
@@ -932,7 +846,7 @@ int comp_get_a_workitem(void *pclient,unsigned char *pdata,UINT len){
 	}
 
 	//产生应答报文，并发送
-	int m = Write(*(SOCKET*)pclient, CMD_GET_A_WORKITEM, ret, pcrackblock,resLen,true);
+	int m = Write(cliSocket, CMD_GET_A_WORKITEM, ret, pcrackblock,resLen,true);
 	if (m < 0){
 		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get WorkItem:Send Response Error %d \n",ip,port,m);
 
@@ -949,26 +863,25 @@ int comp_get_workitem_status(void *pclient,unsigned char *pdata,UINT len){
 
 	int ret = 0;
 	struct crack_status *pstatus = NULL;
-	char ip[20];
-	int port = 0;
-
-	memset(ip,0,20);
-	getClientIPInfo(pclient,ip,&port);
+	CClientInfo* client = (CClientInfo*)pclient;
+	char* ip = client->m_ip;
+	int port = client->m_port;
+	SOCKET cliSocket = client->m_clientsock;
 	pstatus = (struct crack_status *)pdata;
 
 	ret = g_CrackBroker.GetWIStatus(pstatus);
 	if (ret < 0 ){
-		//CLog::Log(LOG_LEVEL_WARNING,"Get A WorkItem Progress Error %d\n", ret);
+		//CLog::Log(LOG_LEVEL_DEBUG,"Get A WorkItem Progress Error %d\n", ret);
 	}else {
-		//CLog::Log(LOG_LEVEL_WARNING,"Get A WorkItem Progress OK\n");
+		//CLog::Log(LOG_LEVEL_DEBUG,"Get A WorkItem Progress OK\n");
 	}
 	
 	//产生应答报文，并发送
-	int m = Write(*(SOCKET*)pclient, CMD_WORKITEM_STATUS, ret, NULL,0,true);
+	int m = Write(cliSocket, CMD_WORKITEM_STATUS, ret, NULL,0,true);
 	if (m < 0){
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get A WorkItem %s Progress :Send Response Error %d \n",ip,port,pstatus->guid,m);
+		CLog::Log(LOG_LEVEL_DEBUG,"[%s:%d] Get A WorkItem %s Progress :Send Response Error %d \n",ip,port,pstatus->guid,m);
 	}else{
-		//CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client Get A WorkItem %s Progress OK\n",ip,port,pstatus->guid);
+		//CLog::Log(LOG_LEVEL_DEBUG,"[%s:%d] Client Get A WorkItem %s Progress OK\n",ip,port,pstatus->guid);
 	}
 	return ret;
 }
@@ -979,27 +892,25 @@ int comp_get_workitem_res(void *pclient,unsigned char *pdata,UINT len){
 
 	int ret = 0;
 	struct crack_result *pres = NULL;
-
-	char ip[20];
-	int port = 0;
-
-	memset(ip,0,20);
-	getClientIPInfo(pclient,ip,&port);
+	CClientInfo* client = (CClientInfo*)pclient;
+	char* ip = client->m_ip;
+	int port = client->m_port;
+	SOCKET cliSocket = client->m_clientsock;
 
 	pres = (struct crack_result *)pdata;
 	ret = g_CrackBroker.GetWIResult(pres);
 	if (ret < 0 ){
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get A WorkItem Result Error %d\n", ip,port, ret);
+		CLog::Log(LOG_LEVEL_DEBUG,"[%s:%d] Get A WorkItem Result Error %d\n", ip,port, ret);
 	}else {
-		//CLog::Log(LOG_LEVEL_WARNING,"Get A WorkItem Result OK\n");
+		//CLog::Log(LOG_LEVEL_DEBUG,"Get A WorkItem Result OK\n");
 	}
 
 	//产生应答报文，并发送
-	int m = Write(*(SOCKET*)pclient, CMD_WORKITEM_RESULT, ret, NULL,0,true);
+	int m = Write(cliSocket, CMD_WORKITEM_RESULT, ret, NULL,0,true);
 	if (m < 0){
-		CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Get A WorkItem %s Result: Send Response Error %d \n",ip,port,pres->guid,m);
+		CLog::Log(LOG_LEVEL_DEBUG,"[%s:%d] Get A WorkItem %s Result: Send Response Error %d \n",ip,port,pres->guid,m);
 	}else{
-		//CLog::Log(LOG_LEVEL_WARNING,"[%s:%d] Client Get A WorkItem %s Result OK\n",ip,port,pres->guid);
+		//CLog::Log(LOG_LEVEL_DEBUG,"[%s:%d] Client Get A WorkItem %s Result OK\n",ip,port,pres->guid);
 	}
 	return ret;
 }
@@ -1031,7 +942,6 @@ static FUNC_MAP::value_type func_value_type[] ={
 
 	FUNC_MAP::value_type(CMD_HEARTBEAT,client_keeplive),
 
-	FUNC_MAP::value_type(CMD_LOGIN,client_login),
 	FUNC_MAP::value_type(CMD_GET_A_WORKITEM,comp_get_a_workitem),
 	FUNC_MAP::value_type(CMD_WORKITEM_STATUS,comp_get_workitem_status),
 	FUNC_MAP::value_type(CMD_WORKITEM_RESULT,comp_get_workitem_res),
