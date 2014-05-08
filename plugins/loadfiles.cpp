@@ -12,7 +12,7 @@
 int load_hashes_file2(const char *filename, struct crack_task* task)
 {
 	struct crack_hash hashes[MAX_HASHES_PER_FILE];
-	int n, special;
+	int n, special = 0;
 	
 	n = load_hashes_file(filename, task->algo, hashes, MAX_HASHES_PER_FILE, &special);
 	if(special == 0 && n <= 0) return n;
