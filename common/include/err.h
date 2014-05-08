@@ -24,5 +24,19 @@
 #define ERR_FAILED_MKDIR		-19		//创建目录失败
 #define ERR_AUTHENTICATION		-20		//验证失败
 #define ERR_PRIVILEDGE			-21		//权限不够
+#define ERR_WRONGHASHES			-22		//HASH格式错误
+#define ERR_WRONGFILE			-23     //文件格式错误
+#define ERR_SPLITTASK			-24		//切分任务错误
+#define ERR_OUTOFMEMORY			-25		//内存不够
+#define ERR_CONVERTREADY		-26		//不能将任务转换成就绪
+#define ERR_CONVERTRUNNING		-27		//不能将任务转换成运行
+#define ERR_CONVERTPAUSE		-28		//不能将任务转换成暂停
+#define ERR_CONVERTSTOP			-29		//不能将任务转换成停止
+#define ERR_CONVERTFAIL			-30		//不能将任务转换成失败
+#define ERR_NOSUPPORTSTATUS		-31		//不支持该状态的任务切换
+#define ERR_CONVERTDELETE		-32		//不能删除任务
+#define ERR_CREATETASK			-33		//创建任务失败
+#define ERR_NOREADYITEM			-34		//没有可用的workitem
+#define ERR_NO_THISITEM			-35		//没有该workitem
 
 #endif
