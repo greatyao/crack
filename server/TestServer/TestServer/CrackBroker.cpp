@@ -106,13 +106,14 @@ int	CCrackBroker::CreateTask(struct crack_task *pReq, void* pclient){
 	CT_MAP::iterator temp_iter;
 
 	pTask = new CCrackTask;
-	ret = pTask->Init(pReq);
-	if (ret < 0 ){
+	if (!pTask){
 
-		CLog::Log(LOG_LEVEL_WARNING,"Create A New Task Error\n");
-		return CREATE_TASK_ERR;
+		CLog::Log(LOG_LEVEL_WARNING, "Allocate object CCrackTask Error\n");
+		return ERR_OUTOFMEMORY;
 
 	}
+	ret = pTask->Init(pReq);
+	
 //	m_cracktask_cs.Lock();
 	
 	m_cracktask_map.insert(CT_MAP::value_type(pTask->guid,pTask));
@@ -133,8 +134,8 @@ int CCrackBroker::SplitTask(const char *guid, const char* john){
 	iter_task = m_cracktask_map.find((char*)guid);
 	if (iter_task == m_cracktask_map.end()){
 		
-		CLog::Log(LOG_LEVEL_WARNING,"Can't find Task With GUID %s\n",guid);
-		return NOT_FIND_GUID_TASK;
+		CLog::Log(LOG_LEVEL_WARNING,"SplitTask: Can't find Task With GUID %s\n",guid);
+		return ERR_NO_THISTASK;
 	}
 
 	pCT = iter_task->second;
@@ -142,8 +143,8 @@ int CCrackBroker::SplitTask(const char *guid, const char* john){
 	ret = pCT->SplitTaskFile(guid, john);
 	if (ret < 0 ){
 		
-		CLog::Log(LOG_LEVEL_WARNING,"Task GUID %s ,Split Error\n",guid);
-		return TASK_SPLIT_ERR;
+		CLog::Log(LOG_LEVEL_WARNING,"SplitTask: Split File WITH GUID %s Error %d\n",guid, ret);
+		return ret;
 		
 	}
 
@@ -162,13 +163,13 @@ int	CCrackBroker::StartTask(struct task_start_req *pReq, void* pclient){
 
 	if (!pReq){
 
-		CLog::Log(LOG_LEVEL_DEBUG,"Start Task Req NULL Error\n");
-		return START_TASK_ERR;
+		CLog::Log(LOG_LEVEL_DEBUG,"StartTask: Req is NULL Error\n");
+		return ERR_INVALID_PARAM;
 
 	}
 
 	if(!client->OwnTask((char *)pReq->guid)){
-		CLog::Log(LOG_LEVEL_WARNING, "User %s has no priviledge to control task\n", client->GetOwner());
+		CLog::Log(LOG_LEVEL_WARNING, "StartTask: User %s has no priviledge to control\n", client->GetOwner());
 		return ERR_PRIVILEDGE;
 	}
 	
@@ -177,8 +178,8 @@ int	CCrackBroker::StartTask(struct task_start_req *pReq, void* pclient){
 	iter_task = m_cracktask_map.find((char *)pReq->guid);
 	if (iter_task == m_cracktask_map.end()){
 			
-		CLog::Log(LOG_LEVEL_WARNING,"Can't find Task With GUID %s\n",pReq->guid);
-		return NOT_FIND_GUID_TASK;
+		CLog::Log(LOG_LEVEL_WARNING,"StartTask: Can't find Task With GUID %s\n",pReq->guid);
+		return ERR_NO_THISTASK;
 	}else{
 		
 		pCT = iter_task->second;
@@ -188,7 +189,7 @@ int	CCrackBroker::StartTask(struct task_start_req *pReq, void* pclient){
 		//任务被放入循环队列队尾，等待调度
 		if(ret == 0){	//必须确保SetStatus执行成功
 			m_cracktask_ready_queue.push_back(pCT->guid);
-			CLog::Log(LOG_LEVEL_NOMAL,"CrackTask: Set %s Ready and Start\n", pCT->guid);
+			CLog::Log(LOG_LEVEL_NOMAL,"StartTask: Set %s OK\n", pCT->guid);
 		}
 	}
 //	m_cracktask_cs.Unlock();
@@ -208,12 +209,12 @@ int CCrackBroker::StopTask(struct task_stop_req *pReq, void* pclient){
 
 	if (!pReq){
 
-		CLog::Log(LOG_LEVEL_WARNING,"Stop Task Req NULL Error\n");
-		return STOP_TASK_ERR;
+		CLog::Log(LOG_LEVEL_WARNING,"StopTask: Req NULL Error\n");
+		return ERR_INVALID_PARAM;
 
 	}
 	if(!client->OwnTask((char *)pReq->guid)){
-		CLog::Log(LOG_LEVEL_WARNING, "User %s has no priviledge to control task\n", client->GetOwner());
+		CLog::Log(LOG_LEVEL_WARNING, "StopTask: User %s has no priviledge to control\n", client->GetOwner());
 		return ERR_PRIVILEDGE;
 	}
 	
@@ -222,8 +223,8 @@ int CCrackBroker::StopTask(struct task_stop_req *pReq, void* pclient){
 	iter_task = m_cracktask_map.find((char *)pReq->guid);
 	if (iter_task == m_cracktask_map.end()){
 			
-		CLog::Log(LOG_LEVEL_WARNING,"Can't find Task With GUID %s\n",pReq->guid);
-		return NOT_FIND_GUID_TASK;
+		CLog::Log(LOG_LEVEL_WARNING,"StopTask: Can't find Task With GUID %s\n",pReq->guid);
+		return ERR_NO_THISTASK;
 	}else{
 		
 		pCT = iter_task->second;
@@ -270,12 +271,12 @@ int CCrackBroker::DeleteTask(struct task_delete_req *pReq, void* pclient){
 	
 	if (!pReq){
 
-		CLog::Log(LOG_LEVEL_WARNING,"Delete Task Req NULL Error\n");
-		return DEL_TASK_ERR;
+		CLog::Log(LOG_LEVEL_WARNING,"DeleteTask: Req NULL Error\n");
+		return ERR_INVALID_PARAM;
 	}
 
 	if(!client->OwnTask((char *)pReq->guid)){
-		CLog::Log(LOG_LEVEL_WARNING, "User %s has no priviledge to control task\n", client->GetOwner());
+		CLog::Log(LOG_LEVEL_WARNING, "DeleteTask: User %s has no priviledge to control\n", client->GetOwner());
 		return ERR_PRIVILEDGE;
 	}
 	
@@ -284,8 +285,8 @@ int CCrackBroker::DeleteTask(struct task_delete_req *pReq, void* pclient){
 	iter_task = m_cracktask_map.find((char *)pReq->guid);
 	if (iter_task == m_cracktask_map.end()){
 			
-		CLog::Log(LOG_LEVEL_WARNING,"Can't find Task With GUID %s\n",pReq->guid);
-		return NOT_FIND_GUID_TASK;
+		CLog::Log(LOG_LEVEL_WARNING,"DeleteTask: Can't find Task With GUID %s\n",pReq->guid);
+		return ERR_NO_THISTASK;
 
 	}else{
 		
@@ -294,8 +295,8 @@ int CCrackBroker::DeleteTask(struct task_delete_req *pReq, void* pclient){
 		//如果任务正在运行的话，不允许删除
 		if (pCT->m_status == CT_STATUS_RUNNING){
 
-			CLog::Log(LOG_LEVEL_WARNING,"Can't Delete Task With GUID %s,Task is Running.\n",pReq->guid);
-			return RUN_NOT_DELETE;
+			CLog::Log(LOG_LEVEL_WARNING,"DeleteTask: Task %s is Running, Can't Delete!\n",pReq->guid);
+			return ERR_CONVERTDELETE;
 
 		}
 		//Task status --> Running , the block status --> ready
@@ -339,11 +340,11 @@ int CCrackBroker::PauseTask(struct task_pause_req *pReq, void* pclient){
 
 	if (!pReq){
 
-		CLog::Log(LOG_LEVEL_WARNING,"Pause Task Req NULL Error\n");
-		return PAUSE_TASK_ERR;
+		CLog::Log(LOG_LEVEL_WARNING,"PauseTask: Req NULL Error\n");
+		return ERR_INVALID_PARAM;
 	}
 	if(!client->OwnTask((char *)pReq->guid)){
-		CLog::Log(LOG_LEVEL_WARNING, "User %s has no priviledge to control task\n", client->GetOwner());
+		CLog::Log(LOG_LEVEL_WARNING, "PauseTask: User %s has no priviledge to control\n", client->GetOwner());
 		return ERR_PRIVILEDGE;
 	}
 	
@@ -352,8 +353,8 @@ int CCrackBroker::PauseTask(struct task_pause_req *pReq, void* pclient){
 	iter_task = m_cracktask_map.find((char *)pReq->guid);
 	if (iter_task == m_cracktask_map.end()){
 			
-		CLog::Log(LOG_LEVEL_WARNING,"Can't find Task With GUID %s\n",pReq->guid);
-		return NOT_FIND_GUID_TASK;
+		CLog::Log(LOG_LEVEL_WARNING,"PauseTask: Can't find Task With GUID %s\n",pReq->guid);
+		return ERR_NO_THISTASK;
 
 	}else{
 		
@@ -384,8 +385,8 @@ int CCrackBroker::GetTaskResult(struct task_result_req *pReq,struct task_result_
 	iter_task = m_cracktask_map.find((char *)pReq->guid);
 	if (iter_task == m_cracktask_map.end()){
 		
-		CLog::Log(LOG_LEVEL_WARNING,"Can't find Task With GUID %s\n",pReq->guid);
-		return NOT_FIND_GUID_TASK;
+		CLog::Log(LOG_LEVEL_WARNING,"GetTaskResult: Can't find Task With GUID %s\n",pReq->guid);
+		return ERR_NO_THISTASK;
 	}else{
 
 		pCT = iter_task->second;
@@ -398,8 +399,8 @@ int CCrackBroker::GetTaskResult(struct task_result_req *pReq,struct task_result_
 		pres = (struct task_result_info *)Alloc(sizeof(struct task_result_info)*hashnum);
 		if (!pres){
 			
-			CLog::Log(LOG_LEVEL_WARNING,"Alloc Get Task %s Result Error\n",pReq->guid);
-			return ALLOC_TASK_RESULT_ERR;
+			CLog::Log(LOG_LEVEL_WARNING,"GetTaskResult: Alloc task_result_info object Error\n");
+			return ERR_OUTOFMEMORY;
 		}
 
 		//得到计算结果
@@ -434,8 +435,8 @@ int CCrackBroker::GetTasksStatus(struct task_status_info **pRes,unsigned int *re
 	pres = (struct task_status_info *)Alloc(sizeof(struct task_status_info)*task_num);
 	if (!pres)
 	{	
-		CLog::Log(LOG_LEVEL_WARNING,"Alloc Get Running Task Status Error\n");
-		return ALLOC_TASK_STATUS_ERR;
+		CLog::Log(LOG_LEVEL_WARNING,"GetTasksStatus: Alloc task_status_info object Error\n");
+		return ERR_OUTOFMEMORY;
 	}
 	
 	for(iter_task = m_cracktask_map.begin();iter_task != m_cracktask_map.end();iter_task++){
@@ -475,9 +476,9 @@ int CCrackBroker::GetClientList(struct compute_node_info **pRes,unsigned int *re
 	pres = (struct compute_node_info *)Alloc(sizeof(struct compute_node_info)*client_num);
 	if (!pres)
 	{	
-		CLog::Log(LOG_LEVEL_DEBUG,"Alloc Computer Client Error\n");
+		CLog::Log(LOG_LEVEL_DEBUG,"GetClientList: Alloc compute_node_info Error\n");
 	//	m_client_cs.Unlock();
-		return ALLOC_COMP_CLIENT_ERR;
+		return ERR_OUTOFMEMORY;
 	}
 	
 	memset(pres,0,sizeof(struct compute_node_info) * client_num);
@@ -513,87 +514,6 @@ int CCrackBroker::GetClientList(struct compute_node_info **pRes,unsigned int *re
 }
 
 //计算节点业务逻辑处理函数
-int CCrackBroker::GetAWorkItem(struct crack_block **pRes){
-
-	int ret = 0;
-	CT_MAP::iterator iter_task;
-	struct crack_block *pres = NULL;
-	CCrackBlock *pTmpCB = NULL;
-	CCrackTask *pCT = NULL;
-	CCrackBlock *pCB = NULL;
-	CB_MAP::iterator iter_block;
-	char *pguid = NULL;
-	int size = 0;
-
-	//CLog::Log(LOG_LEVEL_WARNING,"Enter into CCrackBroker::GetAWorkItem\n");
-
-	pres = (struct crack_block *)Alloc(sizeof(struct crack_block));
-	if (!pres)
-	{	
-		CLog::Log(LOG_LEVEL_WARNING,"Alloc crack block error\n");
-		return ALLOC_CRACK_BLOCK_ERR;
-	}
-	
-//	m_cracktask_cs.Lock();
-	
-	memset(pres,0,sizeof(struct crack_block));
-	
-	size = m_cracktask_ready_queue.size();
-	//CLog::Log(LOG_LEVEL_WARNING,"There is %d task Ready\n", size);
-	if (size < 1){	
-	//	m_cracktask_cs.Unlock();
-		return ALLOC_CRACK_BLOCK_ERR;
-	}
-
-	pguid = m_cracktask_ready_queue.front();
-	//CLog::Log(LOG_LEVEL_WARNING,"Front task guid = %s\n", pguid);
-	if (pguid == NULL){
-
-		CLog::Log(LOG_LEVEL_WARNING,"Running Task is Null\n");
-//		m_cracktask_cs.Unlock();
-		return NO_RUNNING_TASK;
-	}
-
-	iter_task = m_cracktask_map.find(pguid);
-	if (iter_task == m_cracktask_map.end()){
-
-		CLog::Log(LOG_LEVEL_WARNING,"Can't find Task With GUID %s\n",pguid);
-		m_cracktask_ready_queue.pop_front();
-		m_cracktask_ready_queue.push_back(pguid);
-		ret =  NOT_FIND_GUID_TASK;
-//		m_cracktask_cs.Unlock();
-		return ret;
-	}
-
-	pCT = iter_task->second;
-	
-	pCB = pCT->GetAReadyWorkItem();
-	if (pCB == NULL){
-		
-		CLog::Log(LOG_LEVEL_WARNING,"Can't find A Ready WorkItem from Task %s \n",pguid);
-		m_cracktask_ready_queue.pop_front();
-		return NOT_READY_WORKITEM;
-	}
-	
-	if (pCT->m_split_num == pCT->m_runing_num){
-
-		m_cracktask_ready_queue.pop_front();
-
-	}else{
-	
-		m_cracktask_ready_queue.pop_front();
-		m_cracktask_ready_queue.push_back(pguid);
-	}
-
-	getBlockFromCrackBlock(pCB,pres);
-
-	*pRes = pres;
-
-	
-//	m_cracktask_cs.Unlock();
-
-	return ret;
-}
 
 //新增加的获取block 的函数，添加了对计算节点和block 之间的对应关系
 int CCrackBroker::GetAWorkItem2(const char *ipinfo,struct crack_block **pRes){
@@ -618,8 +538,8 @@ int CCrackBroker::GetAWorkItem2(const char *ipinfo,struct crack_block **pRes){
 	pres = (struct crack_block *)Alloc(sizeof(struct crack_block));
 	if (!pres)
 	{	
-		CLog::Log(LOG_LEVEL_WARNING,"Alloc crack block error\n");
-		return ALLOC_CRACK_BLOCK_ERR;
+		CLog::Log(LOG_LEVEL_WARNING,"GetAWorkItem2: Alloc crack_block object error\n");
+		return ERR_OUTOFMEMORY;
 	}
 	
 //	m_cracktask_cs.Lock();
@@ -630,24 +550,24 @@ int CCrackBroker::GetAWorkItem2(const char *ipinfo,struct crack_block **pRes){
 	//CLog::Log(LOG_LEVEL_WARNING,"There is %d task Ready\n", size);
 	if (size < 1){	
 	//	m_cracktask_cs.Unlock();
-		return ALLOC_CRACK_BLOCK_ERR;
+		return ERR_NOREADYITEM;
 	}
 
 	pguid = m_cracktask_ready_queue.front();
 	//CLog::Log(LOG_LEVEL_WARNING,"Front task guid = %s\n", pguid);
 	if (pguid == NULL){
 
-		CLog::Log(LOG_LEVEL_WARNING,"Running Task is Null\n");
+		CLog::Log(LOG_LEVEL_WARNING,"GetAWorkItem2: Available Task is Null\n");
 //		m_cracktask_cs.Unlock();
-		return NO_RUNNING_TASK;
+		return ERR_NOREADYITEM;
 	}
 
 	iter_task = m_cracktask_map.find(pguid);
 	if (iter_task == m_cracktask_map.end()){
 
-		CLog::Log(LOG_LEVEL_WARNING,"Can't find Task With GUID %s\n",pguid);
+		CLog::Log(LOG_LEVEL_WARNING,"GetAWorkItem2: Can't find Task With GUID %s\n",pguid);
 		m_cracktask_ready_queue.pop_front();
-		ret =  NOT_FIND_GUID_TASK;
+		ret =  ERR_NOREADYITEM;
 //		m_cracktask_cs.Unlock();
 		return ret;
 	}
@@ -657,9 +577,9 @@ int CCrackBroker::GetAWorkItem2(const char *ipinfo,struct crack_block **pRes){
 	pCB = pCT->GetAReadyWorkItem2(ipinfo);
 	if (pCB == NULL){
 		
-		CLog::Log(LOG_LEVEL_WARNING,"Can't find A Ready WorkItem from Task %s \n",pguid);
+		CLog::Log(LOG_LEVEL_WARNING,"GetAWorkItem2: Can't find A Ready Item from Task %s\n",pguid);
 		m_cracktask_ready_queue.pop_front();
-		return NOT_READY_WORKITEM;
+		return ERR_NOREADYITEM;
 	}
 	
 	if (pCT->m_split_num == pCT->m_runing_num){
@@ -680,11 +600,7 @@ int CCrackBroker::GetAWorkItem2(const char *ipinfo,struct crack_block **pRes){
 	//STATUS_NOTICE_RUN
 	ret = 0;
 	ret = setCompBlockStatus(ipinfo,pCB->guid,STATUS_NOTICE_RUN);
-	if (ret < 0 ){
-	
-		CLog::Log(LOG_LEVEL_WARNING,"Add Computer %s and Block %s Map error\n",ipinfo,pguid);
-		
-	}
+	CLog::Log(LOG_LEVEL_NOMAL,"GetAWorkItem2: Add Map <%s, %s> %s\n",ipinfo,pguid,(ret<0?"Error":"OK"));
 	
 //	m_cracktask_cs.Unlock();
 
@@ -700,13 +616,13 @@ int CCrackBroker::QueryTaskByWI(char* task_guid, const char* block_guid)
 	iter_block = m_total_crackblock_map.find((char*)block_guid);
 	if (iter_block == m_total_crackblock_map.end()){
 
-		CLog::Log(LOG_LEVEL_WARNING,"Can't find Crack Block With GUID %s\n", block_guid);
-		return  NOT_FIND_GUID_BLOCK;
+		CLog::Log(LOG_LEVEL_DEBUG,"QueryTaskByWI: Can't find item With GUID %s\n", block_guid);
+		return  ERR_NO_THISITEM;
 	}
 
 	pCB = iter_block->second;
 	pCT =(CCrackTask *)pCB->task;
-	if(!pCT) return NOT_FIND_GUID_BLOCK;
+	if(!pCT) return ERR_NO_THISTASK;
 	
 	strcpy(task_guid, pCT->guid);
 	return 0;
@@ -723,9 +639,8 @@ int CCrackBroker::GetWIStatus(struct crack_status *pReq){
 	iter_block = m_total_crackblock_map.find(pReq->guid);
 	if (iter_block == m_total_crackblock_map.end()){
 
-		//CLog::Log(LOG_LEVEL_NOMAL,"Can't find item With GUID %s %d\n",pReq->guid, pReq->progress);
-		ret =  NOT_FIND_GUID_BLOCK;
-		return ret;
+		CLog::Log(LOG_LEVEL_DEBUG,"GetWIStatus: Can't find item With GUID %s %d\n",pReq->guid, pReq->progress);
+		return ERR_NO_THISITEM;
 	}
 
 		
@@ -752,9 +667,8 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 	iter_block = m_total_crackblock_map.find(pReq->guid);
 	if (iter_block == m_total_crackblock_map.end()){
 
-		CLog::Log(LOG_LEVEL_DEBUG,"Can't find Crack Block With GUID %s\n",pReq->guid);
-		ret =  NOT_FIND_GUID_BLOCK;
-		return ret;
+		CLog::Log(LOG_LEVEL_DEBUG,"GetWIResult: Can't find item With GUID %s\n",pReq->guid);
+		return ERR_NO_THISITEM;
 	}
 	
 	pCB = iter_block->second;
@@ -762,7 +676,7 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 	switch(pReq->status){
 
 		case WI_STATUS_UNLOCK:
-			CLog::Log(LOG_LEVEL_NOTICE, "** Reuse workitem [guid=%s, algo=%d, type=%d] **\n",pReq->guid, pCB->algo, pCB->type);
+			CLog::Log(LOG_LEVEL_NOTICE, "** Reuse item [guid=%s, algo=%d, type=%d] **\n",pReq->guid, pCB->algo, pCB->type);
 			
 			pCB->m_status = WI_STATUS_READY;
 			((CCrackTask *)(pCB->task))->m_runing_num -=1;
@@ -778,7 +692,7 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 
 			pCB->m_status = WI_STATUS_RUNNING;
 
-			CLog::Log(LOG_LEVEL_SUCCEED, "** Running workitem [guid=%s, tool=%s, algo=%d, type=%d] **\n", pReq->guid, pReq->password, pCB->algo, pCB->type);
+			CLog::Log(LOG_LEVEL_SUCCEED, "** Running item [guid=%s, tool=%s, algo=%d, type=%d] **\n", pReq->guid, pReq->password, pCB->algo, pCB->type);
 			
 			//判断是否是第一个开始运行的Block ,如果是的话更新任务计时器
 			pCT = (CCrackTask *)pCB->task;
@@ -788,7 +702,7 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 			checkReadyQueue((CCrackTask *)(pCB->task));
 			break;
 		case WI_STATUS_CRACKED:
-			CLog::Log(LOG_LEVEL_SUCCEED, "** Recover workitem [guid=%s] password=\"%s\" **\n",pReq->guid,pReq->password);
+			CLog::Log(LOG_LEVEL_SUCCEED, "** Recover item [guid=%s] password=\"%s\" **\n",pReq->guid,pReq->password);
 			pCB->m_status = WI_STATUS_CRACKED;
 			pCT =(CCrackTask *)pCB->task;
 
@@ -812,7 +726,7 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 		//	m_cracktask_cs.Unlock();
 			break;
 		case WI_STATUS_NO_PWD:
-			CLog::Log(LOG_LEVEL_SUCCEED, "** UnRecovered workitem [guid=%s] NON password **\n",pReq->guid);
+			CLog::Log(LOG_LEVEL_SUCCEED, "** UnRecovered item [guid=%s] NON password **\n",pReq->guid);
 			
 			pCB->m_status = WI_STATUS_NO_PWD;
 			pCT = (CCrackTask *)pCB->task;
@@ -1089,9 +1003,8 @@ int CCrackBroker::deleteTask(const char *guid, void* pclient){
 	CT_MAP::iterator iter_task = m_cracktask_map.find((char*)guid);
 	if (iter_task == m_cracktask_map.end()){
 		
-		CLog::Log(LOG_LEVEL_WARNING,"Delete Task ,Can't find Crack Task With GUID %s\n",guid);
-		ret =  NOT_FIND_GUID_TASK;
-		return ret;
+		CLog::Log(LOG_LEVEL_WARNING, "EraseTask: Can't find Task With GUID %s\n",guid);
+		return ERR_NO_THISTASK;
 	}
 
 	pCT=iter_task->second;
@@ -1261,9 +1174,8 @@ int CCrackBroker::deleteCompBlock(const char *ipinfo,char *blockguid){
 	comp_iter = m_comp_block_map.find(ipinfo);
 	if (comp_iter == m_comp_block_map.end()){
 		
-		CLog::Log(LOG_LEVEL_WARNING,"Can't find CompIP : %s in Map\n",ipinfo);
-		ret = -2;
-		return ret;
+		CLog::Log(LOG_LEVEL_WARNING,"deleteCompBlock: Can't find CompIP %s in Map\n",ipinfo);
+		return ERR_NO_THISITEM;
 	}
 
 	CBN_VECTOR& tmpcbn = comp_iter->second;
@@ -1308,9 +1220,8 @@ int CCrackBroker::setCompBlockStatus(const char *ipinfo,char *blockguid,char sta
 		pBN = new CBlockNotice();
 		if (!pBN){
 			
-			CLog::Log(LOG_LEVEL_WARNING,"Create BlockNotice Error.CompIP : %s,Block : %s\n",ipinfo,blockguid);
-			ret = -10;
-			return ret;
+			CLog::Log(LOG_LEVEL_WARNING,"setCompBlockStatus: Create Object CBlockNotice <%s,%s> error.\n",ipinfo,blockguid);
+			return ERR_OUTOFMEMORY;
 		}
 
 		
@@ -1343,9 +1254,8 @@ int CCrackBroker::setCompBlockStatus(const char *ipinfo,char *blockguid,char sta
 			pBN = new CBlockNotice();
 			if (!pBN){
 				
-				CLog::Log(LOG_LEVEL_WARNING,"Create BlockNotice Error.CompIP : %s,Block : %s\n",ipinfo,blockguid);
-				ret = -10;
-				return ret;
+				CLog::Log(LOG_LEVEL_WARNING,"setCompBlockStatus: Create Object CBlockNotice <%s,%s> error.\n",ipinfo,blockguid);			
+				return ERR_OUTOFMEMORY;
 			}
 			
 			memset(pBN->m_guid,0,40);
@@ -1378,8 +1288,8 @@ int CCrackBroker::getBlockByComp(const char *ipinfo,CBN_VECTOR &cbnvector,char s
 	comp_iter = m_comp_block_map.find(ipinfo);
 	if (comp_iter == m_comp_block_map.end()){
 		
-		//CLog::Log(LOG_LEVEL_WARNING,"Compute Node : %s has no block occupy\n",ipinfo);
-		return ret;
+		CLog::Log(LOG_LEVEL_WARNING,"getBlockByComp: %s has no block occupy\n",ipinfo);
+		return ERR_NO_THISITEM;
 
 	}else{
 		

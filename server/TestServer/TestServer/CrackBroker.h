@@ -15,41 +15,6 @@
 using std::string;
 class CClientInfo;
 
-#define STANDARD_ERR -1000
-
-#define CREATE_TASK_ERR STANDARD_ERR+1
-#define START_TASK_ERR STANDARD_ERR+2
-#define STOP_TASK_ERR STANDARD_ERR+3
-#define DEL_TASK_ERR STANDARD_ERR+4
-#define PAUSE_TASK_ERR STANDARD_ERR+5
-#define GET_TASK_RES_ERR STANDARD_ERR+6
-#define GET_TASK_STATUS_ERR	STANDARD_ERR+7
-#define GET_CLIENT_ERR	STANDARD_ERR+8
-
-#define NOT_FIND_GUID_TASK STANDARD_ERR+100
-
-#define ALLOC_TASK_RESULT_ERR STANDARD_ERR+99
-#define ALLOC_TASK_STATUS_ERR STANDARD_ERR+98
-
-
-#define ALLOC_COMP_CLIENT_ERR	STANDARD_ERR+97
-
-#define NOT_FINE_GUID_IN_QUEUE	STANDARD_ERR+96
-
-
-#define ALLOC_CRACK_BLOCK_ERR	STANDARD_ERR+95
-
-#define NO_RUNNING_TASK	STANDARD_ERR+94
-
-#define NOT_FIND_GUID_BLOCK STANDARD_ERR+93
-
-#define TASK_SPLIT_ERR	STANDARD_ERR+92
-
-#define NOT_READY_WORKITEM STANDARD_ERR+91
-
-
-#define RUN_NOT_DELETE STANDARD_ERR+90
-
 struct MapLessCompare{
 	bool operator()(const char * str1,const char *str2) const
 	{
@@ -91,7 +56,12 @@ public:
 	//keepalive
 	int ClientKeepLive2(const char *ip, void* s, unsigned char* cmd, void** data);
 
-	//控制节点业务逻辑处理函数
+	//退出
+	int DoClientQuit(const char *ip,int port);
+
+	/////////////////////////////////////////////////////////////////////////
+	//////////////////////	控制节点业务逻辑处理函数 /////////////////////////
+	/////////////////////////////////////////////////////////////////////////
 
 	//并未对任务进行切分
 	int	CreateTask(struct crack_task *pReq, void* pclient);
@@ -110,12 +80,14 @@ public:
 	int GetTasksStatus(struct task_status_info **pRes,unsigned int *resNum, void* pclient);
 	int GetClientList(struct compute_node_info **pRes,unsigned int *resNum);
 
+	int deleteTask(const char *guid, void* pclient);	//由于切分任务失败，删除刚创建的任务
+
 	
-	//计算节点业务逻辑处理函数
-	int GetAWorkItem(struct crack_block **pRes);
-
+	/////////////////////////////////////////////////////////////////////////
+	//////////////////////	计算节点业务逻辑处理函数 /////////////////////////
+	/////////////////////////////////////////////////////////////////////////
+	
 	int GetAWorkItem2(const char *ipinfo, struct crack_block **pRes); //增加传入参数计算节点ip地址和端口
-
 
 	int GetWIStatus(struct crack_status *pReq);
 
@@ -123,12 +95,9 @@ public:
 
 	int QueryTaskByWI(char* task_guid, const char* block_guid);
 
-	
-	int DoClientQuit(const char *ip,int port);
-
-
-	int deleteTask(const char *guid, void* pclient);	//由于切分任务失败，删除刚创建的任务
-
+	/////////////////////////////////////////////////////////////////////////
+	//////////////////////		内存处理函数		/////////////////////////
+	/////////////////////////////////////////////////////////////////////////
 
 	void *Alloc(int size);
 	void Free(void *p);

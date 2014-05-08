@@ -8,6 +8,7 @@
 #include "split.h"
 #include "macros.h"
 #include "CrackHash.h"
+#include "err.h"
 
 CCrackTask::CCrackTask(void)
 {
@@ -68,12 +69,16 @@ int CCrackTask::SplitTaskFile(const char *guid, const char* john){
 	}
 
 	if (ret <= 0 ){
-		CLog::Log(LOG_LEVEL_WARNING,"load the hash Info Error\n");
-	//	Free(p);
-		return LOAD_FILE_ERR;
+		CLog::Log(LOG_LEVEL_WARNING,"SplitTaskFile: load the file Error\n");
+		return john == NULL ? ERR_WRONGFILE : ERR_WRONGHASHES;
 	}
 	
-	pCCH = new CCrackHash[count];
+	pCCH = new (std::nothrow)CCrackHash[count];
+	if(pCCH == NULL){
+		CLog::Log(LOG_LEVEL_ERROR, "SplitTaskFile: Alloc %d CrackHash object error\n", count);
+		return  ERR_OUTOFMEMORY;
+	}
+
 	for (i = 0 ;i < ret ;i ++ ){
 
 		pCCH[i].Init((unsigned char *)this->hashes[i].hash);
@@ -81,28 +86,27 @@ int CCrackTask::SplitTaskFile(const char *guid, const char* john){
 		m_crackhash_list.push_back(&pCCH[i]);
 
 		if(this->special == 0)
-			CLog::Log(LOG_LEVEL_DEBUG, "Crack Hash is %s,%s,%s\n",hashes[i].hash,hashes[i].salt,hashes[i].salt2);
+			CLog::Log(LOG_LEVEL_DEBUG, "SplitTaskFile: Hash is %s,%s,%s\n",hashes[i].hash,hashes[i].salt,hashes[i].salt2);
 	}
 
 	//出始化相关工作项
 	pCrackBlock = split.split_task(this,splitnum);
 	if (!pCrackBlock){
-		CLog::Log(LOG_LEVEL_WARNING,"split default Error\n");
+		CLog::Log(LOG_LEVEL_WARNING,"SplitTaskFile: split_task Error\n");
 		release_hashes_from_load(this);
-		//Free(p);
-		return SPLIT_HASH_ERR;
+		return ERR_SPLITTASK;
 	}
-	CLog::Log(LOG_LEVEL_NOMAL,"Wonderful! We split task by %d blocks\n", splitnum);		
+	CLog::Log(LOG_LEVEL_NOMAL,"SplitTaskFile: Wonderful! We split task by %d blocks\n", splitnum);		
 	
 	//根据crack_block 创建 CCrackBlock 对象
 	pCb = new (std::nothrow)CCrackBlock[splitnum];
 	if(pCb == NULL){
 		release_hashes_from_load(this);
 		split.release_splits((char *)pCrackBlock);
-		CLog::Log(LOG_LEVEL_ERROR, "Out of memory: CANNOT allocat %d object\n", splitnum);
-		return  SPLIT_HASH_ERR;
+		CLog::Log(LOG_LEVEL_ERROR, "SplitTaskFile: Alloca %d CrackBlock object error\n", splitnum);
+		return  ERR_OUTOFMEMORY;
 	}
-	for (int i = 0 ; i < splitnum;i ++ ){
+	for (int i = 0; i < splitnum;i ++ ){
 		
 		pCb[i].Init(&pCrackBlock[i]);
 		pCb[i].task = this;
@@ -111,11 +115,11 @@ int CCrackTask::SplitTaskFile(const char *guid, const char* john){
 		if(this->special == 0)
 		{
 			if(pCb[i].type == bruteforce)
-				CLog::Log(LOG_LEVEL_NOMAL,"crack_block guid=%s [%d,%d] algo=%d\n",pCb[i].guid, pCb[i].start, pCb[i].end, pCb[i].algo);
+				CLog::Log(LOG_LEVEL_NOMAL,"item guid=%s [%d,%d] algo=%d\n",pCb[i].guid, pCb[i].start, pCb[i].end, pCb[i].algo);
 			else if(pCb[i].type == dict)
-				CLog::Log(LOG_LEVEL_NOMAL,"crack_block guid=%s [dict=%d] algo=%d\n",pCb[i].guid, pCb[i].dict_idx, pCb[i].algo);
+				CLog::Log(LOG_LEVEL_NOMAL,"item guid=%s [dict=%d] algo=%d\n",pCb[i].guid, pCb[i].dict_idx, pCb[i].algo);
 			if(pCb[i].type == mask && pCb[i].flag == 0)
-				CLog::Log(LOG_LEVEL_NOMAL,"crack_block guid=%s [%d, %s] algo=%d\n",pCb[i].guid, pCb[i].maskLength, pCb[i].masks, pCb[i].algo);
+				CLog::Log(LOG_LEVEL_NOMAL,"item guid=%s [%d, %s] algo=%d\n",pCb[i].guid, pCb[i].maskLength, pCb[i].masks, pCb[i].algo);
 		}
 	}
 
@@ -123,7 +127,6 @@ int CCrackTask::SplitTaskFile(const char *guid, const char* john){
 	release_hashes_from_load(this);
 	this->hashes = NULL;
 	split.release_splits((char *)pCrackBlock);
-	//Free(p);
 	this->m_split_num = splitnum;
 	this->m_finish_num = 0;
 	count = ret;
@@ -268,7 +271,7 @@ int CCrackTask::SetStatus(char status){
 		default :
 
 			CLog::Log(LOG_LEVEL_WARNING,"Not Support Crack Task Status %d \n",status);
-			ret = NOT_SUPPORT_CT_STATUS;
+			ret = ERR_NOSUPPORTSTATUS;
 			break;
 
 	}
@@ -326,7 +329,7 @@ int CCrackTask::updateStatusToRunning(){
 	if ((m_status != CT_STATUS_READY) && (m_status != CT_STATUS_PAUSED)){
 		
 		CLog::Log(LOG_LEVEL_WARNING,"Task Current is Status %d，Can't Set to Running\n",m_status);
-		return NOT_CONVERT_TO_RUNNING;
+		return ERR_CONVERTRUNNING;
 
 	}
 	
@@ -384,7 +387,7 @@ int CCrackTask::updateStatusToStop(){
 	if ((m_status != CT_STATUS_RUNNING) && (m_status != CT_STATUS_PAUSED)){
 		
 		CLog::Log(LOG_LEVEL_WARNING,"Task Current is Status %d，Can't Set to Ready\n",m_status);
-		return NOT_CONVERT_TO_READY;
+		return ERR_CONVERTSTOP;
 
 	}
 	
@@ -441,7 +444,7 @@ int CCrackTask::updateStatusToDel(){
 			(m_status != CT_STATUS_FINISHED) && (m_status != CT_STATUS_FAILURE)){
 		
 		CLog::Log(LOG_LEVEL_WARNING,"Task Current is Status %d，Can't Set to Delete\n",m_status);
-		return NOT_CONVERT_TO_DELETE;
+		return ERR_CONVERTDELETE;
 
 	}
 	
@@ -486,7 +489,7 @@ int CCrackTask::updateStatusToPause(){
 	if (m_status != CT_STATUS_RUNNING){
 		
 		CLog::Log(LOG_LEVEL_WARNING,"Task Current is Status %d，Can't Set to Pause\n",m_status);
-		return NOT_CONVERT_TO_PAUSED;
+		return ERR_CONVERTPAUSE;
 
 	}
 
@@ -616,8 +619,8 @@ int CCrackTask::updateStatusToFail(){
 
 	if (m_status != CT_STATUS_RUNNING){
 		
-		CLog::Log(LOG_LEVEL_WARNING,"Task Current is Status %d，Can't Set to Failure\n",m_status);
-		return NOT_CONVERT_TO_FAIL;
+		CLog::Log(LOG_LEVEL_WARNING,"updateStatusToFail: Task %s Status %d，Can't Set to Failure\n", guid, m_status);
+		return ERR_CONVERTFAIL;
 
 	}
 	//......
