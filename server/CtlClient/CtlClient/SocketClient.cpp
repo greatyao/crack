@@ -75,8 +75,7 @@ static int read_timeout(int fd, unsigned int wait_seconds)
 		ret = select(fd + 1, &read_fdset, NULL, NULL, &timeout); 
 		
 		if (ret == 0){            
-			ret = -1;            
-			errno = ETIMEDOUT;        
+			ret = -1;
 		} else if (ret == 1)            
 			return 0;         
 	}         
