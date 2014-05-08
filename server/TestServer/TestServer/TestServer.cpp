@@ -32,7 +32,7 @@ void parseOptions(int argc, char ** argv)
     }
 
     string temp;
-    for (int i = 1; i < argc - 1; ++i)
+    for (int i = 1; i < argc; ++i)
     {
         temp = (string)argv[i];
         if (temp.substr(0, 7) == "--port=")
