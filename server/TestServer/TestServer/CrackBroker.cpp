@@ -3,6 +3,11 @@
 #include "ClientInfo.h"
 #include "err.h"
 
+#include <Shlwapi.h>
+
+#pragma comment(lib,"Shlwapi.lib")
+
+
 CCrackBroker::CCrackBroker(void)
 {
 }
@@ -143,7 +148,7 @@ int CCrackBroker::SplitTask(const char *guid, const char* john){
 	ret = pCT->SplitTaskFile(guid, john);
 	if (ret < 0 ){
 		
-		CLog::Log(LOG_LEVEL_WARNING,"SplitTask: Split File WITH GUID %s Error %d\n",guid, ret);
+		CLog::Log(LOG_LEVEL_WARNING,"SplitTask: Split Task File %s Error %d\n",guid, ret);
 		return ret;
 		
 	}
@@ -533,8 +538,6 @@ int CCrackBroker::GetAWorkItem2(const char *ipinfo,struct crack_block **pRes){
 	char *pguid = NULL;
 	int size = 0;
 
-	//CLog::Log(LOG_LEVEL_WARNING,"Enter into CCrackBroker::GetAWorkItem\n");
-
 	pres = (struct crack_block *)Alloc(sizeof(struct crack_block));
 	if (!pres)
 	{	
@@ -547,7 +550,6 @@ int CCrackBroker::GetAWorkItem2(const char *ipinfo,struct crack_block **pRes){
 	memset(pres,0,sizeof(struct crack_block));
 	
 	size = m_cracktask_ready_queue.size();
-	//CLog::Log(LOG_LEVEL_WARNING,"There is %d task Ready\n", size);
 	if (size < 1){	
 	//	m_cracktask_cs.Unlock();
 		return ERR_NOREADYITEM;
@@ -987,6 +989,7 @@ void CCrackBroker::updateReadyQueue(CCrackBlock *pCB){
 int CCrackBroker::deleteTask(const char *guid, void* pclient){
 	CClientInfo* client = (CClientInfo*)pclient;
 	int ret = 0;
+	char filename[MAX_PATH];
 	CCrackTask *pCT = NULL;
 	CCrackHash *pCH = NULL;
 	CCrackBlock *pCB = NULL;
@@ -996,7 +999,12 @@ int CCrackBroker::deleteTask(const char *guid, void* pclient){
 	CB_MAP::iterator total_block_end;
 	CB_MAP tmp_cb_map;
 
+	//删除所有权相关信息
 	client->EraseTask(guid, NULL);
+	
+	//删除相关文件
+	CCrackBroker::GetTaskFileByGuid(guid, filename, MAX_PATH);
+	DeleteFileA(filename);
 
 	total_block_end = m_total_crackblock_map.end();
 
@@ -1288,7 +1296,7 @@ int CCrackBroker::getBlockByComp(const char *ipinfo,CBN_VECTOR &cbnvector,char s
 	comp_iter = m_comp_block_map.find(ipinfo);
 	if (comp_iter == m_comp_block_map.end()){
 		
-		CLog::Log(LOG_LEVEL_WARNING,"getBlockByComp: %s has no block occupy\n",ipinfo);
+		CLog::Log(LOG_LEVEL_DEBUG,"getBlockByComp: %s has no block occupy\n",ipinfo);
 		return ERR_NO_THISITEM;
 
 	}else{
@@ -1369,4 +1377,28 @@ void CCrackBroker::Free(void *p){
 
 	free(p);
 	p = NULL;
+}
+
+void CCrackBroker::GetTaskFileByGuid(const char* guid, char* fn, int n)
+{
+	static char path[MAX_PATH] = {0};
+	if(path[0] == 0){
+		GetModuleFileNameA(NULL, path, MAX_PATH);  
+		char *p = strrchr(path, '\\');  
+		*p=0x00;  
+		
+		_snprintf(path, sizeof(path), "%s\\filedb", path);
+	}
+
+
+	if (PathFileExistsA(path) == FALSE){
+		int retval = CreateDirectoryA(path,NULL);
+		if (retval == 0){
+			CLog::Log(LOG_LEVEL_DEBUG,"DIR %s Create Eroor\n",path);
+		}else{
+			CLog::Log(LOG_LEVEL_DEBUG,"DIR %s Create OK\n",path);
+		}
+	}
+
+	_snprintf(fn, n, "%s\\%s", path, guid);
 }

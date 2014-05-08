@@ -102,6 +102,8 @@ public:
 	void *Alloc(int size);
 	void Free(void *p);
 
+	static void GetTaskFileByGuid(const char* guid, char* fn, int n);
+
 private:
 	int GetComputeNodesNum();
 	int removeFromQueue(const char *guid);

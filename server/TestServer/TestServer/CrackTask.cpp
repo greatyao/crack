@@ -2,13 +2,16 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
-#include "CrackTask.h"
-#include "loadfiles.h"
-#include "CLog.h"
+
 #include "split.h"
 #include "macros.h"
-#include "CrackHash.h"
 #include "err.h"
+#include "loadfiles.h"
+#include "CLog.h"
+
+#include "CrackTask.h"
+#include "CrackHash.h"
+#include "CrackBroker.h"
 
 CCrackTask::CCrackTask(void)
 {
@@ -61,8 +64,7 @@ int CCrackTask::SplitTaskFile(const char *guid, const char* john){
 
 	//调用文件分割函数
 	if(john == NULL){
-		memset(filename,0,sizeof(filename));
-		sprintf((char *)filename,".\\tempdir\\%s",guid);
+		CCrackBroker::GetTaskFileByGuid(guid, (char*)filename, sizeof(filename));
 		ret = load_hashes_file2((char *)filename,this);
 	} else{
 		ret = load_single_hash2((char *)john, this);
