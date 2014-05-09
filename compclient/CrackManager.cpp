@@ -1,4 +1,4 @@
-/* CrackManager.cpp
+ï»¿/* CrackManager.cpp
  *
  * Coordnator among several crack algorithms
  * Copyright (C) 2014 TRIMPS
@@ -10,6 +10,7 @@
 #include "Crack.h"
 #include "oclHashcat.h"
 #include "HashKill.h"
+#include "resourceslotpool.h"
 #include "CLog.h"
 #include "Config.h"
 #include "algorithm_types.h"
@@ -72,7 +73,7 @@ int CrackManager::Init()
 {
 	string host;
 	
-	//¶ÁÈ¡ÅäÖÃÎÄ¼þ
+	//è¯»å–é…ç½®æ–‡ä»¶
 	Config::Get().ReadConfig("compclient.conf");
 	
 	struct stat filest;
@@ -93,7 +94,7 @@ int CrackManager::Init()
     }
 	closelog();
 	
-	//³õÊ¼»¯ÈÕÖ¾ÏµÍ³
+	//åˆå§‹åŒ–æ—¥å¿—ç³»ç»Ÿ
 	string value;
 	if(Config::Get().GetValue("log_type", value) == 0 && value == "0")
 		CLog::InitLogSystem(LOG_TO_SCREEN, true, NULL);
@@ -108,7 +109,7 @@ int CrackManager::Init()
 		CLog::InitLogSystem(LOG_TO_FILE, true, value.c_str());
 	}
 	
-	//ºóÌ¨ÔËÐÐ
+	//åŽå°è¿è¡Œ
 	if(Config::Get().GetValue("daemon", value) == 0 && value == "1")
 		daemon(1, 1);
 		
@@ -222,7 +223,10 @@ int CrackManager::Init()
 		}
 	}
 	
-	//Á¬½Ó·þÎñ¶Ë
+	//èµ„æºæ± åˆå§‹åŒ–
+	ResourcePool::Get().Init();
+	
+	//è¿žæŽ¥æœåŠ¡ç«¯
 	string addr, port;
 	Config::Get().GetValue("server_addr", addr);
 	Config::Get().GetValue("server_port", port);
@@ -282,7 +286,7 @@ bool CrackManager::UsingCPU()const
 
 int CrackManager::CheckParameters(crack_block* item)
 {
-	//Ê×ÏÈÐèÒªÑéÖ¤Êý¾ÝµÄÓÐÐ§ÐÔ
+	//é¦–å…ˆéœ€è¦éªŒè¯æ•°æ®çš„æœ‰æ•ˆæ€§
 	struct hash_support_plugins* plugin = locate_by_algorithm(item->algo);
 	if(plugin){
 		struct crack_hash hash;

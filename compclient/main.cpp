@@ -2,7 +2,6 @@
 #include <signal.h>
 #include <stdlib.h>
 
-#include "resourceslotpool.h"
 #include "coordinator.h"
 #include "launcher.h"
 #include "CLog.h"
@@ -45,9 +44,6 @@ int main(int argc, char *argv[])
 	//解密管理单元初始化
 	if(CrackManager::Get().Init() != 0)
 		return -1;
-
-	//资源池初始化
-	ResourcePool::Get().Init();
 	
 	//初始化coordinator
 	ccoordinator *pcc = new ccoordinator();
