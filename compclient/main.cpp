@@ -7,8 +7,6 @@
 #include "launcher.h"
 #include "CLog.h"
 #include "CrackManager.h"
-#include "Client.h"
-#include "Config.h"
 #include "algorithm_types.h"
 
 #if defined(__CYGWIN__) || defined(__linux__)
@@ -44,38 +42,12 @@ static int main_loop()
 
 int main(int argc, char *argv[])
 {
-	//读取配置文件
-	Config::Get().ReadConfig("compclient.conf");
-	
-	//初始化日志系统
-	string value;
-	if(Config::Get().GetValue("log_type", value) == 0 && value == "0")
-		CLog::InitLogSystem(LOG_TO_SCREEN, true, NULL);
-	else
-	{
-		Config::Get().GetValue("log_file", value);
-		CLog::InitLogSystem(LOG_TO_FILE, true, value.c_str());
-	}
-	
-	//后台运行
-	if(Config::Get().GetValue("daemon", value) == 0 && value == "1")
-		daemon(1, 1);
+	//解密管理单元初始化
+	if(CrackManager::Get().Init() != 0)
+		return -1;
 
 	//资源池初始化
 	ResourcePool::Get().Init();
-	
-	//解密算法初始化
-	if(CrackManager::Get().Init() != 0)
-	{
-		CLog::ReleaseLogSystem();
-		return -1;
-	}
-	
-	//连接服务端
-	string addr, port;
-	Config::Get().GetValue("server_addr", addr);
-	Config::Get().GetValue("server_port", port);
-	Client::Get().Connect(addr.c_str(), atoi(port.c_str()));
 	
 	//初始化coordinator
 	ccoordinator *pcc = new ccoordinator();
@@ -91,9 +63,7 @@ int main(int argc, char *argv[])
 	//结束，清理
 	delete pcc;
 	delete pcl;
-	Client::Get().Destory();
 	CrackManager::Get().Destroy();
-	//关闭日志系统
-	CLog::ReleaseLogSystem();
+
 	return ret;
 }

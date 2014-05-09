@@ -19,6 +19,8 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <syslog.h>
+#include <pwd.h>
 #include <algorithm>
 #include <stdlib.h>
 #include <stdio.h>
@@ -61,15 +63,58 @@ void CrackManager::Destroy()
 		toolCount = 0;
 		tools = NULL;
 	}	
+	
+	Client::Get().Destory();
+	CLog::ReleaseLogSystem();
 }	
 
 int CrackManager::Init()
 {
-	string value;
+	string host;
 	
+	//读取配置文件
+	Config::Get().ReadConfig("compclient.conf");
+	
+	struct stat filest;
+    struct passwd *pwd=getpwuid(getuid());
+	host = pwd->pw_dir;
+	
+	openlog("compclient", LOG_ODELAY|LOG_PID|LOG_CONS, 0);
+    	
+	if(stat(host.c_str(), &filest) == -1)
+		mkdir(host.c_str(), S_IRWXU);
+    
+	host = host + "/.compclient";	
+    if(stat(host.c_str(), &filest) == -1){
+		if(mkdir(host.c_str(), S_IRWXU)){
+			syslog(LOG_ERR, "Cannot create directory: %s - check permissons!\n", host.c_str());
+			;
+		}
+    }
+	closelog();
+	
+	//初始化日志系统
+	string value;
+	if(Config::Get().GetValue("log_type", value) == 0 && value == "0")
+		CLog::InitLogSystem(LOG_TO_SCREEN, true, NULL);
+	else
+	{
+		Config::Get().GetValue("log_file", value);
+		int idx = value.rfind('/');
+		if(idx != string::npos)
+			value = value.substr(idx+1, value.length()-idx);
+		value = host + "/" + value;
+		printf("%s\n", value.c_str());
+		CLog::InitLogSystem(LOG_TO_FILE, true, value.c_str());
+	}
+	
+	//后台运行
+	if(Config::Get().GetValue("daemon", value) == 0 && value == "1")
+		daemon(1, 1);
+		
 	Config::Get().GetValue("files_path", value);
 	if(value == "")
-		value = "/var/crack_files";
+		value = host + "/crack_files";
 	filedb_path = value;
 	if(access(filedb_path.c_str(), 0) != 0 && mkdir(filedb_path.c_str(), 0775)!=0)
 	{
@@ -80,7 +125,7 @@ int CrackManager::Init()
 		
 	Config::Get().GetValue("dict_path", value);
 	if(value == "")
-		value = "/var/crack_dict";
+		value = host + "/crack_dict";
 	dict_path = value;
 	if(access(dict_path.c_str(), 06) != 0 && mkdir(dict_path.c_str(), 0775) != 0)
 	{
@@ -176,6 +221,12 @@ int CrackManager::Init()
 			CLog::Log(LOG_LEVEL_WARNING, "CrackManager: crack_priority invalid, but we choose a valid one\n");
 		}
 	}
+	
+	//连接服务端
+	string addr, port;
+	Config::Get().GetValue("server_addr", addr);
+	Config::Get().GetValue("server_port", port);
+	Client::Get().Connect(addr.c_str(), atoi(port.c_str()));
 	
 	return 0;
 }
