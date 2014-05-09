@@ -76,3 +76,7 @@ install:
 	}
 	$(INSTALL) -m 777 ../bin/$(ARCH)/compclient $(DEST_DIR)
 	$(INSTALL) -m 644 example.conf $(DEST_DIR)/compclient.conf
+	$(INSTALL) -m 777 compclient.sh /etc/init.d/
+	update-rc.d compclient defaults 98 0 1 2
+	update-rc.d compclient start 98 0 1 2
+	

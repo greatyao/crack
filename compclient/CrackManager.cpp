@@ -71,7 +71,7 @@ int CrackManager::Init()
 	if(value == "")
 		value = "/var/crack_files";
 	filedb_path = value;
-	if(access(filedb_path.c_str(), 0) != 0 && mkdir(filedb_path.c_str(), 0666)!=0)
+	if(access(filedb_path.c_str(), 0) != 0 && mkdir(filedb_path.c_str(), 0775)!=0)
 	{
 		CLog::Log(LOG_LEVEL_ERROR, "CrackManager: Couldn't mkdir %s:[%s]\n", 
 			filedb_path.c_str(), strerror(errno));
@@ -82,7 +82,7 @@ int CrackManager::Init()
 	if(value == "")
 		value = "/var/crack_dict";
 	dict_path = value;
-	if(access(dict_path.c_str(), 06) != 0 && mkdir(dict_path.c_str(), 0666) != 0)
+	if(access(dict_path.c_str(), 06) != 0 && mkdir(dict_path.c_str(), 0775) != 0)
 	{
 		CLog::Log(LOG_LEVEL_ERROR, "CrackManager: Couldn't mkdir %s:[%s]\n", 
 			dict_path.c_str(), strerror(errno));
