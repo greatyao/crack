@@ -14,6 +14,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 
 #if defined(WIN32) || defined(WIN64)
 #else
