@@ -98,7 +98,8 @@ void ResourcePool::Init()
 		return;
 	}
 	
-	for(unsigned i=0; i<num_cpu; i++)
+	int num_cpu0 = ceil(num_cpu*2.0/3);
+	for(unsigned i=0; i<num_cpu0; i++)
 	{
 		struct _resourceslotpool *p = (_resourceslotpool *)malloc(sizeof(*p));
 		memset(p, 0, sizeof(*p));
