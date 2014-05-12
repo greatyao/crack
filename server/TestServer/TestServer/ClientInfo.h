@@ -28,7 +28,9 @@ public:
 	void EraseTask(const char* guid, CCrackTask* task);
 
 protected:
+
 	friend class CCrackBroker;
+	friend class CPersistencManager;
 
 	CT_MAP2 m_mytasks;
 

@@ -12,7 +12,15 @@ CPersistencManager::CPersistencManager(char *pDB)
 		CLog::Log(LOG_LEVEL_WARNING,"Open Database :%s Error\n",pDB);
 	}
 
-	CLog::Log(LOG_LEVEL_NORMAL,"Open Database :%s OK\n",pDB);
+	 m_TaskTable = "create table Task (taskid char(40),algo char(1),charset char(1),type char(1),filetag char(1),single char(1),startlength int,endlength int,owner char(64),status char(1),splitnum int,finishnum int,success char(1),progress real,speed real,starttime char(20),runtime int,remaintime int,count int)";
+	 m_BlockTable = "create table Hash (taskid char(40),index int,john char(260),result char(32),status char(1),progress real)";
+	 m_HashTable = "create table Block (blockid char(40),taskid char(40),index int,status char(1),progress real,spead real,remaintime int,compip char(20))";
+	 m_NoticeTable = "create table Notice (hostip char(20),blockid char(40),status char(1))";
+	 m_ReadyTaskTable = "create table ReadyTask (taskid char(40))";
+	 m_ClientTable = "create table Client (ip char(20),type char(1),hostname char(64),osinfo char(64),livetime char(20),logintime char(20),gpu int,cpu int)";
+
+
+	CLog::Log(LOG_LEVEL_NOMAL,"Open Database :%s OK\n",pDB);
 }
 
 CPersistencManager::~CPersistencManager(void)
@@ -29,76 +37,76 @@ int CPersistencManager::CreateTable(void){
 	
 	//创建Task表
 
-	CLog::Log(LOG_LEVEL_NORMAL,"Create Table :Task Start\n");
+	CLog::Log(LOG_LEVEL_NOMAL,"Create Table :Task Start\n");
 
 	if (!m_SQLite3DB.tableExists("Task")){
-			m_SQLite3DB.execDML(m_TaskTable);
+		m_SQLite3DB.execDML(m_TaskTable.c_str());
 			
 	}else{
-		CLog::Log(LOG_LEVEL_NORMAL,"Table :Task Exists\n");
+		CLog::Log(LOG_LEVEL_NOMAL,"Table :Task Exists\n");
 	}
 	
-	CLog::Log(LOG_LEVEL_NORMAL,"Create Table :Task End\n");
+	CLog::Log(LOG_LEVEL_NOMAL,"Create Table :Task End\n");
 	//创建block表
 
-	CLog::Log(LOG_LEVEL_NORMAL,"Create Table :Hash Start\n");
+	CLog::Log(LOG_LEVEL_NOMAL,"Create Table :Hash Start\n");
 	if (!m_SQLite3DB.tableExists("Hash")){
-			m_SQLite3DB.execDML(m_HashTable);
+			m_SQLite3DB.execDML(m_HashTable.c_str());
 			
 	}else{
-		CLog::Log(LOG_LEVEL_NORMAL,"Table :Hash Exists\n");
+		CLog::Log(LOG_LEVEL_NOMAL,"Table :Hash Exists\n");
 	}
 
-	CLog::Log(LOG_LEVEL_NORMAL,"Create Table :Hash End\n");
+	CLog::Log(LOG_LEVEL_NOMAL,"Create Table :Hash End\n");
 
 	//创建Hash表
-	CLog::Log(LOG_LEVEL_NORMAL,"Create Table :Block Start\n");
+	CLog::Log(LOG_LEVEL_NOMAL,"Create Table :Block Start\n");
 	if (!m_SQLite3DB.tableExists("Block")){
-			m_SQLite3DB.execDML(m_BlockTable);
+			m_SQLite3DB.execDML(m_BlockTable.c_str());
 			
 	}else{
-		CLog::Log(LOG_LEVEL_NORMAL,"Table :Block Exists\n");
+		CLog::Log(LOG_LEVEL_NOMAL,"Table :Block Exists\n");
 	}
 
-	CLog::Log(LOG_LEVEL_NORMAL,"Create Table :Block End\n");
+	CLog::Log(LOG_LEVEL_NOMAL,"Create Table :Block End\n");
 
 	//创建ReadyTask表
 
-	CLog::Log(LOG_LEVEL_NORMAL,"Create Table :ReadyTask Start\n");
+	CLog::Log(LOG_LEVEL_NOMAL,"Create Table :ReadyTask Start\n");
 	if (!m_SQLite3DB.tableExists("ReadyTask")){
-			m_SQLite3DB.execDML(m_ReadyTaskTable);
+			m_SQLite3DB.execDML(m_ReadyTaskTable.c_str());
 			
 	}else{
-		CLog::Log(LOG_LEVEL_NORMAL,"Table :ReadyTask Exists\n");
+		CLog::Log(LOG_LEVEL_NOMAL,"Table :ReadyTask Exists\n");
 	}
 
-	CLog::Log(LOG_LEVEL_NORMAL,"Create Table :ReadyTask End\n");
+	CLog::Log(LOG_LEVEL_NOMAL,"Create Table :ReadyTask End\n");
 
 
 	//创建Notice 表
 
-	CLog::Log(LOG_LEVEL_NORMAL,"Create Table :Notice Start\n");
+	CLog::Log(LOG_LEVEL_NOMAL,"Create Table :Notice Start\n");
 	if (!m_SQLite3DB.tableExists("Notice")){
-			m_SQLite3DB.execDML(m_NoticeTable);
+			m_SQLite3DB.execDML(m_NoticeTable.c_str());
 			
 	}else{
-		CLog::Log(LOG_LEVEL_NORMAL,"Table :Notice Exists\n");
+		CLog::Log(LOG_LEVEL_NOMAL,"Table :Notice Exists\n");
 	}
 
-	CLog::Log(LOG_LEVEL_NORMAL,"Create Table :Notice End\n");
+	CLog::Log(LOG_LEVEL_NOMAL,"Create Table :Notice End\n");
     
 
 	//创建在线客户端表
 
-	CLog::Log(LOG_LEVEL_NORMAL,"Create Table :Client Start\n");
+	CLog::Log(LOG_LEVEL_NOMAL,"Create Table :Client Start\n");
 	if (!m_SQLite3DB.tableExists("Client")){
-			m_SQLite3DB.execDML(m_ClientTable);
+			m_SQLite3DB.execDML(m_ClientTable.c_str());
 			
 	}else{
-		CLog::Log(LOG_LEVEL_NORMAL,"Table :Client Exists\n");
+		CLog::Log(LOG_LEVEL_NOMAL,"Table :Client Exists\n");
 	}
 
-	CLog::Log(LOG_LEVEL_NORMAL,"Create Table :Client End\n");
+	CLog::Log(LOG_LEVEL_NOMAL,"Create Table :Client End\n");
 
 	return ret;
 }
@@ -118,7 +126,7 @@ int CPersistencManager::PersistTaskMap(CT_MAP task_map){
 		memset(insertsql,0,1024);
 		sprintf(insertsql,"insert into task_table values ('%s','%s','%s','%s','%s','%s',%d,%d,'%s','%s',%d,%d,'%s',%f,%f,'%s',%d,%d,%d)",
 			pCT->guid,pCT->algo,pCT->charset,pCT->type,pCT->special,pCT->single,pCT->startLength,pCT->endLength,pCT->m_owner,
-			pCT->m_status,pCT->m_split_num,pCT->m_finish_num,pCT->m_bsuccess,pCT->m_progress,pCT->m_speed,pCT->startTime,
+			pCT->m_status,pCT->m_split_num,pCT->m_finish_num,pCT->m_bsuccess,pCT->m_progress,pCT->m_speed,pCT->m_start_time,
 			pCT->m_running_time,pCT->m_remain_time,pCT->count);
 		
 		m_SQLite3DB.execDML(insertsql);
@@ -136,16 +144,17 @@ int CPersistencManager::PersistHash(CT_MAP task_map){
 	CT_MAP::iterator task_iter;
 	CCrackTask *pCT = NULL;
 	CCrackHash *pCH = NULL;
+	char insertsql[1024];
 
 	int i = 0;
 	int size = 0;
 
-	for(iter_task = begin_task;iter_task != end_task;iter_task ++ ){
+	for(task_iter = begin_task;task_iter != end_task;task_iter ++ ){
 
-		pCT = iter_task->second;
+		pCT = task_iter->second;
 		
 
-		size = pCT->m_crackhash_list.size;
+		size = pCT->m_crackhash_list.size();
 
 		for(i = 0 ;i < size ;i ++){
 
@@ -192,7 +201,7 @@ int CPersistencManager::PersistBlockMap(CB_MAP block_map){
 int CPersistencManager::PersistReadyTaskQueue(CT_DEQUE ready_list){
 	int ret = 0;
 	int i = 0;
-	int size = ready_list.size;
+	int size = ready_list.size();
 	char insertsql[1024];
 	char *p = NULL;
 	
@@ -216,7 +225,7 @@ int CPersistencManager::PersistReadyTaskQueue(CT_DEQUE ready_list){
 int CPersistencManager::PersistClientInfo(CI_VECTOR client_list){
 	int ret = 0;
 	int i = 0;
-	int size = client_list.size;
+	int size = client_list.size();
 	CClientInfo *pCI = NULL;
 	char insertsql[1024];
 	int tmpgpu=0;
@@ -260,14 +269,18 @@ int CPersistencManager::PersistNoticeMap(CCB_MAP notice_map){
 
 	for(notice_iter = begin_notice;notice_iter!=end_notice;notice_iter++){
 
-		pCN = notice_iter->second;
+		CBN_VECTOR tmpCbn = notice_iter->second;
 
+		for(int i = 0;i < tmpCbn.size();i++){
 
-		memset(insertsql,0,1024);
-		sprintf(insertsql,"insert into Notice values ('%s','%s','%s')",
-			notice_iter->first.c_str(),pCN->m_guid,pCN->m_status);
+			pCN = tmpCbn[i];
 
-		m_SQLite3DB.execDML(insertsql);
+			memset(insertsql,0,1024);
+			sprintf(insertsql,"insert into Notice values ('%s','%s','%s')",
+				notice_iter->first.c_str(),pCN->m_guid,pCN->m_status);
+
+			m_SQLite3DB.execDML(insertsql);
+		}
 
 	}
 
@@ -280,7 +293,7 @@ int CPersistencManager::PersistNoticeMap(CCB_MAP notice_map){
 int CPersistencManager::LoadTaskMap(CT_MAP &task_map){
 	int ret = 0;
 	
-	CppSQLite3Query query = db.execQuery("select * from Task order by 1;");
+	CppSQLite3Query query = m_SQLite3DB.execQuery("select * from Task order by 1;");
 
     while (!query.eof())
     {
@@ -295,29 +308,29 @@ int CPersistencManager::LoadTaskMap(CT_MAP &task_map){
 		memcpy(pCT->guid,query.fieldValue("taskid"),strlen(query.fieldValue("taskid")));
 
 
-		pCT->algo = query.fieldValue("algo");
-		pCT->charset = query.fieldValue("charset");
-		pCT->type = query.fieldValue("type");
-		pCT->special = query.fieldValue("filetag");
-		pCT->single = query.fieldValue("single");
-		pCT->startLength = query.fieldValue("startlength");
-		pCT->endLength = query.fieldValue("endlength");
+		pCT->algo = *query.fieldValue("algo");
+		pCT->charset = *query.fieldValue("charset");
+		pCT->type = *query.fieldValue("type");
+		pCT->special = *query.fieldValue("filetag");
+		pCT->single = *query.fieldValue("single");
+		pCT->startLength = query.getIntField("startlength");
+		pCT->endLength = query.getIntField("endlength");
 		
-		memset(pCT->owner,0,sizeof(pCT->owner));
-		memcpy(pCT->owner,query.fieldValue("owner"),strlen(query.fieldValue("owner")));
+		memset(pCT->m_owner,0,sizeof(pCT->m_owner));
+		memcpy(pCT->m_owner,query.fieldValue("owner"),strlen(query.fieldValue("owner")));
 
-		pCT->m_status = query.fieldValue("status");
-		pCT->m_split_num = query.fieldValue("splitnum");
-		pCT->m_finish_num = query.fieldValue("finishnum");
-		pCT->m_bsuccess = query.fieldValue("success") == '1'? true : false;
-		pCT->m_progress = query.fieldValue("progress");
+		pCT->m_status = *query.fieldValue("status");
+		pCT->m_split_num = query.getIntField("splitnum");
+		pCT->m_finish_num = query.getIntField("finishnum");
+		pCT->m_bsuccess = (strcmp(query.fieldValue("success"),"1") == 0)? true : false;
+		pCT->m_progress = query.getFloatField("progress");
 
-		pCT->m_speed = query.fieldValue("speed");
-		pCT->startTime = query.fieldValue("starttime");
-		pCT->m_running_time = query.fieldValue("runtime");
-		pCT->m_remain_time = query.fieldValue("remaintime");
+		pCT->m_speed = query.getFloatField("speed");
+		pCT->m_start_time = query.getIntField("starttime");
+		pCT->m_running_time = query.getIntField("runtime");
+		pCT->m_remain_time = query.getIntField("remaintime");
 
-		pCT->count = query.fieldValue("count");
+		pCT->count = query.getIntField("count");
 
 		
 		
@@ -343,12 +356,12 @@ int CPersistencManager::LoadHash(CT_MAP &task_map){
 	CT_MAP::iterator end_iter  = task_map.end();
 	CCrackTask *pCT = NULL;
 
-	CppSQLite3Query query = db.execQuery("select * from Hash");
+	CppSQLite3Query query = m_SQLite3DB.execQuery("select * from Hash");
 
     while (!query.eof())
     {
 
-		char *ptaskid = query.fieldValue("taskid");
+		char *ptaskid =  (char *)query.fieldValue("taskid");
 		cur_iter = task_map.find(ptaskid);
 		if (cur_iter == end_iter){
 
@@ -370,16 +383,18 @@ int CPersistencManager::LoadHash(CT_MAP &task_map){
 			
 		pCT = cur_iter->second;
 
-		pCT->m_crackhash_list[query.fieldValue("index")] = pCH;
+		int tmpIndex = query.getIntField("index");
+
+		pCT->m_crackhash_list[tmpIndex] = pCH;
 
 		memset(pCH->m_john,0,sizeof(pCH->m_john));
-		memcpy(pCH->m_john,query.fieldValue("john"),strlen(query.fieldValue("john"));
+		memcpy(pCH->m_john,query.fieldValue("john"),strlen(query.fieldValue("john")));
 
 		memset(pCH->m_result,0,sizeof(pCH->m_result));
-		memcpy(pCH->m_result,query.fieldValue("result"),strlen(query.fieldValue("result"));
+		memcpy(pCH->m_result,query.fieldValue("result"),strlen(query.fieldValue("result")));
 
-		pCH->m_status = query.fieldValue("status");
-		pCH->m_progress = query.fieldValue("progress");
+		pCH->m_status = *query.fieldValue("status");
+		pCH->m_progress = query.getFloatField("progress");
 	       
         query.nextRow();
 
@@ -400,11 +415,11 @@ int CPersistencManager::LoadBlockMap(CB_MAP &block_map,CT_MAP &task_map){
 	CCrackTask *pCT = NULL;
 
 
-	CppSQLite3Query query = db.execQuery("select * from Block");
+	CppSQLite3Query query = m_SQLite3DB.execQuery("select * from Block");
 
     while (!query.eof())
     {
-		char *ptaskid = query.fieldValue("taskid");
+		char *ptaskid =(char*)query.fieldValue("taskid");
 		cur_iter = task_map.find(ptaskid);
 		if (cur_iter == end_iter){
 
@@ -428,7 +443,7 @@ int CPersistencManager::LoadBlockMap(CB_MAP &block_map,CT_MAP &task_map){
 		memset(pCB->m_comp_guid,0,sizeof(pCB->m_comp_guid));
 		memset(pCB->guid,0,sizeof(pCB->guid));
 	
-		memcpy(pCB->m_comp_guid,query.fieldValue("compip"),strlen(query.fieldValue("compip"));
+		memcpy(pCB->m_comp_guid,query.fieldValue("compip"),strlen(query.fieldValue("compip")));
 		memcpy(pCB->guid,query.fieldValue("blockid"),strlen(query.fieldValue("blockid")));
 		
 
@@ -439,17 +454,17 @@ int CPersistencManager::LoadBlockMap(CB_MAP &block_map,CT_MAP &task_map){
 		pCB->start = pCT->startLength;
 
 
-		pCB->hash_idx = query.fieldValue("index");
-		memcpy(pCB->john,pCT->m_crackhash_list[pCB->hash_idx]->m_john,strlen(pCT->m_crackhash_list[pCB->hash_idx]->m_john));
+		pCB->hash_idx = query.getIntField("index");
+		memcpy(pCB->john,pCT->m_crackhash_list[pCB->hash_idx]->m_john,sizeof(pCT->m_crackhash_list[pCB->hash_idx]->m_john));
 
 
 		pCB->special = pCT->special;
 		pCB->task = pCT;
-		pCB->m_progress = query.fieldValue("progress");
-		pCB->m_speed = query.fieldValue("speed");
+		pCB->m_progress = query.getFloatField("progress");
+		pCB->m_speed = query.getFloatField("speed");
 
-		pCB->m_status = query.fieldValue("status");
-		pCB->m_remaintime = query.fieldValue("remaintime");
+		pCB->m_status = *query.fieldValue("status");
+		pCB->m_remaintime = query.getIntField("remaintime");
 
 		
 		cur_iter->second->m_crackblock_map.insert(CB_MAP::value_type(pCB->guid,pCB));
@@ -475,12 +490,12 @@ int CPersistencManager::LoadReadyTaskQueue(CT_DEQUE &ready_list,CT_MAP task_map)
 	CT_MAP::iterator end_iter  = task_map.end();
 
 
-	CppSQLite3Query query = db.execQuery("select * from ReadyTask");
+	CppSQLite3Query query = m_SQLite3DB.execQuery("select * from ReadyTask");
 
     while (!query.eof())
     {
 		
-		cur_iter = task_map.find(query.fieldValue("taskid"));
+		cur_iter = task_map.find((char *)query.fieldValue("taskid"));
 		if (cur_iter == end_iter){
 
 			CLog::Log(LOG_LEVEL_ERROR,"Task List and Ready Task List is not Matched\n");
@@ -502,7 +517,7 @@ int CPersistencManager::LoadClientInfo(CI_VECTOR &client_list){
 	int ret = 0;
 	
 	int type = 0;
-	CppSQLite3Query query = db.execQuery("select * from Client");
+	CppSQLite3Query query = m_SQLite3DB.execQuery("select * from Client");
 
     while (!query.eof())
     {
@@ -513,11 +528,11 @@ int CPersistencManager::LoadClientInfo(CI_VECTOR &client_list){
 			return -1;
 		}
 		
-		type = query.fieldValue("type");
+		type = query.getIntField("type");
 		if (type == COMPUTE_TYPE_CLIENT){
 
-			((CCompClient*)pCI)->m_gputhreads = query.fieldValue("gpu");
-			((CCompClient*)pCI)->m_cputhreads = query.fieldValue("cpu");
+			((CCompClient*)pCI)->m_gputhreads = query.getIntField("gpu");
+			((CCompClient*)pCI)->m_cputhreads = query.getIntField("cpu");
 		}
 
 		pCI->m_type = type;
@@ -528,9 +543,9 @@ int CPersistencManager::LoadClientInfo(CI_VECTOR &client_list){
 		memset(pCI->m_osinfo,0,sizeof(pCI->m_osinfo));
 
 
-		memcpy(pCI->ip,query.fieldValue("ip"),strlen(query.fieldValue("ip"));
-		memcpy(pCI->m_hostname,query.fieldValue("hostname"),strlen(query.fieldValue("hostname"));
-		memcpy(pCI->m_osinfo,query.fieldValue("osinfo"),strlen(query.fieldValue("osinfo"));
+		memcpy(pCI->m_ip,query.fieldValue("ip"),strlen(query.fieldValue("ip")));
+		memcpy(pCI->m_hostname,query.fieldValue("hostname"),strlen(query.fieldValue("hostname")));
+		memcpy(pCI->m_osinfo,query.fieldValue("osinfo"),strlen(query.fieldValue("osinfo")));
 
 
 		//keeplive time and logintime 
@@ -549,7 +564,7 @@ int CPersistencManager::LoadNoticeMap(CCB_MAP &notice_map){
 	int ret = 0;
 	
 	CCB_MAP::iterator cur_iter;
-	CppSQLite3Query query = db.execQuery("select * from Notice");
+	CppSQLite3Query query = m_SQLite3DB.execQuery("select * from Notice");
 
     while (!query.eof())
     {
@@ -561,14 +576,14 @@ int CPersistencManager::LoadNoticeMap(CCB_MAP &notice_map){
 		}
 
 		memset(pCN->m_guid,0,sizeof(pCN->m_guid));
-		memcpy(pCN->m_guid,query.fieldValue("blockid"),strlen(query.fieldValue("blockid"));
+		memcpy(pCN->m_guid,query.fieldValue("blockid"),strlen(query.fieldValue("blockid")));
 
-		pCN->m_status = query.fieldValue("status");
+		pCN->m_status = *query.fieldValue("status");
 
 		string str;
 		str = query.fieldValue("hostip");
 
-		cur_iter = notice_map.find(str)
+		cur_iter = notice_map.find(str);
 		if (cur_iter == notice_map.end()){
 
 			CBN_VECTOR cbnlist;
