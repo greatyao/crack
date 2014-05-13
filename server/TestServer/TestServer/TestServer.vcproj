@@ -48,7 +48,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".\Common;..\..\..\common\include;..\..\..\common;..\..\..\wang\split;..\..\..\plugins\trex;..\..\..\plugins"
+				AdditionalIncludeDirectories="..\..\libconn;.\Sqlite3;..\..\..\common\include;..\..\..\common;..\..\..\wang\split;..\..\..\plugins\trex;..\..\..\plugins"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -71,7 +71,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="zlib.lib ws2_32.lib sqlite3.lib"
+				AdditionalDependencies="zlib.lib ws2_32.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\lib"
@@ -130,7 +130,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".\Common\;..\..\..\common\include;..\..\..\common;..\..\..\wang\split;..\..\..\plugins\trex;..\..\..\plugins;.\lib"
+				AdditionalIncludeDirectories="..\..\libconn;.\Sqlite3\;..\..\..\common\include;..\..\..\common;..\..\..\wang\split;..\..\..\plugins\trex;..\..\..\plugins;.\lib"
 				PreprocessorDefinitions="WIN64;_WINDOWS;_DEBUG;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -153,10 +153,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="zlib64.lib ws2_32.lib sqlite3.lib"
+				AdditionalDependencies="zlib64.lib ws2_32.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\lib;.\lib;."
+				AdditionalLibraryDirectories="..\lib;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="17"
@@ -214,10 +214,10 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\..\common\include;..\..\..\common;..\..\..\wang\split;..\..\..\plugins\trex;..\..\..\plugins"
+				AdditionalIncludeDirectories=".\Sqlite3;..\..\libconn;..\..\..\common\include;..\..\..\common;..\..\..\wang\split;..\..\..\plugins\trex;..\..\..\plugins"
 				PreprocessorDefinitions="WIN32;_CONSOLE;NDEBUG;_CRT_SECURE_NO_WARNING"
 				MinimalRebuild="false"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -301,7 +301,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\..\common\include;..\..\..\common;..\..\..\wang\split;..\..\..\plugins\trex;..\..\..\plugins"
+				AdditionalIncludeDirectories=".\Sqlite3; ..\..\libconn;..\..\..\common\include;..\..\..\common;..\..\..\wang\split;..\..\..\plugins\trex;..\..\..\plugins"
 				PreprocessorDefinitions="WIN64;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNING"
 				MinimalRebuild="false"
 				RuntimeLibrary="2"
@@ -865,15 +865,19 @@
 			Name="sqlite3"
 			>
 			<File
-				RelativePath=".\Common\CppSQLite3.cpp"
+				RelativePath=".\Sqlite3\CppSQLite3.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Common\CppSQLite3.h"
+				RelativePath=".\Sqlite3\CppSQLite3.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Common\sqlite3.h"
+				RelativePath=".\Sqlite3\sqlite3.c"
+				>
+			</File>
+			<File
+				RelativePath=".\Sqlite3\sqlite3.h"
 				>
 			</File>
 		</Filter>
