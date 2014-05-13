@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "CtlClient.h"
 #include "ConfigureServer.h"
-
+#include "CLog.h"
 
 // CConfigureServer ¶Ô»°¿ò
 
@@ -31,6 +31,8 @@ void CConfigureServer::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CConfigureServer, CDialog)
 	ON_BN_CLICKED(IDOK, &CConfigureServer::OnBnClickedOk)
+	ON_BN_CLICKED(IDC_RADIO1, &CConfigureServer::OnBnClickedRadio1)
+	ON_BN_CLICKED(IDC_RADIO2, &CConfigureServer::OnBnClickedRadio2)
 END_MESSAGE_MAP()
 
 
@@ -47,13 +49,20 @@ BOOL CConfigureServer::OnInitDialog()
 	char buffer[MAX_PATH];
 	char user[MAX_PATH], passwd[MAX_PATH];
 	int port;
-	g_packmanager.ReadConfigure(buffer,&port, user, passwd);
+	int type;
+	g_packmanager.ReadConfigure(buffer,&port, user, passwd, &type);
 
 	m_user.SetWindowTextA(user);
 	m_passwd.SetWindowTextA(passwd);
 	m_sServer.SetWindowTextA(buffer);
 	sprintf(buffer,"%d",port);
 	m_nPort.SetWindowTextA(buffer);
+
+
+	if(type == LOG_TO_FILE)
+		((CButton *)GetDlgItem(IDC_RADIO1))->SetCheck(TRUE);
+	else
+		((CButton *)GetDlgItem(IDC_RADIO2))->SetCheck(TRUE);
 
 
 	return TRUE;  // return TRUE unless you set the focus to a control
@@ -76,6 +85,18 @@ void CConfigureServer::OnBnClickedOk()
 	m_user.GetWindowTextA(user, sizeof(user));
 	m_passwd.GetWindowTextA(passwd, sizeof(passwd));
 	
-	g_packmanager.SetConfigure(buffer,port, user, passwd);
+	g_packmanager.SetConfigure(buffer,port, user, passwd, m_logtype);
 	OnOK();
+}
+
+void CConfigureServer::OnBnClickedRadio1()
+{
+	// TODO: Add your control notification handler code here
+	m_logtype = LOG_TO_FILE;
+}
+
+void CConfigureServer::OnBnClickedRadio2()
+{
+	// TODO: Add your control notification handler code here
+	m_logtype = LOG_TO_SCREEN;
 }

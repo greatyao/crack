@@ -16,11 +16,13 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// 中文(简体，中国) resources
+// Chinese (P.R.C.) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+#ifdef _WIN32
 LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
 #pragma code_page(936)
+#endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -123,18 +125,20 @@ BEGIN
     PUSHBUTTON      "获得最新状态",IDC_BTN_CLIENT,307,192,62,14
 END
 
-IDD_DIALOG_SERVER DIALOGEX 0, 0, 225, 156
+IDD_DIALOG_SERVER DIALOGEX 0, 0, 228, 170
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "配置服务器"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "确定",IDOK,134,120,50,15
-    GROUPBOX        "配置",IDC_STATIC,7,7,211,142
-    RTEXT           "服务器IP：\r\n\r\n\r\n端口地址：\r\n\r\n\r\n用户名：\r\n\r\n\r\n密码：",IDC_STATIC,17,22,41,90
+    DEFPUSHBUTTON   "确定",IDOK,135,142,50,15
+    GROUPBOX        "配置",IDC_STATIC,7,7,214,157
+    RTEXT           "服务器IP：\r\n\r\n\r\n端口地址：\r\n\r\n\r\n用户名：\r\n\r\n\r\n密码：\r\n\r\n\r\n日志类型：",IDC_STATIC,17,22,41,121
     EDITTEXT        IDC_EDIT_IP,61,18,129,15,ES_AUTOHSCROLL
     EDITTEXT        IDC_EDIT_PORT,62,44,124,15,ES_AUTOHSCROLL | ES_NUMBER
     EDITTEXT        IDC_EDIT_USER,61,70,124,16,ES_AUTOHSCROLL
     EDITTEXT        IDC_EDIT_PASSWORD,61,95,124,16,ES_PASSWORD | ES_AUTOHSCROLL
+    CONTROL         "文件",IDC_RADIO1,"Button",BS_AUTORADIOBUTTON,64,120,38,10
+    CONTROL         "控制台",IDC_RADIO2,"Button",BS_AUTORADIOBUTTON,143,120,38,10
 END
 
 
@@ -144,7 +148,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO
+GUIDELINES DESIGNINFO 
 BEGIN
     IDD_DLG_UPLOAD, DIALOG
     BEGIN
@@ -173,9 +177,9 @@ BEGIN
     IDD_DIALOG_SERVER, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 218
+        RIGHTMARGIN, 221
         TOPMARGIN, 7
-        BOTTOMMARGIN, 149
+        BOTTOMMARGIN, 163
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -186,7 +190,7 @@ END
 // Menu
 //
 
-IDR_MENU_MAIN MENU
+IDR_MENU_MAIN MENU 
 BEGIN
     POPUP "主菜单(&M)"
     BEGIN
@@ -202,16 +206,18 @@ BEGIN
     END
 END
 
-#endif    // 中文(简体，中国) resources
+#endif    // Chinese (P.R.C.) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////
-// 英语(美国) resources
+// English (U.S.) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
+#endif //_WIN32
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -246,7 +252,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO
+GUIDELINES DESIGNINFO 
 BEGIN
     IDD_ABOUTBOX, DIALOG
     BEGIN
@@ -311,13 +317,13 @@ END
 // String Table
 //
 
-STRINGTABLE
+STRINGTABLE 
 BEGIN
     IDS_ABOUTBOX            "&About CtlClient..."
     IDP_SOCKETS_INIT_FAILED "Windows sockets initialization failed."
 END
 
-#endif    // 英语(美国) resources
+#endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

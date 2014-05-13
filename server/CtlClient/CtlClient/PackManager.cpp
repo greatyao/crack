@@ -11,9 +11,6 @@ CPackManager::CPackManager(void)
 {
 	ReadConfigure();
 
-	CLog::InitLogSystem(LOG_TO_FILE,TRUE,"ControlClient.log");
-	//CLog::InitLogSystem(LOG_TO_SCREEN,TRUE);
-
 	InitLockSocket();
 	m_connected = 0;
 	m_bThreadHeartBeatRunning = 0;
@@ -32,18 +29,26 @@ void CPackManager::ReadConfigure(void)
 	GetPrivateProfileString("config","user","",m_user,sizeof(m_user),ini_file);
 	GetPrivateProfileString("config","password","",m_passwd,sizeof(m_passwd),ini_file);
 	GetPrivateProfileString("config","ip","192.168.18.115",m_sIp,MAX_PATH-1,ini_file);
+	
 	GetPrivateProfileString("config","port","6010",buffer,20,ini_file);
 	m_nPort = atoi(buffer);
+	
+	GetPrivateProfileString("config","logtype","1",buffer,20,ini_file);
+	m_logtype = atoi(buffer);
+
+	CLog::InitLogSystem(m_logtype,TRUE,"ControlClient.log");
 }
-void CPackManager::ReadConfigure(char *ip,int *port,char*user,char* passwd)
+
+void CPackManager::ReadConfigure(char *ip,int *port,char*user,char* passwd, int* log)
 {
 	sprintf(ip,"%s",m_sIp);
 	port[0] = m_nPort;
 	sprintf(user,"%s",m_user);
 	sprintf(passwd,"%s",m_passwd);
+	*log = m_logtype;
 }
 
-int CPackManager::SetConfigure(const char *ip,int port, const char*user, const char* passwd)
+int CPackManager::SetConfigure(const char *ip,int port, const char*user, const char* passwd, int log)
 {
 	char buffer[20];
 	//÷±Ω”∂¡≈‰÷√
@@ -54,15 +59,25 @@ int CPackManager::SetConfigure(const char *ip,int port, const char*user, const c
 	WritePrivateProfileString("config","user",user,ini_file);
 	WritePrivateProfileString("config","password",passwd,ini_file);
 	WritePrivateProfileString("config","ip",ip,ini_file);
+	
 	sprintf(buffer,"%d",port);
 	WritePrivateProfileString("config","port",buffer,ini_file);
-	
-	m_nPort = port;
 
+	sprintf(buffer,"%d", log);
+	WritePrivateProfileString("config","logtype",buffer,ini_file);
+	
 	bool login = false;
-	if(strcmp(m_user, user) != 0 || strcmp(m_passwd, passwd) != 0)
+	if(strcmp(m_user, user) != 0 || strcmp(m_passwd, passwd) != 0 || strcmp(m_sIp, ip) || m_nPort != port)
 		login = true;
 
+	if(m_logtype != log)
+	{
+		CLog::ReleaseLogSystem();
+		CLog::InitLogSystem(log, TRUE,"ControlClient.log");
+	}
+
+	m_nPort = port;
+	m_logtype = log;
 	_snprintf(m_sIp,sizeof(m_sIp),"%s",ip);
 	_snprintf(m_user,sizeof(m_user),"%s",user);
 	_snprintf(m_passwd,sizeof(m_passwd), "%s",passwd);
@@ -72,6 +87,7 @@ int CPackManager::SetConfigure(const char *ip,int port, const char*user, const c
 		m_sockclient.Finish();
 		m_connected = 0;
 	}
+	
 	return 1;
 }
 
@@ -703,9 +719,6 @@ int CPackManager::GenNewFileUploadStartPack(file_upload_start_res *res){
 		return ERR_CONNECTIONLOST;
 
 	int ret = 0;
-	unsigned char cmd;
-	short status;
-	unsigned char recbuf[1024*4];
 	file_upload_start_req req;
 	int filelen = 0;
 	FILE *fp = NULL;
@@ -755,8 +768,6 @@ int CPackManager::GenNewFileUploadingPack(){
 
 	int ret = 0;
 
-	unsigned char cmd;
-	short status;
 	unsigned int readLen = 0;
 	unsigned char sendbuf[1024*4];
 	unsigned int totalLen = 0;;

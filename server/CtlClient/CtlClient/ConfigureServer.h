@@ -25,5 +25,8 @@ public:
 	CEdit m_sServer;
 	CEdit m_user;
 	CEdit m_passwd;
+	int m_logtype;
 	afx_msg void OnBnClickedOk();
+	afx_msg void OnBnClickedRadio1();
+	afx_msg void OnBnClickedRadio2();
 };

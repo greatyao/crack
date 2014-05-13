@@ -20,11 +20,12 @@ class CPackManager
 	char m_sIp[MAX_PATH];
 	char m_user[32];
 	char m_passwd[32];
+	int m_logtype;
 
 	void ReadConfigure(void);
 public:
-	int SetConfigure(const char *ip,int port,const char* user,const char* passwd);
-	void ReadConfigure(char *ip,int *port,char*user,char* passwd);
+	int SetConfigure(const char *ip,int port,const char* user,const char* passwd, int log);
+	void ReadConfigure(char *ip,int *port,char*user,char* passwd, int* log);
 
 public:
 	CPackManager(void);

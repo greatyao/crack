@@ -216,8 +216,7 @@ void CCtlClientDlg::OnTcnSelchangeTabmain(NMHDR *pNMHDR, LRESULT *pResult)
 void CCtlClientDlg::OnCfgServer()
 {
 	CConfigureServer dlg; 
-	dlg.DoModal(); 
-	AfxMessageBox("配置ip和端口完成");
+	dlg.DoModal();
 }
 
 void CCtlClientDlg::OnAbout()
