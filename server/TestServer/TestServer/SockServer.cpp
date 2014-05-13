@@ -4,6 +4,8 @@
 #include "macros.h"
 #include "CrackBroker.h"
 #include "ClientInfo.h"
+#include <mstcpip.h>
+#include "conn.h"
 
 CSockServer::CSockServer(void)
 {
@@ -43,8 +45,9 @@ INT CSockServer::StartServer(void)
 	
 	CLog::Log(LOG_LEVEL_WARNING,"Init Server Socket Lib OK\n");
 
-	m_ListenSock = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
-	if (m_ListenSock == INVALID_SOCKET){
+	m_ListenSock = (SOCKET)conn_socket(CONN_TCP);
+	//m_ListenSock = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
+	if (m_ListenSock == NULL){
 		
 		CLog::Log(LOG_LEVEL_WARNING,"Create Server Socket Error.\n");
 		return -2;
@@ -54,13 +57,15 @@ INT CSockServer::StartServer(void)
 	serverAddr.sin_family = AF_INET;
 	serverAddr.sin_addr.s_addr = INADDR_ANY;
 
-	nRet = bind(m_ListenSock,(SOCKADDR *)&serverAddr,sizeof(SOCKADDR));
+	nRet = conn_bind((conn)m_ListenSock,(SOCKADDR *)&serverAddr,sizeof(SOCKADDR));
+	//nRet = bind(m_ListenSock,(SOCKADDR *)&serverAddr,sizeof(SOCKADDR));
 	if (nRet != 0){
 		CLog::Log(LOG_LEVEL_WARNING,"Bind Server Socket Error.\n");
 		return -3;
 	}
 
-	nRet = listen(m_ListenSock,10);
+	nRet = conn_listen((conn)m_ListenSock, 5);
+	//nRet = listen(m_ListenSock, 5);
 	if (nRet != 0){
 		CLog::Log(LOG_LEVEL_WARNING,"Server Listen Error.\n");
 		return -4;
@@ -68,12 +73,31 @@ INT CSockServer::StartServer(void)
 
 	while(true){
 		addrLen = sizeof(clientAddr);
-		clientSocket = accept(m_ListenSock,(SOCKADDR *)&clientAddr,&addrLen);
-		if (clientSocket == INVALID_SOCKET){
+		clientSocket = (SOCKET)conn_accept((conn)m_ListenSock,(SOCKADDR *)&clientAddr,&addrLen);
+		//clientSocket = accept(m_ListenSock,(SOCKADDR *)&clientAddr,&addrLen);
+		if (clientSocket == NULL){
 
 			CLog::Log(LOG_LEVEL_WARNING,"Accept Client Connect Error.\n");
 			return -6;
 		}
+
+#if 0
+		BOOL b = TRUE;
+		int opt=sizeof(b);
+		setsockopt(clientSocket,SOL_SOCKET,SO_KEEPALIVE,(char *)&b, opt);      
+		getsockopt(clientSocket,SOL_SOCKET,SO_KEEPALIVE, (char *)&b, &opt);      
+		CLog::Log(LOG_LEVEL_DEBUG,"getsockopt %d %d\n", opt, b);
+
+		tcp_keepalive ka, ka2;
+		ka.onoff = 1 ;
+		ka.keepalivetime = 30000 ; // Keep Alive in 5.5 sec.
+		ka.keepaliveinterval = 3000 ; // Resend if No-Reply
+		if(WSAIoctl(clientSocket, SIO_KEEPALIVE_VALS, &ka, sizeof(ka), &ka2, sizeof(ka2), 
+			(LPDWORD)&opt, NULL, NULL) != 0)
+    		CLog::Log(LOG_LEVEL_WARNING,"setsockopt %d\n", WSAGetLastError());
+		
+		CLog::Log(LOG_LEVEL_DEBUG,"getsockopt %d %d\n", ka2.keepaliveinterval, ka2.keepalivetime);
+#endif
 
 		m_nCurrentThread +=1 ;
 
@@ -82,7 +106,7 @@ INT CSockServer::StartServer(void)
 		int port;
 		strncpy(ip, inet_ntoa(clientAddr.sin_addr), 16);
 		port = ntohs(clientAddr.sin_port);
-		CLog::Log(LOG_LEVEL_NOMAL,"Incoming a connection [%s:%d]\n", ip, port);
+		CLog::Log(LOG_LEVEL_NOMAL,"Incoming a connection %p [%s:%d]\n", (conn)clientSocket, ip, port);
 		
 		//处理用户登录请求
 		//用户登录成功，创建线程处理用户业务，用户登录失败拒绝该连接

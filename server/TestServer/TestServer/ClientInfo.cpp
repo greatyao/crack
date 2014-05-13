@@ -1,11 +1,12 @@
 #include "ClientInfo.h"
 #include "macros.h"
 #include "CLog.h"
+#include "conn.h"
 #include <string.h>
 
 CClientInfo::CClientInfo(void)
 {
-	m_clientsock = -1;
+	m_clientsock = 0;
 	memset(m_osinfo,0, sizeof(m_osinfo));
 	memset(m_ip,0,20);
 	memset(m_hostname,0,sizeof(m_hostname));
@@ -17,8 +18,9 @@ CClientInfo::CClientInfo(void)
 
 CClientInfo::~CClientInfo(void)
 {
-	if(m_clientsock > 0)
-		closesocket(m_clientsock);
+	if(m_clientsock != 0)
+		//closesocket(m_clientsock);
+		conn_close((conn)m_clientsock);
 }
 
 bool CClientInfo::OwnTask(const char* guid)

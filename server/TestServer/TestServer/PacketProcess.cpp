@@ -37,7 +37,7 @@ int client_keeplive(void *pclient, unsigned char * pdata, UINT len){
 	if (m < 0){
 		CLog::Log(LOG_LEVEL_DEBUG,"[%s:%d] Keeplive :Send Response Error %d \n",ip,port,m);
 	}else	{
-		//CLog::Log(LOG_LEVEL_DEBUG,"[%s:%d] Client KeepLive %d OK\n",ip, port, cmd);
+		CLog::Log(LOG_LEVEL_DEBUG,"[%s:%d] Client KeepLive %d OK\n",ip, port, cmd);
 	}
 
 	return nRet;
@@ -99,7 +99,7 @@ int cc_task_upload(void *pclient, unsigned char * pdata, UINT len){
 		CLog::Log(LOG_LEVEL_WARNING,"cc_task_upload: [%s:%d] Send Response Error %d\n",ip,port,m);
 		
 	}else	
-		CLog::Log(LOG_LEVEL_NOMAL,"cc_task_upload: [%s:%d] Uploading Task OK\n",ip,port);
+		CLog::Log(LOG_LEVEL_NOTICE,"cc_task_upload: [%s:%d] Upload Task OK GUID=%s\n",ip,port,task_upload.guid);
 
 	return nRet;
 }
@@ -318,7 +318,7 @@ int cc_get_task_result(void *pclient, unsigned char * pdata, UINT len){
 		CLog::Log(LOG_LEVEL_DEBUG,"cc_get_task_result: Broker Get Task %s ErrorCode %d\n",pResReq->guid,nRet);
 		resLen = 0;
 	}else{
-		//CLog::Log(LOG_LEVEL_WARNING,"Broker Get Task %s Result OK\n",pResReq->guid);
+		CLog::Log(LOG_LEVEL_DEBUG,"Broker Get Task %s Result OK\n",pResReq->guid);
 		resLen = sizeof(struct task_result_info)*resNum;
 	}
 
@@ -327,7 +327,7 @@ int cc_get_task_result(void *pclient, unsigned char * pdata, UINT len){
 	if (m < 0){
 		CLog::Log(LOG_LEVEL_DEBUG,"cc_get_task_result: [%s:%d] Send Response Error %d \n",ip,port,pResReq->guid,m);
 	}else{
-		//CLog::Log(LOG_LEVEL_DEBUG,"cc_get_task_result: [%s:%d] Client Get Task %s Result OK\n",ip,port,pResReq->guid);
+		CLog::Log(LOG_LEVEL_DEBUG,"cc_get_task_result: [%s:%d] Client Get Task %s Result OK\n",ip,port,pResReq->guid);
 	}
 
 	g_CrackBroker.Free(pres);
@@ -355,7 +355,7 @@ int cc_refresh_status(void *pclient, unsigned char * pdata, UINT len){
 		CLog::Log(LOG_LEVEL_DEBUG, "cc_refresh_status: Broker Get Task ErrorCode %d\n",nRet);
 		resLen = 0;
 	}else{
-		//CLog::Log(LOG_LEVEL_DEBUG,"cc_refresh_status: Broker Get Task Status %d Result OK\n",resNum);
+		CLog::Log(LOG_LEVEL_DEBUG,"cc_refresh_status: Broker Get Task Status %d Result OK\n",resNum);
 		resLen = sizeof(struct task_status_info) * resNum;
 	}
 	
@@ -364,7 +364,7 @@ int cc_refresh_status(void *pclient, unsigned char * pdata, UINT len){
 	if (m < 0){
 		CLog::Log(LOG_LEVEL_DEBUG,"cc_refresh_status: [%s:%d] Send Response Error %d \n",ip,port,m);
 	}else{
-		//CLog::Log(LOG_LEVEL_DEBUG,"cc_refresh_status: [%s:%d] Client Get Task Status OK\n",ip,port);
+		CLog::Log(LOG_LEVEL_DEBUG,"cc_refresh_status: [%s:%d] Client Get Task Status OK\n",ip,port);
 	}
 
 	g_CrackBroker.Free(pTasksStatus);
@@ -681,6 +681,7 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 		
 		memset(resBuf,0,MAX_BUF_LEN);
 		readLen = Read(sock,&cmd,&status,resBuf,MAX_BUF_LEN);
+		CLog::Log(LOG_LEVEL_DEBUG, "upload_file_start: Recv cmd %d len %d\n", cmd, readLen);
 		if(cmd != CMD_FILE_CONTENT)
 		{
 			CLog::Log(LOG_LEVEL_DEBUG, "upload_file_start: Recv unneed cmd %d\n", cmd);
@@ -690,7 +691,7 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 
 		if (readLen < 0 ){
 			
-			CLog::Log(LOG_LEVEL_DEBUG,"upload_file_start: Recv client upload file %s\n",filename);
+			CLog::Log(LOG_LEVEL_WARNING,"upload_file_start: Recv client upload file %s %d\n",filename);
 			ret = readLen;
 			break;
 
@@ -705,7 +706,7 @@ int cc_task_upload_file_start(void *pclient,unsigned char *pdata,UINT len){
 				break;
 
 			}else{	
-				CLog::Log(LOG_LEVEL_DEBUG,"[%s:%d] Get File Upload %d: %d/%d OK\n",ip,port,writeFileLen, curlen, filelen);					
+				//CLog::Log(LOG_LEVEL_DEBUG,"[%s:%d] Get File Upload %d: %d/%d OK\n",ip,port,writeFileLen, curlen, filelen);					
 			}
 		}
 	}
@@ -830,7 +831,7 @@ int comp_get_a_workitem(void *pclient,unsigned char *pdata,UINT len){
 		}
 
 	}else{
-		CLog::Log(LOG_LEVEL_DEBUG,"get_workitem: [%s, %s:%d] Client Get A WorkItem OK\n",ip,port);
+		CLog::Log(LOG_LEVEL_DEBUG,"get_workitem: [%s, %s:%d] Client Get A WorkItem OK\n",owner,ip,port);
 	}
 	g_CrackBroker.Free(pcrackblock);
 
