@@ -665,7 +665,7 @@ int CPackManager::GenNewFileUploadPack(file_upload_req req,file_upload_res *res)
 
 	memset(recbuf,0,1024*4);
 
-	CLog::Log(LOG_LEVEL_WARNING,"Send File Upload Req...\n");
+	CLog::Log(LOG_LEVEL_NOMAL,"Send File Upload Req...\n");
 	LockSocket();
 	ret = m_sockclient.Write(CMD_UPLOAD_FILE,0,&req,sizeof(file_upload_req));
 	if (ret < 0){
@@ -682,14 +682,16 @@ int CPackManager::GenNewFileUploadPack(file_upload_req req,file_upload_res *res)
 		return ret;
 
 	}
-	CLog::Log(LOG_LEVEL_WARNING,"Recv File Upload Res OK\n");
 	if (status == 0){
-
 		memcpy(res,recbuf,sizeof(file_upload_res));
 		memset(m_cur_upload_guid,0,40);
 		memcpy(m_cur_upload_guid,res->guid,40);
 		this->m_cur_server_file = res->f;
+		CLog::Log(LOG_LEVEL_NOTICE,"Recv File Upload Res OK status=%d guid=%s\n", status, res->guid);
 	}
+	else
+		CLog::Log(LOG_LEVEL_WARNING,"Recv File Upload Res OK status=%d\n", status);
+
 	return ret;
 }
 
@@ -730,7 +732,7 @@ int CPackManager::GenNewFileUploadStartPack(file_upload_start_res *res){
 	memcpy(req.guid,this->m_cur_upload_guid,40);
 	req.len = filelen;
 
-	CLog::Log(LOG_LEVEL_WARNING,"Send File Upload Start Req ...\n");
+	CLog::Log(LOG_LEVEL_NOMAL,"Send File Upload Start Req ...\n");
 	CLog::Log(LOG_LEVEL_NOMAL,"guid=%s fd=%p len=%d\n", m_cur_upload_guid, fp, filelen);
 	LockSocket();
 	ret = m_sockclient.Write(CMD_START_UPLOAD,0,&req,sizeof(file_upload_start_req));
@@ -803,10 +805,11 @@ int CPackManager::GenNewFileUploadingPack(){
 		else 
 			step = 16;
 		totalLen += readLen;
-		//CLog::Log(LOG_LEVEL_NOMAL,"Send file buffer %d/%d [speed=%d]\n",totalLen,m_cur_upload_file_len, speed);
+		CLog::Log(LOG_LEVEL_DEBUG,"Send file buffer %d/%d [speed=%d]\n",totalLen,m_cur_upload_file_len, speed);
 		//
 	}
 	UnLockSocket();
+	CLog::Log(LOG_LEVEL_NOMAL,"Send file OK\n");
 	fclose(fp);
 }
 
@@ -830,7 +833,7 @@ int CPackManager::GenNewFileUploadEndPack(file_upload_end_res *res){
 	req.len = this->m_cur_upload_file_len;
 	req.offset = 0;
 
-	CLog::Log(LOG_LEVEL_WARNING,"Send File Upload End Req ...\n");
+	CLog::Log(LOG_LEVEL_NOMAL, "Send File Upload End Req ...\n");
 	LockSocket();
 	ret = m_sockclient.Write(CMD_END_UPLOAD,0,&req,sizeof(file_upload_end_req));
 	if (ret < 0){
@@ -848,7 +851,7 @@ int CPackManager::GenNewFileUploadEndPack(file_upload_end_res *res){
 
 	}
 	UnLockSocket();
-	CLog::Log(LOG_LEVEL_WARNING,"Recv File Upload End Res OK\n");
+	CLog::Log(LOG_LEVEL_NOMAL,"Recv File Upload End Res OK\n");
 	if (status == 0){
 
 		memcpy(res,recbuf,sizeof(file_upload_end_res));

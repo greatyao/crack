@@ -53,6 +53,9 @@ int CSocketClient::Init(char *ip,int port){
 		return -3;
 
 	}else{
+		int opt = 150000;
+		setsockopt(m_clientsocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&opt, sizeof(opt));
+		setsockopt(m_clientsocket, SOL_SOCKET, SO_SNDTIMEO, (char*)&opt, sizeof(opt));
 
 		//CLog::Log(LOG_LEVEL_WARNING,"Connect Server %s:%d OK\n",ip,port);
 	}
