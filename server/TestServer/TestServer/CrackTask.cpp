@@ -65,7 +65,18 @@ int CCrackTask::SplitTaskFile(const char *guid, const char* john){
 	//调用文件分割函数
 	if(john == NULL){
 		CCrackBroker::GetTaskFileByGuid(guid, (char*)filename, sizeof(filename));
+
+		if(this->algo == algo_msoffice || this->algo == algo_msoffice_old)
+			this->algo = algo_msoffice;
+
 		ret = load_hashes_file2((char *)filename,this);
+
+		if(this->algo == algo_msoffice && ret <= 0)
+		{
+			this->algo = algo_msoffice_old;
+			ret = load_hashes_file2((char *)filename,this);
+		}
+
 	} else{
 		ret = load_single_hash2((char *)john, this);
 	}
