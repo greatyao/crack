@@ -75,7 +75,16 @@ int load_hashes_file(const char *filename,  int algo, struct crack_hash* hashes,
 	if(special) *special = plugin->special();
     if (plugin->special())
     {
-		ret = plugin->parse(NULL, (char *)filename, hashes);
+		__try
+		{
+			ret = plugin->parse(NULL, (char *)filename, hashes);
+		}
+		__except(EXCEPTION_EXECUTE_HANDLER)
+		{
+			CLog::Log(LOG_LEVEL_WARNING, "File %s loaded exception\n",filename);
+			ret = ERR_FILENOEXIST;
+		}
+
 		if (ret == 0) 
 		{
 			CLog::Log(LOG_LEVEL_NOMAL, "File %s loaded successfully\n",filename);
