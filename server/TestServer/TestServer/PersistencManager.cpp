@@ -1,27 +1,19 @@
 #include "PersistencManager.h"
 
+CPersistencManager g_Persistence;
 
-CPersistencManager::CPersistencManager(char *pDB)
+CPersistencManager::CPersistencManager()
 {
 	int ret = 0;
 
-	try{
-		m_SQLite3DB.open(pDB);
-	}catch(CppSQLite3Exception& ex){
-
-		CLog::Log(LOG_LEVEL_WARNING,"Open Database :%s Error\n",pDB);
-	}
-
 	 m_TaskTable = "create table Task (taskid char(40),algo char(1),charset char(1),type char(1),filetag char(1),single char(1),startlength int,endlength int,owner char(64),status char(1),splitnum int,finishnum int,success char(1),progress real,speed real,starttime char(20),runtime int,remaintime int,count int)";
-	 m_BlockTable = "create table Hash (taskid char(40),index int,john char(260),result char(32),status char(1),progress real)";
-	 m_HashTable = "create table Block (blockid char(40),taskid char(40), index0 int,status char(1),progress real,spead real,remaintime int,compip char(20))";
+	 m_HashTable = "create table Hash (taskid char(40),index0 int,john char(260),result char(32),status char(1),progress real)";
+	 m_BlockTable = "create table Block (blockid char(40),taskid char(40), index0 int,status char(1),progress real,speed real,remaintime int,compip char(20))";
 	 m_NoticeTable = "create table Notice (hostip char(20),blockid char(40),status char(1))";
 	 m_ReadyTaskTable = "create table ReadyTask (taskid char(40))";
 	 m_ClientTable = "create table Client (ip char(20),type char(1),hostname char(64),osinfo char(64),livetime char(20),logintime char(20),gpu int,cpu int)";
-
-
-	CLog::Log(LOG_LEVEL_NOMAL,"Open Database :%s OK\n",pDB);
 }
+
 
 CPersistencManager::~CPersistencManager(void)
 {
@@ -30,6 +22,20 @@ CPersistencManager::~CPersistencManager(void)
 
 }
 
+bool CPersistencManager::OpenDB(const char* name)
+{
+	try{
+		m_SQLite3DB.open(name);
+	}catch(CppSQLite3Exception& ex){
+
+		CLog::Log(LOG_LEVEL_WARNING,"Failed to Open Database %s: %s\n",name, ex.errorMessage());
+		return false;
+	}
+
+	CLog::Log(LOG_LEVEL_NOMAL,"Open Database :%s OK\n", name);
+
+	return true;
+}
 
 int CPersistencManager::CreateTable(void){
 
@@ -38,49 +44,41 @@ int CPersistencManager::CreateTable(void){
 	//创建Task表
 
 	CLog::Log(LOG_LEVEL_NOMAL,"Create Table :Task Start\n");
-
 	if (!m_SQLite3DB.tableExists("Task")){
 		m_SQLite3DB.execDML(m_TaskTable.c_str());
-			
+		CLog::Log(LOG_LEVEL_NOMAL,"Create Table :Task End\n");	
 	}else{
 		CLog::Log(LOG_LEVEL_NOMAL,"Table :Task Exists\n");
 	}
 	
-	CLog::Log(LOG_LEVEL_NOMAL,"Create Table :Task End\n");
 	//创建block表
 
 	CLog::Log(LOG_LEVEL_NOMAL,"Create Table :Hash Start\n");
 	if (!m_SQLite3DB.tableExists("Hash")){
 			m_SQLite3DB.execDML(m_HashTable.c_str());
-			
+		CLog::Log(LOG_LEVEL_NOMAL,"Create Table :Hash End\n");	
 	}else{
 		CLog::Log(LOG_LEVEL_NOMAL,"Table :Hash Exists\n");
 	}
-
-	CLog::Log(LOG_LEVEL_NOMAL,"Create Table :Hash End\n");
 
 	//创建Hash表
 	CLog::Log(LOG_LEVEL_NOMAL,"Create Table :Block Start\n");
 	if (!m_SQLite3DB.tableExists("Block")){
 			m_SQLite3DB.execDML(m_BlockTable.c_str());
-			
+		CLog::Log(LOG_LEVEL_NOMAL,"Create Table :Block End\n");	
 	}else{
 		CLog::Log(LOG_LEVEL_NOMAL,"Table :Block Exists\n");
 	}
-
-	CLog::Log(LOG_LEVEL_NOMAL,"Create Table :Block End\n");
 
 	//创建ReadyTask表
 
 	CLog::Log(LOG_LEVEL_NOMAL,"Create Table :ReadyTask Start\n");
 	if (!m_SQLite3DB.tableExists("ReadyTask")){
 			m_SQLite3DB.execDML(m_ReadyTaskTable.c_str());
-			
+		CLog::Log(LOG_LEVEL_NOMAL,"Create Table :ReadyTask End\n");		
 	}else{
 		CLog::Log(LOG_LEVEL_NOMAL,"Table :ReadyTask Exists\n");
 	}
-
-	CLog::Log(LOG_LEVEL_NOMAL,"Create Table :ReadyTask End\n");
 
 
 	//创建Notice 表
@@ -88,12 +86,10 @@ int CPersistencManager::CreateTable(void){
 	CLog::Log(LOG_LEVEL_NOMAL,"Create Table :Notice Start\n");
 	if (!m_SQLite3DB.tableExists("Notice")){
 			m_SQLite3DB.execDML(m_NoticeTable.c_str());
-			
+		CLog::Log(LOG_LEVEL_NOMAL,"Create Table :Notice End\n");		
 	}else{
 		CLog::Log(LOG_LEVEL_NOMAL,"Table :Notice Exists\n");
 	}
-
-	CLog::Log(LOG_LEVEL_NOMAL,"Create Table :Notice End\n");
     
 
 	//创建在线客户端表
@@ -101,13 +97,12 @@ int CPersistencManager::CreateTable(void){
 	CLog::Log(LOG_LEVEL_NOMAL,"Create Table :Client Start\n");
 	if (!m_SQLite3DB.tableExists("Client")){
 			m_SQLite3DB.execDML(m_ClientTable.c_str());
-			
+		CLog::Log(LOG_LEVEL_NOMAL,"Create Table :Client End\n");
 	}else{
 		CLog::Log(LOG_LEVEL_NOMAL,"Table :Client Exists\n");
 	}
 
-	CLog::Log(LOG_LEVEL_NOMAL,"Create Table :Client End\n");
-
+	
 	return ret;
 }
 
@@ -383,7 +378,7 @@ int CPersistencManager::LoadHash(CT_MAP &task_map){
 			
 		pCT = cur_iter->second;
 
-		int tmpIndex = query.getIntField("index");
+		int tmpIndex = query.getIntField("index0");
 
 		pCT->m_crackhash_list[tmpIndex] = pCH;
 
@@ -454,7 +449,7 @@ int CPersistencManager::LoadBlockMap(CB_MAP &block_map,CT_MAP &task_map){
 		pCB->start = pCT->startLength;
 
 
-		pCB->hash_idx = query.getIntField("index");
+		pCB->hash_idx = query.getIntField("index0");
 		memcpy(pCB->john,pCT->m_crackhash_list[pCB->hash_idx]->m_john,sizeof(pCT->m_crackhash_list[pCB->hash_idx]->m_john));
 
 

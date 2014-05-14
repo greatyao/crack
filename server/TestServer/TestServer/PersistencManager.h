@@ -11,8 +11,10 @@
 class CPersistencManager
 {
 public:
-	CPersistencManager(char *pDB);
+	CPersistencManager();
 	~CPersistencManager(void);
+
+	bool OpenDB(const char* name);
 
 	int CreateTable();
 
@@ -47,3 +49,5 @@ private:
 
 
 };
+
+extern CPersistencManager g_Persistence;
