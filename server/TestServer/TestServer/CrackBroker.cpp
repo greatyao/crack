@@ -1,6 +1,7 @@
 #include "CrackBroker.h"
 #include "CompClient.h"
 #include "ClientInfo.h"
+#include "PersistencManager.h"
 #include "err.h"
 
 #include <Shlwapi.h>
@@ -14,6 +15,16 @@ CCrackBroker::CCrackBroker(void)
 
 CCrackBroker::~CCrackBroker(void)
 {
+}
+
+//从持久化里面加载任务
+int CCrackBroker::LoadFromPersistence()
+{
+	g_Persistence.OpenDB("test.db");
+	g_Persistence.LoadTaskMap(m_cracktask_map);
+	g_Persistence.LoadHash(m_cracktask_map);
+	g_Persistence.LoadBlockMap(m_total_crackblock_map, m_cracktask_map);
+	return 0;
 }
 
 //处理登录
@@ -125,6 +136,9 @@ int	CCrackBroker::CreateTask(struct crack_task *pReq, void* pclient){
 	client->InsetTask(pTask->guid, pTask);
 	strncpy(pTask->m_owner, client->GetOwner(), sizeof(pTask->m_owner));
 
+	//OK,现在将其持久化(不过可以将其放在SplitTask成功之后持久化)
+	//g_Persistence.PersistTask(pTask);
+
 //	m_cracktask_cs.Unlock();
 	return ret;
 }
@@ -154,6 +168,11 @@ int CCrackBroker::SplitTask(const char *guid, const char* john){
 	}
 
 	m_total_crackblock_map.insert(pCT->m_crackblock_map.begin(),pCT->m_crackblock_map.end());
+
+	//OK,现在将其持久化
+	g_Persistence.PersistTask(pCT, false);
+	g_Persistence.PersistHash(pCT->guid, pCT->m_crackhash_list);
+	g_Persistence.PersistBlockMap(pCT->m_crackblock_map);
 
 	return ret;
 }

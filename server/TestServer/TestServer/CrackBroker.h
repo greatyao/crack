@@ -50,6 +50,8 @@ public:
 	CCrackBroker(void);
 	~CCrackBroker(void);
 
+	int LoadFromPersistence();
+
 	//µÇÂ½
 	int ClientLogin2(const void* data, const char* ip, int port, unsigned int sock, CClientInfo ** res);
 

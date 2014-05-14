@@ -2,6 +2,7 @@
 //
 
 #include "SockServer.h"
+#include "CrackBroker.h"
 #include "CLog.h"
 #include <string>
 using std::string;
@@ -51,11 +52,13 @@ void parseOptions(int argc, char ** argv)
 }
 
 int main(int argc, char* argv[]){
-	
+
 	parseOptions(argc, argv);
 
 	CLog::InitLogSystem(logtype, TRUE,"ScheduleServer.log");
 	CLog::SetLevel(loglevel);
+
+	g_CrackBroker.LoadFromPersistence();
 
 	CSockServer *g_Server = new CSockServer;
 
