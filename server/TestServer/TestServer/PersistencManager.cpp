@@ -6,9 +6,9 @@ CPersistencManager::CPersistencManager()
 {
 	int ret = 0;
 
-	 m_TaskTable = "create table Task (taskid char(40) primary key,algo short,charset short,type short,filetag short,single short,startlength int,endlength int,owner char(64),status short,splitnum int,finishnum int,success short,progress real,speed real,starttime int,runtime int,remaintime int,count int)";
+	 m_TaskTable = "create table Task (taskid char(40) primary key,algo short,charset short,type short,filetag short,single short,info blob,owner char(64),status short,splitnum int,finishnum int,success short,progress real,speed real,starttime int,runtime int,remaintime int,count int)";
 	 m_HashTable = "create table Hash (taskid char(40),index0 int,john char(260),result char(32),status short,progress real)";
-	 m_BlockTable = "create table Block (blockid char(40) primary key,taskid char(40), index0 int,short char,progress real,speed real,remaintime int,compip char(20))";
+	 m_BlockTable = "create table Block (blockid char(40) primary key,taskid char(40), type short, index0 int, info blob, status short,progress real,speed real,remaintime int,compip char(20))";
 	 m_NoticeTable = "create table Notice (hostip char(20),blockid char(40),status char(1))";
 	 m_ReadyTaskTable = "create table ReadyTask (taskid char(40))";
 	 m_ClientTable = "create table Client (ip char(20),type char(1),hostname char(64),osinfo char(64),livetime char(20),logintime char(20),gpu int,cpu int)";
@@ -113,17 +113,28 @@ int CPersistencManager::PersistTask(const CCrackTask *pCT, bool update)
 {
 	char insertsql[1024];
 	
-	if(!update)
-		sprintf(insertsql,"insert into Task values ('%s',%d,%d,%d,%d,%d,%d,%d,'%s',%d,%d,%d,%d,%f,%f,%d,%d,%d,%d)",
-			pCT->guid,pCT->algo,pCT->charset,pCT->type,pCT->special,pCT->single,pCT->startLength,pCT->endLength,pCT->m_owner,
-			pCT->m_status,pCT->m_split_num,pCT->m_finish_num,pCT->m_bsuccess,pCT->m_progress,pCT->m_speed,pCT->m_start_time,
-			pCT->m_running_time,pCT->m_remain_time,pCT->count);
-	else
-		sprintf(insertsql,"update Task set status=%d,count=%d,splitnum=%d,success=%d where taskid='%s'",
-			pCT->m_status, pCT->count, pCT->m_split_num, pCT->m_bsuccess, pCT->guid);
-		
 	try{
-		m_SQLite3DB.execDML(insertsql);
+		if(!update)
+		{
+			sprintf(insertsql,"insert into Task values('%s',%d,%d,%d,%d,%d,?,'%s',%d,%d,%d,%d,%f,%f,%d,%d,%d,%d)",
+				pCT->guid,pCT->algo,pCT->charset,pCT->type,pCT->special,pCT->single,pCT->m_owner,
+				pCT->m_status,pCT->m_split_num,pCT->m_finish_num,pCT->m_bsuccess,pCT->m_progress,pCT->m_speed,pCT->m_start_time,
+				pCT->m_running_time,pCT->m_remain_time,pCT->count);
+			CppSQLite3Statement statement = m_SQLite3DB.compileStatement(insertsql);
+			
+			unsigned char* blob = (unsigned char*)&(pCT->startLength);
+			int len = pCT->filename - blob;
+			statement.bind(1, blob, len);
+			statement.execDML();
+		}
+		else
+		{
+			sprintf(insertsql,"update Task set status=%d,count=%d,splitnum=%d,success=%d where taskid='%s'",
+				pCT->m_status, pCT->count, pCT->m_split_num, pCT->m_bsuccess, pCT->guid);
+			
+		
+			m_SQLite3DB.execDML(insertsql);
+		}
 	}catch(CppSQLite3Exception& ex){
 		CLog::Log(LOG_LEVEL_WARNING,"Failed to Insert task %s: %s\n", pCT->guid, ex.errorMessage());
 		return -1;
@@ -164,13 +175,16 @@ int CPersistencManager::PersistBlockMap(const CB_MAP& block_map){
 	for(block_iter = begin_block;block_iter!=end_block;block_iter++){
 
 		pCB = block_iter->second;
-		memset(insertsql,0,1024);
-		sprintf(insertsql,"insert into Block values ('%s','%s',%d,%d,%f,%f,%d,'%s')",
-			pCB->guid,pCB->task->guid,pCB->hash_idx,pCB->m_status,pCB->m_progress,pCB->m_speed,pCB->m_remaintime,
-			pCB->m_comp_guid);
+		sprintf(insertsql,"insert into Block values ('%s','%s', %d, %d, ?, %d, %f, %f, %d, '%s')",
+			pCB->guid,pCB->task->guid, pCB->type, pCB->hash_idx, pCB->m_status, pCB->m_progress,
+			pCB->m_speed,pCB->m_remaintime, pCB->m_comp_guid);
 
 		try{
-			m_SQLite3DB.execDML(insertsql);
+			CppSQLite3Statement statement = m_SQLite3DB.compileStatement(insertsql);			
+			unsigned char* blob = (unsigned char*)&(pCB->start);
+			int len = (unsigned char*)&(pCB->task) - blob;
+			statement.bind(1, blob, len);
+			statement.execDML();
 		} catch(CppSQLite3Exception& ex){
 			CLog::Log(LOG_LEVEL_WARNING,"Failed to Insert block %s: %s\n", pCB->guid, ex.errorMessage());
 		}
@@ -292,18 +306,18 @@ int CPersistencManager::LoadTaskMap(CT_MAP &task_map){
 		memcpy(pCT->guid,query.fieldValue("taskid"),strlen(query.fieldValue("taskid")));
 
 
-		pCT->algo = *query.fieldValue("algo");
-		pCT->charset = *query.fieldValue("charset");
-		pCT->type = *query.fieldValue("type");
-		pCT->special = *query.fieldValue("filetag");
-		pCT->single = *query.fieldValue("single");
-		pCT->startLength = query.getIntField("startlength");
-		pCT->endLength = query.getIntField("endlength");
-		
+		pCT->algo = query.getIntField("algo");
+		pCT->charset = query.getIntField("charset");
+		pCT->type = query.getIntField("type");
+		pCT->special = query.getIntField("filetag");
+		pCT->single = query.getIntField("single");
+		int len;
+		const unsigned char* info = query.getBlobField("info", len);
+		memcpy(&(pCT->startLength), info, len);
 		memset(pCT->m_owner,0,sizeof(pCT->m_owner));
 		memcpy(pCT->m_owner,query.fieldValue("owner"),strlen(query.fieldValue("owner")));
 
-		pCT->m_status = *query.fieldValue("status");
+		pCT->m_status = query.getIntField("status");
 		pCT->m_split_num = query.getIntField("splitnum");
 		pCT->m_finish_num = query.getIntField("finishnum");
 		pCT->m_bsuccess = (strcmp(query.fieldValue("success"),"1") == 0)? true : false;
@@ -316,20 +330,19 @@ int CPersistencManager::LoadTaskMap(CT_MAP &task_map){
 
 		pCT->count = query.getIntField("count");
 
-		
+		if(pCT->type == bruteforce)
+			CLog::Log(LOG_LEVEL_NOMAL, "[%d %d] %d\n", pCT->startLength, pCT->endLength, pCT->count);
+		else if(pCT->type == dict)
+			CLog::Log(LOG_LEVEL_NOMAL, "[dict=%d] %d\n", pCT->dict_idx, pCT->count);
+		else if(pCT->type == bruteforce)
+			CLog::Log(LOG_LEVEL_NOMAL, "[mask=%s]%d\n", pCT->masks, pCT->count);
 		
 		task_map.insert(CT_MAP::value_type(pCT->guid,pCT));
-
-
 
         query.nextRow();
     }
 
-
-
-
 	return ret;
-
 }
 
 //必须在task 加载之后
@@ -349,23 +362,21 @@ int CPersistencManager::LoadHash(CT_MAP &task_map){
 		cur_iter = task_map.find(ptaskid);
 		if (cur_iter == end_iter){
 
-			CLog::Log(LOG_LEVEL_ERROR,"Task List and Hash List is not Matched\n");
-			return -1;
+			CLog::Log(LOG_LEVEL_WARNING, "Task %s doesn't exist in table Task\n", ptaskid);
+			query.nextRow();
+			continue;
 
 		}
-
 
 		CCrackHash *pCH = new CCrackHash();
 		if (!pCH){
-
 			CLog::Log(LOG_LEVEL_ERROR,"Alloc New Hash Error\n");
 			return -1;
-
 		}
-
-		
 			
 		pCT = cur_iter->second;
+		//必须将容器初始化大小
+		pCT->m_crackhash_list.resize(pCT->count);
 
 		int tmpIndex = query.getIntField("index0");
 
@@ -377,18 +388,13 @@ int CPersistencManager::LoadHash(CT_MAP &task_map){
 		memset(pCH->m_result,0,sizeof(pCH->m_result));
 		memcpy(pCH->m_result,query.fieldValue("result"),strlen(query.fieldValue("result")));
 
-		pCH->m_status = *query.fieldValue("status");
+		pCH->m_status = query.getIntField("status");
 		pCH->m_progress = query.getFloatField("progress");
-	       
+		   
         query.nextRow();
-
     }
 
-
-
-
 	return ret;
-
 }
 
 //必须在task 加载之后
@@ -429,39 +435,33 @@ int CPersistencManager::LoadBlockMap(CB_MAP &block_map,CT_MAP &task_map){
 	
 		memcpy(pCB->m_comp_guid,query.fieldValue("compip"),strlen(query.fieldValue("compip")));
 		memcpy(pCB->guid,query.fieldValue("blockid"),strlen(query.fieldValue("blockid")));
-		
-
-		
+				
 		pCB->algo = pCT->algo;
 		pCB->charset = pCT->charset;
-		pCB->end = pCT->endLength;
-		pCB->start = pCT->startLength;
-
+		pCB->type = query.getIntField("type");
+		int len;
+		const unsigned char* info = query.getBlobField("info", len);
+		memcpy(&(pCB->start), info, len);
 
 		pCB->hash_idx = query.getIntField("index0");
 		memcpy(pCB->john,pCT->m_crackhash_list[pCB->hash_idx]->m_john,sizeof(pCT->m_crackhash_list[pCB->hash_idx]->m_john));
 
-
 		pCB->special = pCT->special;
 		pCB->task = pCT;
 		pCB->m_progress = query.getFloatField("progress");
+		printf("%f\n", pCB->m_progress);
 		pCB->m_speed = query.getFloatField("speed");
 
-		pCB->m_status = *query.fieldValue("status");
+		pCB->m_status = query.getIntField("status");
 		pCB->m_remaintime = query.getIntField("remaintime");
 
 		
 		cur_iter->second->m_crackblock_map.insert(CB_MAP::value_type(pCB->guid,pCB));
-
-
 				
 		block_map.insert(CB_MAP::value_type(pCB->guid,pCB));
-
 	       
         query.nextRow();
-
     }
-
 
 	return ret;
 }
