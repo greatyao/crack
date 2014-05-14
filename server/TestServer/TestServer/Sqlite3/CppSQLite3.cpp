@@ -1271,7 +1271,8 @@ int CppSQLite3DB::execDML(const char* szSQL)
 	}
 	else
 	{
-		throw CppSQLite3Exception(nRet, szError);
+		const char* szError= sqlite3_errmsg(mpDB);
+		throw CppSQLite3Exception(nRet, (char*)szError, DONT_DELETE_MSG);
 	}
 }
 

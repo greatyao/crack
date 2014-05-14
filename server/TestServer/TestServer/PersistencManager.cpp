@@ -14,7 +14,7 @@ CPersistencManager::CPersistencManager(char *pDB)
 
 	 m_TaskTable = "create table Task (taskid char(40),algo char(1),charset char(1),type char(1),filetag char(1),single char(1),startlength int,endlength int,owner char(64),status char(1),splitnum int,finishnum int,success char(1),progress real,speed real,starttime char(20),runtime int,remaintime int,count int)";
 	 m_BlockTable = "create table Hash (taskid char(40),index int,john char(260),result char(32),status char(1),progress real)";
-	 m_HashTable = "create table Block (blockid char(40),taskid char(40),index int,status char(1),progress real,spead real,remaintime int,compip char(20))";
+	 m_HashTable = "create table Block (blockid char(40),taskid char(40), index0 int,status char(1),progress real,spead real,remaintime int,compip char(20))";
 	 m_NoticeTable = "create table Notice (hostip char(20),blockid char(40),status char(1))";
 	 m_ReadyTaskTable = "create table ReadyTask (taskid char(40))";
 	 m_ClientTable = "create table Client (ip char(20),type char(1),hostname char(64),osinfo char(64),livetime char(20),logintime char(20),gpu int,cpu int)";
