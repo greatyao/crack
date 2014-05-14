@@ -111,12 +111,12 @@ int CPersistencManager::CreateTable(void){
 	return ret;
 }
 
-int CPersistencManager::PersistTaskMap(CT_MAP task_map){
+int CPersistencManager::PersistTaskMap(const CT_MAP& task_map){
 
 	int ret = 0;
-	CT_MAP::iterator begin_task = task_map.begin();
-	CT_MAP::iterator end_task = task_map.end();
-	CT_MAP::iterator iter_task;
+	CT_MAP::const_iterator begin_task = task_map.begin();
+	CT_MAP::const_iterator end_task = task_map.end();
+	CT_MAP::const_iterator iter_task;
 	CCrackTask *pCT = NULL;
 	char insertsql[1024];
 
@@ -136,12 +136,12 @@ int CPersistencManager::PersistTaskMap(CT_MAP task_map){
 	return ret;
 
 }
-int CPersistencManager::PersistHash(CT_MAP task_map){
+int CPersistencManager::PersistHash(const CT_MAP&  task_map){
 
 	int ret = 0;
-	CT_MAP::iterator begin_task = task_map.begin();
-	CT_MAP::iterator end_task = task_map.end();
-	CT_MAP::iterator task_iter;
+	CT_MAP::const_iterator begin_task = task_map.begin();
+	CT_MAP::const_iterator end_task = task_map.end();
+	CT_MAP::const_iterator task_iter;
 	CCrackTask *pCT = NULL;
 	CCrackHash *pCH = NULL;
 	char insertsql[1024];
@@ -172,12 +172,12 @@ int CPersistencManager::PersistHash(CT_MAP task_map){
 	return ret;
 
 }
-int CPersistencManager::PersistBlockMap(CB_MAP block_map){
+int CPersistencManager::PersistBlockMap(const CB_MAP& block_map){
 
 	int ret = 0;
-	CB_MAP::iterator begin_block = block_map.begin();
-	CB_MAP::iterator end_block = block_map.end();
-	CB_MAP::iterator block_iter;
+	CB_MAP::const_iterator begin_block = block_map.begin();
+	CB_MAP::const_iterator end_block = block_map.end();
+	CB_MAP::const_iterator block_iter;
 	CCrackBlock *pCB = NULL;
 	char insertsql[1024];
 	
@@ -198,7 +198,7 @@ int CPersistencManager::PersistBlockMap(CB_MAP block_map){
 	return ret;
 }
 
-int CPersistencManager::PersistReadyTaskQueue(CT_DEQUE ready_list){
+int CPersistencManager::PersistReadyTaskQueue(const CT_DEQUE& ready_list){
 	int ret = 0;
 	int i = 0;
 	int size = ready_list.size();
@@ -222,7 +222,7 @@ int CPersistencManager::PersistReadyTaskQueue(CT_DEQUE ready_list){
 	return ret;
 
 }
-int CPersistencManager::PersistClientInfo(CI_VECTOR client_list){
+int CPersistencManager::PersistClientInfo(const CI_VECTOR& client_list){
 	int ret = 0;
 	int i = 0;
 	int size = client_list.size();
@@ -258,11 +258,11 @@ int CPersistencManager::PersistClientInfo(CI_VECTOR client_list){
 	return ret;
 
 }
-int CPersistencManager::PersistNoticeMap(CCB_MAP notice_map){
+int CPersistencManager::PersistNoticeMap(const CCB_MAP& notice_map){
 	int ret = 0;
-	CCB_MAP::iterator begin_notice = notice_map.begin();
-	CCB_MAP::iterator end_notice = notice_map.end();
-	CCB_MAP::iterator notice_iter;
+	CCB_MAP::const_iterator begin_notice = notice_map.begin();
+	CCB_MAP::const_iterator end_notice = notice_map.end();
+	CCB_MAP::const_iterator notice_iter;
 	CBlockNotice *pCN = NULL;
 	char insertsql[1024];
 

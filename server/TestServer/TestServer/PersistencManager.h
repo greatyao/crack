@@ -17,13 +17,13 @@ public:
 	int CreateTable();
 
 
-	int PersistTaskMap(CT_MAP task_map);
-	int PersistHash(CT_MAP task_map);
-	int PersistBlockMap(CB_MAP block_map);
+	int PersistTaskMap(const CT_MAP& task_map);
+	int PersistHash(const CT_MAP& task_map);
+	int PersistBlockMap(const CB_MAP& block_map);
 
-	int PersistReadyTaskQueue(CT_DEQUE ready_list);
-	int PersistClientInfo(CI_VECTOR client_list);
-	int PersistNoticeMap(CCB_MAP notice_map);
+	int PersistReadyTaskQueue(const CT_DEQUE& ready_list);
+	int PersistClientInfo(const CI_VECTOR& client_list);
+	int PersistNoticeMap(const CCB_MAP& notice_map);
 
 
 	int LoadTaskMap(CT_MAP &task_map);
