@@ -6,9 +6,9 @@ CPersistencManager::CPersistencManager()
 {
 	int ret = 0;
 
-	 m_TaskTable = "create table Task (taskid char(40),algo char(1),charset char(1),type char(1),filetag char(1),single char(1),startlength int,endlength int,owner char(64),status char(1),splitnum int,finishnum int,success char(1),progress real,speed real,starttime char(20),runtime int,remaintime int,count int)";
-	 m_HashTable = "create table Hash (taskid char(40),index0 int,john char(260),result char(32),status char(1),progress real)";
-	 m_BlockTable = "create table Block (blockid char(40),taskid char(40), index0 int,status char(1),progress real,speed real,remaintime int,compip char(20))";
+	 m_TaskTable = "create table Task (taskid char(40) primary key,algo short,charset short,type short,filetag short,single short,startlength int,endlength int,owner char(64),status short,splitnum int,finishnum int,success short,progress real,speed real,starttime int,runtime int,remaintime int,count int)";
+	 m_HashTable = "create table Hash (taskid char(40),index0 int,john char(260),result char(32),status short,progress real)";
+	 m_BlockTable = "create table Block (blockid char(40) primary key,taskid char(40), index0 int,short char,progress real,speed real,remaintime int,compip char(20))";
 	 m_NoticeTable = "create table Notice (hostip char(20),blockid char(40),status char(1))";
 	 m_ReadyTaskTable = "create table ReadyTask (taskid char(40))";
 	 m_ClientTable = "create table Client (ip char(20),type char(1),hostname char(64),osinfo char(64),livetime char(20),logintime char(20),gpu int,cpu int)";
@@ -33,6 +33,8 @@ bool CPersistencManager::OpenDB(const char* name)
 	}
 
 	CLog::Log(LOG_LEVEL_NOMAL,"Open Database :%s OK\n", name);
+
+	CreateTable();
 
 	return true;
 }
@@ -106,67 +108,50 @@ int CPersistencManager::CreateTable(void){
 	return ret;
 }
 
-int CPersistencManager::PersistTaskMap(const CT_MAP& task_map){
-
-	int ret = 0;
-	CT_MAP::const_iterator begin_task = task_map.begin();
-	CT_MAP::const_iterator end_task = task_map.end();
-	CT_MAP::const_iterator iter_task;
-	CCrackTask *pCT = NULL;
+//插入任务
+int CPersistencManager::PersistTask(const CCrackTask *pCT, bool update)
+{
 	char insertsql[1024];
-
-	for(iter_task = begin_task;iter_task != end_task;iter_task ++ ){
-
-		pCT = iter_task->second;
-		memset(insertsql,0,1024);
-		sprintf(insertsql,"insert into task_table values ('%s','%s','%s','%s','%s','%s',%d,%d,'%s','%s',%d,%d,'%s',%f,%f,'%s',%d,%d,%d)",
+	
+	if(!update)
+		sprintf(insertsql,"insert into Task values ('%s',%d,%d,%d,%d,%d,%d,%d,'%s',%d,%d,%d,%d,%f,%f,%d,%d,%d,%d)",
 			pCT->guid,pCT->algo,pCT->charset,pCT->type,pCT->special,pCT->single,pCT->startLength,pCT->endLength,pCT->m_owner,
 			pCT->m_status,pCT->m_split_num,pCT->m_finish_num,pCT->m_bsuccess,pCT->m_progress,pCT->m_speed,pCT->m_start_time,
 			pCT->m_running_time,pCT->m_remain_time,pCT->count);
+	else
+		sprintf(insertsql,"update Task set status=%d,count=%d,splitnum=%d,success=%d where taskid='%s'",
+			pCT->m_status, pCT->count, pCT->m_split_num, pCT->m_bsuccess, pCT->guid);
 		
+	try{
 		m_SQLite3DB.execDML(insertsql);
-
+	}catch(CppSQLite3Exception& ex){
+		CLog::Log(LOG_LEVEL_WARNING,"Failed to Insert task %s: %s\n", pCT->guid, ex.errorMessage());
+		return -1;
 	}
-
-	return ret;
-
+	return 0;
 }
-int CPersistencManager::PersistHash(const CT_MAP&  task_map){
 
-	int ret = 0;
-	CT_MAP::const_iterator begin_task = task_map.begin();
-	CT_MAP::const_iterator end_task = task_map.end();
-	CT_MAP::const_iterator task_iter;
-	CCrackTask *pCT = NULL;
-	CCrackHash *pCH = NULL;
+//插入一个任务所有的hash表
+int CPersistencManager::PersistHash(const char* guid, const CRACK_HASH_LIST& hash)
+{
 	char insertsql[1024];
+	int size = hash.size();
 
-	int i = 0;
-	int size = 0;
-
-	for(task_iter = begin_task;task_iter != end_task;task_iter ++ ){
-
-		pCT = task_iter->second;
-		
-
-		size = pCT->m_crackhash_list.size();
-
-		for(i = 0 ;i < size ;i ++){
-
-			pCH = pCT->m_crackhash_list[i];
-
-			memset(insertsql,0,1024);
-			sprintf(insertsql,"insert into Hash values ('%s',%d,'%s','%s','%s',%f)",
-				pCT->guid,i,pCH->m_john,pCH->m_result,pCH->m_status,pCH->m_progress);
-		
+	for(int i = 0 ;i < size ;i ++){
+		CCrackHash* pCH = hash[i];
+		sprintf(insertsql,"insert into Hash values ('%s',%d,'%s','%s', %d, %f)",
+			guid, i, pCH->m_john, pCH->m_result, pCH->m_status, pCH->m_progress);
+	
+		try{
 			m_SQLite3DB.execDML(insertsql);
-
+		}catch(CppSQLite3Exception& ex){
+			CLog::Log(LOG_LEVEL_WARNING,"Failed to Insert hash %s: %s\n", guid, ex.errorMessage());
 		}
-
 	}
-	return ret;
-
+	return 0;
 }
+
+//插入一个任务的所有workitem
 int CPersistencManager::PersistBlockMap(const CB_MAP& block_map){
 
 	int ret = 0;
@@ -180,11 +165,15 @@ int CPersistencManager::PersistBlockMap(const CB_MAP& block_map){
 
 		pCB = block_iter->second;
 		memset(insertsql,0,1024);
-		sprintf(insertsql,"insert into Block values ('%s','%s',%d,'%s',%f,%f,%d,'%s')",
+		sprintf(insertsql,"insert into Block values ('%s','%s',%d,%d,%f,%f,%d,'%s')",
 			pCB->guid,pCB->task->guid,pCB->hash_idx,pCB->m_status,pCB->m_progress,pCB->m_speed,pCB->m_remaintime,
 			pCB->m_comp_guid);
 
-		m_SQLite3DB.execDML(insertsql);
+		try{
+			m_SQLite3DB.execDML(insertsql);
+		} catch(CppSQLite3Exception& ex){
+			CLog::Log(LOG_LEVEL_WARNING,"Failed to Insert block %s: %s\n", pCB->guid, ex.errorMessage());
+		}
 
 
 	}
