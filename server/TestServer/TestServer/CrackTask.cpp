@@ -248,7 +248,7 @@ void CCrackTask::calcProgressByBlock(){
 	}
 
 	int blocknum = m_crackblock_map.size();
-	this->m_progress = fprogress/blocknum;	
+	this->m_progress = blocknum == 0 ? 0 :fprogress/blocknum;	
 	this->m_speed = speed;
 
 }
