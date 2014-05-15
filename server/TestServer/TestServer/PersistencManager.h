@@ -30,7 +30,7 @@ public:
 	int LoadTaskMap(CT_MAP &task_map);
 	int LoadHash(CT_MAP &task_map);
 	int LoadBlockMap(CB_MAP &block_map,CT_MAP &task_map);
-	int LoadReadyTaskQueue(CT_DEQUE &ready_list,CT_MAP task_map);
+	int LoadReadyTaskQueue(CT_DEQUE &ready_list, const CT_MAP& task_map);
 	int LoadClientInfo(CI_VECTOR &client_list);
 	int LoadNoticeMap(CCB_MAP &notice_map);
 

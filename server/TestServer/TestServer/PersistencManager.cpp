@@ -10,12 +10,16 @@ using std::vector;
 
 CPersistencManager g_Persistence;
 
+#define TASK_KEY			"task"
+#define TASK_RUN_KEY		"task_run"
+#define TASK_COUNT			"task_count"
+#define TASK_FINISH_COUNT	"task_fin_count"
+#define TASK_RUN_COUNT		"task_run_count"
 
-#define TASK_COUNT "task_count"
-static inline string TASK_IDX(unsigned int id) 
+static inline string TASK_IDX(const char* key, unsigned int id) 
 { 
 	char buf[128]; 
-	_snprintf(buf, sizeof(buf), "task_%08x", id); 
+	_snprintf(buf, sizeof(buf), "%s_%08x", key, id); 
 	return string(buf); 
 }
 
@@ -32,6 +36,7 @@ static inline string BLOCK_IDX(const char* guid, int id)
 	_snprintf(buf, sizeof(buf), "%s_item_%d", guid, id); 
 	return string(buf); 
 }
+
 
 CPersistencManager::CPersistencManager()
 {
@@ -186,7 +191,7 @@ int CPersistencManager::PersistTask(const CCrackTask *pCT, Action action)
 
 			s = m_LevelDB->Put(wo, TASK_COUNT, leveldb::Slice((char*)&task_count, sizeof(task_count)));
 
-			s = m_LevelDB->Put(wo, TASK_IDX(task_count), pCT->guid);
+			s = m_LevelDB->Put(wo, TASK_IDX(TASK_KEY, task_count), pCT->guid);
 
 			s = m_LevelDB->Put(wo, pCT->guid, leveldb::Slice((char*)pCT, sizeof(CCrackTask)));
 		}
@@ -382,24 +387,43 @@ int CPersistencManager::PersistBlockMap(const CB_MAP& block_map, Action action){
 
 int CPersistencManager::PersistReadyTaskQueue(const CT_DEQUE& ready_list){
 	int ret = 0;
-	int i = 0;
 	int size = ready_list.size();
-	char insertsql[1024];
-	char *p = NULL;
-
+	
 	if(m_useLevelDB)
 	{
+		leveldb::Status s;
+		leveldb::WriteOptions wo;
+		string value;
+		wo.sync = false;
+
+		s = m_LevelDB->Put(wo, TASK_RUN_COUNT, leveldb::Slice((char*)&size, sizeof(size)));
+
+		for(int i= 0; i < size; i++){
+			const char* p = ready_list[i].c_str();
+			s = m_LevelDB->Put(wo, TASK_IDX(TASK_RUN_KEY, i), p);
+		}
+
 		return 0;
 	}
 	
-	for(i= 0;i < size;i++){
-		
-		p = ready_list[i];
-		memset(insertsql,0,1024);
-		sprintf(insertsql,"insert into ReadyTask values ('%s')",p);
+	char cmd[1024];
+	
+	//首先将原有数据删掉
+	_snprintf(cmd, sizeof(cmd), "delete from ReadyTask");
+	try{
+		m_SQLite3DB.execDML(cmd);
+	}catch(CppSQLite3Exception& ex){
+		CLog::Log(LOG_LEVEL_WARNING,"Failed to delete Table ReadyTask: %s\n", ex.errorMessage());
+	}	
 
-		m_SQLite3DB.execDML(insertsql);
-
+	for(int i= 0;i < size;i++){
+		const char* p = ready_list[i].c_str();
+		sprintf(cmd,"insert into ReadyTask values ('%s')",p);
+		try{
+			m_SQLite3DB.execDML(cmd);
+		}catch(CppSQLite3Exception& ex){
+			CLog::Log(LOG_LEVEL_WARNING,"Failed to insert ReadyTask %s: %s\n", p, ex.errorMessage());
+		}	
 	}
 
 	return ret;
@@ -497,7 +521,7 @@ int CPersistencManager::LoadTaskMap(CT_MAP &task_map){
 
 		for(int i = 1; i <= task_count; i++)
 		{
-			s = m_LevelDB->Get(ro, TASK_IDX(i), &value);
+			s = m_LevelDB->Get(ro, TASK_IDX(TASK_KEY, i), &value);
 			if(s.ok())
 			{
 				allguids.push_back(value);
@@ -755,16 +779,41 @@ int CPersistencManager::LoadBlockMap(CB_MAP &block_map,CT_MAP &task_map){
 }
 
 //必须在加载任务列表之后
-int CPersistencManager::LoadReadyTaskQueue(CT_DEQUE &ready_list,CT_MAP task_map){
+int CPersistencManager::LoadReadyTaskQueue(CT_DEQUE &ready_list,const CT_MAP& task_map){
 	if(m_useLevelDB)
 	{
+		string value;
+		leveldb::ReadOptions ro;
+		leveldb::Status s;
+		int ready_count = 0;
+
+		s = m_LevelDB->Get(ro, TASK_RUN_COUNT, &value);
+		if(s.ok())
+			ready_count = *(int*)value.data();
+
+		for(int i = 0; i < ready_count; i++)
+		{
+			s = m_LevelDB->Get(ro, TASK_IDX(TASK_RUN_KEY, i), &value);
+			if(s.ok())
+			{
+				if(task_map.find((char*)value.c_str()) == task_map.end()){
+					CLog::Log(LOG_LEVEL_ERROR,"Task List and Ready Task List is not Matched\n");
+					continue;
+				}
+
+				ready_list.push_back(value);
+				CLog::Log(LOG_LEVEL_WARNING, "** %s\n", value.c_str());
+			}
+		}
+
+
 		return 0;
 	}
 	
 	int ret = 0;
 	
-	CT_MAP::iterator cur_iter ;
-	CT_MAP::iterator end_iter  = task_map.end();
+	CT_MAP::const_iterator cur_iter ;
+	CT_MAP::const_iterator end_iter  = task_map.end();
 
 	CppSQLite3Query query = m_SQLite3DB.execQuery("select * from ReadyTask");
 
@@ -775,12 +824,11 @@ int CPersistencManager::LoadReadyTaskQueue(CT_DEQUE &ready_list,CT_MAP task_map)
 		if (cur_iter == end_iter){
 
 			CLog::Log(LOG_LEVEL_ERROR,"Task List and Ready Task List is not Matched\n");
-			return -1;
-
+			continue;
 		}
 
 		ready_list.push_back(cur_iter->first);
-       
+      
         query.nextRow();
 
     }

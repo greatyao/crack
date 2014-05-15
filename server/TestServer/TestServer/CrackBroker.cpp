@@ -34,6 +34,8 @@ int CCrackBroker::LoadFromPersistence(bool use_leveldb)
 	g_Persistence.LoadTaskMap(m_cracktask_map);
 	g_Persistence.LoadHash(m_cracktask_map);
 	g_Persistence.LoadBlockMap(m_total_crackblock_map, m_cracktask_map);
+	g_Persistence.LoadReadyTaskQueue(m_cracktask_ready_queue, m_cracktask_map);
+
 	return 0;
 }
 
@@ -221,12 +223,16 @@ int	CCrackBroker::StartTask(struct task_start_req *pReq, void* pclient){
 		ret = pCT->SetStatus(CT_STATUS_RUNNING);
 
 		//将状态持久化
+		g_Persistence.PersistHash(pCT->guid, pCT->m_crackhash_list, CPersistencManager::Update);
+		g_Persistence.PersistBlockMap(pCT->m_crackblock_map, CPersistencManager::Update);
 		g_Persistence.PersistTask(pCT, CPersistencManager::Update);
 		
 		//任务被放入循环队列队尾，等待调度
 		if(ret == 0){	//必须确保SetStatus执行成功
 			m_cracktask_ready_queue.push_back(pCT->guid);
 			CLog::Log(LOG_LEVEL_NOMAL,"StartTask: Set %s OK\n", pCT->guid);
+
+			g_Persistence.PersistReadyTaskQueue(m_cracktask_ready_queue);
 		}
 	}
 //	m_cracktask_cs.Unlock();
@@ -284,6 +290,8 @@ int CCrackBroker::StopTask(struct task_stop_req *pReq, void* pclient){
 		ret = pCT->SetStatus(CT_STATUS_READY);
 
 		//将状态持久化
+		g_Persistence.PersistHash(pCT->guid, pCT->m_crackhash_list, CPersistencManager::Update);
+		g_Persistence.PersistBlockMap(pCT->m_crackblock_map, CPersistencManager::Update);
 		g_Persistence.PersistTask(pCT, CPersistencManager::Update);
 		
 	}
@@ -405,6 +413,12 @@ int CCrackBroker::PauseTask(struct task_pause_req *pReq, void* pclient){
 		
 		//Task status --> Running , the block status --> ready
 		ret = pCT->SetStatus(CT_STATUS_PAUSED);
+
+		//将状态持久化
+		g_Persistence.PersistHash(pCT->guid, pCT->m_crackhash_list, CPersistencManager::Update);
+		g_Persistence.PersistBlockMap(pCT->m_crackblock_map, CPersistencManager::Update);
+		g_Persistence.PersistTask(pCT, CPersistencManager::Update);
+
 	}
 	
 	//从调度队列中移除
@@ -593,7 +607,7 @@ int CCrackBroker::GetAWorkItem2(const char *ipinfo,struct crack_block **pRes){
 		return ERR_NOREADYITEM;
 	}
 
-	pguid = m_cracktask_ready_queue.front();
+	pguid = (char*)m_cracktask_ready_queue.front().c_str();
 	//CLog::Log(LOG_LEVEL_WARNING,"Front task guid = %s\n", pguid);
 	if (pguid == NULL){
 
@@ -825,29 +839,19 @@ int CCrackBroker::removeFromQueue(const char *guid){
 	int ret = 0;
 	CT_DEQUE::iterator iter_queue;
 
-	//从调度队列中移除
-	/*	
-	for(iter_queue = m_cracktask_queue.begin();iter_queue != m_cracktask_queue.end(); iter_queue ++ ){
-	
-		if (strncmp(*iter_queue,(char *)guid,40) == 0 ){		
-			break;
-		}
-	}
-	if (iter_queue != m_cracktask_queue.end()){
-			m_cracktask_queue.erase(iter_queue);
-	}
-	*/
-
 	//从ready 队列中移除
 	for(iter_queue = m_cracktask_ready_queue.begin();iter_queue != m_cracktask_ready_queue.end(); iter_queue ++ ){
 	
-		if (strncmp(*iter_queue,(char *)guid,40) == 0 ){		
+		if (strncmp(iter_queue->c_str(),(char *)guid,40) == 0 ){		
 			break;
 		}
 	}
 
 	if (iter_queue != m_cracktask_ready_queue.end()){
 			m_cracktask_ready_queue.erase(iter_queue);
+
+			//调度队列持久化
+			g_Persistence.PersistReadyTaskQueue(m_cracktask_ready_queue);
 	}
 
 	return ret;
@@ -1010,7 +1014,7 @@ void CCrackBroker::updateReadyQueue(CCrackBlock *pCB){
 
 	for(i =0 ;i < size ;i ++ ){
 		
-		if (strcmp((char *)m_cracktask_ready_queue[i],pCT->guid) == 0){
+		if (strcmp(m_cracktask_ready_queue[i].c_str(),pCT->guid) == 0){
 
 			break;
 		}
@@ -1116,7 +1120,7 @@ void CCrackBroker::checkReadyQueue(CCrackTask *pCT){
 
 		for(i = 0 ;i < m_cracktask_ready_queue.size();i ++ ){
 			
-			if (strcmp(pCT->guid,m_cracktask_ready_queue[i]) == 0){
+			if (strcmp(pCT->guid,m_cracktask_ready_queue[i].c_str()) == 0){
 					
 				break;
 			}

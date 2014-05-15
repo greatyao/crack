@@ -39,7 +39,7 @@ typedef std::map<char *,CCrackTask *,MapLessCompare> CT_MAP;
 typedef std::map<string,CBN_VECTOR,MapLessCompare> CCB_MAP; //computer<----> block ”≥…‰
 
 //typedef std::queue<char *> CT_QUEUE;
-typedef std::deque<char *> CT_DEQUE;
+typedef std::deque<string> CT_DEQUE;
 
 struct CBMapLessCompare{
 	
