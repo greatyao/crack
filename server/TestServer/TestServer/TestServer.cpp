@@ -10,6 +10,7 @@ using std::string;
 static int logtype = LOG_TO_SCREEN;
 static int loglevel = LOG_LEVEL_NOMAL;
 static int port = 6010;
+static int use_leveldb = false;
 
 inline void printUsage(const char* exec)
 {
@@ -18,6 +19,7 @@ inline void printUsage(const char* exec)
 					"  --port\tServer binding port\n"
 					"  --logtype\t1:file, 2:screen\n"
 					"  --loglevel\tlog level [0-5]\n"
+					"  --leveldb\tUse levelDB to storage task\n"
 					"  --help\t\tprints this help message.\n", exec);
 }
 
@@ -48,6 +50,10 @@ void parseOptions(int argc, char ** argv)
         {
             loglevel = atoi(temp.substr(11).c_str());
         }
+		else if (temp.substr(0, 9) == "--leveldb")
+        {
+            use_leveldb = true;
+        }
     }
 }
 
@@ -58,7 +64,7 @@ int main(int argc, char* argv[]){
 	CLog::InitLogSystem(logtype, TRUE,"ScheduleServer.log");
 	CLog::SetLevel(loglevel);
 
-	g_CrackBroker.LoadFromPersistence();
+	g_CrackBroker.LoadFromPersistence(!use_leveldb);
 
 	CSockServer *g_Server = new CSockServer;
 

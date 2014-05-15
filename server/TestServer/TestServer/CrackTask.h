@@ -4,9 +4,8 @@
 #include <map>
 #include <vector>
 #include <string>
+#include "TestServer.h"
 #include "algorithm_types.h"
-#include "CrackBlock.h"
-#include "CrackHash.h"
 
 #define CH_LEN sizeof(crack_hash)
 
@@ -14,20 +13,6 @@
 
 
 //HASHÔËÐÐ×´Ì¬
-
-
-struct CBMapLessCompare{
-	
-	bool operator()(const char * str1,const char *str2) const
-	{
-
-		return strcmp(str1,str2) < 0;
-	}
-};
-
-typedef std::map<char *, CCrackBlock *,CBMapLessCompare> CB_MAP;
-typedef std::vector<CCrackHash *> CRACK_HASH_LIST;
-
 
 class CCrackTask : public crack_task
 {

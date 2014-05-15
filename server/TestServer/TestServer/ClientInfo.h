@@ -2,10 +2,10 @@
 
 #include <time.h>
 #include <BaseTsd.h>
-#include "CrackBroker.h"
+#include "TestServer.h"
+#include "macros.h"
 
 struct login_info;
-typedef std::map<string, CCrackTask *, MapLessCompare> CT_MAP2;
 
 class CClientInfo
 {
@@ -19,7 +19,7 @@ public:
 
 	char* GetIP() {return m_ip;}
 	int GetPort() {return m_port;}
-	SOCKET GetSocket() {return m_clientsock;}
+	UINT_PTR GetSocket() {return m_clientsock;}
 	char* GetOwner() {return m_guid;}
 	bool SuperUser() {return m_type == SUPER_CONTROL_TYPE_CLIENT;}
 

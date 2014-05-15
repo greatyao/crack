@@ -1,13 +1,17 @@
 #include "CrackBroker.h"
 #include "CompClient.h"
 #include "ClientInfo.h"
-#include "PersistencManager.h"
 #include "err.h"
-
+#include "CLog.h"
+#include "PersistencManager.h"
+#include "CrackTask.h"
+#include "CrackHash.h"
+#include "CrackBlock.h"
+#include "CrackBroker.h"
+#include "BlockNotice.h"
 #include <Shlwapi.h>
 
 #pragma comment(lib,"Shlwapi.lib")
-
 
 CCrackBroker::CCrackBroker(void)
 {
@@ -18,9 +22,15 @@ CCrackBroker::~CCrackBroker(void)
 }
 
 //从持久化里面加载任务
-int CCrackBroker::LoadFromPersistence()
+int CCrackBroker::LoadFromPersistence(bool use_leveldb)
 {
-	g_Persistence.OpenDB("test.db");
+	char path[MAX_PATH] = {0};
+	GetModuleFileNameA(NULL, path, MAX_PATH);  
+	char *p = strrchr(path, '\\');  
+	*p=0x00;
+	strncat(path, "\\taskdb", sizeof(path));
+
+	g_Persistence.OpenDB(path, use_leveldb);
 	g_Persistence.LoadTaskMap(m_cracktask_map);
 	g_Persistence.LoadHash(m_cracktask_map);
 	g_Persistence.LoadBlockMap(m_total_crackblock_map, m_cracktask_map);

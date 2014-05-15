@@ -1,48 +1,10 @@
 #pragma once
 
-#include <vector>
-#include <map>
-#include <deque>
-#include <string>
-
-#include "CrackTask.h"
-#include "CLog.h"
+#include "TestServer.h"
 #include "ReqPacket.h"
 #include "ResPacket.h"
 #include "macros.h"
-#include "BlockNotice.h"
-
-using std::string;
-class CClientInfo;
-
-struct MapLessCompare{
-	bool operator()(const char * str1,const char *str2) const
-	{
-		return strcmp(str1,str2) < 0;
-	}
-
-	bool operator()(const string& str1,const string& str2) const
-	{
-		return strcmp(str1.c_str(),str2.c_str()) < 0;
-	}
-};
-
-//typedef std::map<char *, CCrackBlock *,MapLessCompare > TOTAL_CB_MAP;
-
-typedef std::vector<char *> GUID_VECTOR;
-
-typedef std::vector<CBlockNotice *> CBN_VECTOR;
-
-typedef std::vector<CClientInfo *> CI_VECTOR;
-
-typedef std::map<char *,CCrackTask *,MapLessCompare> CT_MAP;
-
-typedef std::map<string,CBN_VECTOR,MapLessCompare> CCB_MAP; //computer<----> block Ó³Éä
-
-//typedef std::queue<char *> CT_QUEUE;
-typedef std::deque<char *> CT_DEQUE;
-
-class CClientInfo;
+#include "PersistencManager.h"
 
 class CCrackBroker
 {
@@ -50,7 +12,7 @@ public:
 	CCrackBroker(void);
 	~CCrackBroker(void);
 
-	int LoadFromPersistence();
+	int LoadFromPersistence(bool use_leveldb = true);
 
 	//µÇÂ½
 	int ClientLogin2(const void* data, const char* ip, int port, unsigned int sock, CClientInfo ** res);

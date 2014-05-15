@@ -11,6 +11,7 @@
 
 #include "CrackTask.h"
 #include "CrackHash.h"
+#include "CrackBlock.h"
 #include "CrackBroker.h"
 
 CCrackTask::CCrackTask(void)
