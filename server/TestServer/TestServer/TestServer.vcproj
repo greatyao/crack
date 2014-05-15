@@ -218,7 +218,7 @@
 				AdditionalIncludeDirectories=".\LevelDB\leveldb_src;.\LevelDB\leveldb_src\include;.\LevelDB\snappy_src;.\LevelDB\win32_impl_src;.\Sqlite3;..\..\libconn;..\..\..\common\include;..\..\..\common;..\..\..\wang\split;..\..\..\plugins\trex;..\..\..\plugins"
 				PreprocessorDefinitions="WIN32;_CONSOLE;NDEBUG;_CRT_SECURE_NO_WARNING"
 				MinimalRebuild="false"
-				RuntimeLibrary="2"
+				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
