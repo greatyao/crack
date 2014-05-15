@@ -64,7 +64,7 @@ int main(int argc, char* argv[]){
 	CLog::InitLogSystem(logtype, TRUE,"ScheduleServer.log");
 	CLog::SetLevel(loglevel);
 
-	g_CrackBroker.LoadFromPersistence(!use_leveldb);
+	g_CrackBroker.LoadFromPersistence(use_leveldb);
 
 	CSockServer *g_Server = new CSockServer;
 

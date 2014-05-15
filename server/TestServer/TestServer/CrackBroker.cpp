@@ -180,9 +180,9 @@ int CCrackBroker::SplitTask(const char *guid, const char* john){
 	m_total_crackblock_map.insert(pCT->m_crackblock_map.begin(),pCT->m_crackblock_map.end());
 
 	//OK,现在将其持久化
-	g_Persistence.PersistTask(pCT, false);
-	g_Persistence.PersistHash(pCT->guid, pCT->m_crackhash_list);
-	g_Persistence.PersistBlockMap(pCT->m_crackblock_map);
+	g_Persistence.PersistTask(pCT, CPersistencManager::Insert);
+	g_Persistence.PersistHash(pCT->guid, pCT->m_crackhash_list, CPersistencManager::Insert);
+	g_Persistence.PersistBlockMap(pCT->m_crackblock_map, CPersistencManager::Insert);
 
 	return ret;
 }
@@ -219,6 +219,9 @@ int	CCrackBroker::StartTask(struct task_start_req *pReq, void* pclient){
 		pCT = iter_task->second;
 		//Task status --> Running , the block status --> ready
 		ret = pCT->SetStatus(CT_STATUS_RUNNING);
+
+		//将状态持久化
+		g_Persistence.PersistTask(pCT, CPersistencManager::Update);
 		
 		//任务被放入循环队列队尾，等待调度
 		if(ret == 0){	//必须确保SetStatus执行成功
@@ -279,6 +282,9 @@ int CCrackBroker::StopTask(struct task_stop_req *pReq, void* pclient){
 		
 		//Task status --> Running , the block status --> ready
 		ret = pCT->SetStatus(CT_STATUS_READY);
+
+		//将状态持久化
+		g_Persistence.PersistTask(pCT, CPersistencManager::Update);
 		
 	}
 	
@@ -352,7 +358,10 @@ int CCrackBroker::DeleteTask(struct task_delete_req *pReq, void* pclient){
 
 		}
 		//////////////////////////////
-
+		//将状态持久化（必须在deleteTask之前调用！！！）
+		g_Persistence.PersistHash(pCT->guid, pCT->m_crackhash_list, CPersistencManager::Delete);
+		g_Persistence.PersistBlockMap(pCT->m_crackblock_map, CPersistencManager::Delete);
+		g_Persistence.PersistTask(pCT, CPersistencManager::Delete);
 
 		//暴力删除,直接删除相关任务，及其hash 和crackblock
 		this->deleteTask((char *)pReq->guid, pclient);

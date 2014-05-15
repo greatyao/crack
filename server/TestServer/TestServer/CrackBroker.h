@@ -4,7 +4,6 @@
 #include "ReqPacket.h"
 #include "ResPacket.h"
 #include "macros.h"
-#include "PersistencManager.h"
 
 class CCrackBroker
 {
