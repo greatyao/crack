@@ -334,8 +334,8 @@ int CPersistencManager::LoadTaskMap(CT_MAP &task_map){
 			CLog::Log(LOG_LEVEL_NOMAL, "[%d %d] %d\n", pCT->startLength, pCT->endLength, pCT->count);
 		else if(pCT->type == dict)
 			CLog::Log(LOG_LEVEL_NOMAL, "[dict=%d] %d\n", pCT->dict_idx, pCT->count);
-		else if(pCT->type == bruteforce)
-			CLog::Log(LOG_LEVEL_NOMAL, "[mask=%s]%d\n", pCT->masks, pCT->count);
+		else if(pCT->type == mask)
+			CLog::Log(LOG_LEVEL_NOMAL, "[mask=%s] %d\n", pCT->masks, pCT->count);
 		
 		task_map.insert(CT_MAP::value_type(pCT->guid,pCT));
 
@@ -349,50 +349,58 @@ int CPersistencManager::LoadTaskMap(CT_MAP &task_map){
 int CPersistencManager::LoadHash(CT_MAP &task_map){
 	int ret = 0;
 	
-	CT_MAP::iterator cur_iter ;
-	CT_MAP::iterator end_iter  = task_map.end();
-	CCrackTask *pCT = NULL;
+	for(CT_MAP::iterator it = task_map.begin(); it != task_map.end(); it++)
+	{
+		char* guid = it->first;
 
-	CppSQLite3Query query = m_SQLite3DB.execQuery("select * from Hash");
+		CT_MAP::iterator cur_iter ;
+		CT_MAP::iterator end_iter  = task_map.end();
+		CCrackTask *pCT = NULL;
+		char cmd[1024];
+		_snprintf(cmd, sizeof(cmd), "select * from Hash where taskid='%s'", guid);
 
-    while (!query.eof())
-    {
+		CppSQLite3Query query = m_SQLite3DB.execQuery(cmd);
 
-		char *ptaskid =  (char *)query.fieldValue("taskid");
-		cur_iter = task_map.find(ptaskid);
-		if (cur_iter == end_iter){
+		while (!query.eof())
+		{
 
-			CLog::Log(LOG_LEVEL_WARNING, "Task %s doesn't exist in table Task\n", ptaskid);
-			query.nextRow();
-			continue;
+			char *ptaskid =  (char *)query.fieldValue("taskid");
+			cur_iter = task_map.find(ptaskid);
+			if (cur_iter == end_iter){
 
-		}
+				CLog::Log(LOG_LEVEL_WARNING, "Task %s doesn't exist in table Task\n", ptaskid);
+				query.nextRow();
+				continue;
 
-		CCrackHash *pCH = new CCrackHash();
-		if (!pCH){
-			CLog::Log(LOG_LEVEL_ERROR,"Alloc New Hash Error\n");
-			return -1;
-		}
+			}
+
+			CCrackHash *pCH = new CCrackHash();
+			if (!pCH){
+				CLog::Log(LOG_LEVEL_ERROR,"Alloc New Hash Error\n");
+				return -1;
+			}
 			
-		pCT = cur_iter->second;
-		//必须将容器初始化大小
-		pCT->m_crackhash_list.resize(pCT->count);
+			pCT = cur_iter->second;
+			//必须将容器初始化大小
+			pCT->m_crackhash_list.resize(pCT->count);
 
-		int tmpIndex = query.getIntField("index0");
 
-		pCT->m_crackhash_list[tmpIndex] = pCH;
+			int tmpIndex = query.getIntField("index0");
 
-		memset(pCH->m_john,0,sizeof(pCH->m_john));
-		memcpy(pCH->m_john,query.fieldValue("john"),strlen(query.fieldValue("john")));
+			pCT->m_crackhash_list[tmpIndex] = pCH;
 
-		memset(pCH->m_result,0,sizeof(pCH->m_result));
-		memcpy(pCH->m_result,query.fieldValue("result"),strlen(query.fieldValue("result")));
+			memset(pCH->m_john,0,sizeof(pCH->m_john));
+			memcpy(pCH->m_john,query.fieldValue("john"),strlen(query.fieldValue("john")));
 
-		pCH->m_status = query.getIntField("status");
-		pCH->m_progress = query.getFloatField("progress");
-		   
-        query.nextRow();
-    }
+			memset(pCH->m_result,0,sizeof(pCH->m_result));
+			memcpy(pCH->m_result,query.fieldValue("result"),strlen(query.fieldValue("result")));
+
+			pCH->m_status = query.getIntField("status");
+			pCH->m_progress = query.getFloatField("progress");
+			   
+			query.nextRow();
+		}
+	}
 
 	return ret;
 }
@@ -400,68 +408,63 @@ int CPersistencManager::LoadHash(CT_MAP &task_map){
 //必须在task 加载之后
 int CPersistencManager::LoadBlockMap(CB_MAP &block_map,CT_MAP &task_map){
 	int ret = 0;
+
 	CT_MAP::iterator cur_iter ;
 	CT_MAP::iterator end_iter  = task_map.end();
 	CCrackTask *pCT = NULL;
 
-
-	CppSQLite3Query query = m_SQLite3DB.execQuery("select * from Block");
-
-    while (!query.eof())
-    {
-		char *ptaskid =(char*)query.fieldValue("taskid");
-		cur_iter = task_map.find(ptaskid);
-		if (cur_iter == end_iter){
-
-			CLog::Log(LOG_LEVEL_ERROR,"Task List and Block List is not Matched\n");
-			return -1;
-
-		}
-
+	for(cur_iter = task_map.begin(); cur_iter != end_iter; cur_iter++)
+	{
+		char* guid = cur_iter->first;
 		pCT = cur_iter->second;
-		CCrackBlock *pCB = new CCrackBlock();
-		if (!pCB){
+		char cmd[1024];
+		_snprintf(cmd, sizeof(cmd), "select * from Block where taskid='%s'", guid);
 
-			CLog::Log(LOG_LEVEL_ERROR,"Alloc New Block Error\n");
-			return -2;
+		CppSQLite3Query query = m_SQLite3DB.execQuery(cmd);
 
+		while (!query.eof())
+		{
+			CCrackBlock *pCB = new CCrackBlock();
+			if (!pCB){
+
+				CLog::Log(LOG_LEVEL_ERROR,"Alloc New Block Error\n");
+				return -2;
+			}
+
+			memset(pCB->john,0,sizeof(pCB->john));
+
+			memset(pCB->m_comp_guid,0,sizeof(pCB->m_comp_guid));
+			memset(pCB->guid,0,sizeof(pCB->guid));
+		
+			memcpy(pCB->m_comp_guid,query.fieldValue("compip"),strlen(query.fieldValue("compip")));
+			memcpy(pCB->guid,query.fieldValue("blockid"),strlen(query.fieldValue("blockid")));
+					
+			pCB->algo = pCT->algo;
+			pCB->charset = pCT->charset;
+			pCB->type = query.getIntField("type");
+			int len;
+			const unsigned char* info = query.getBlobField("info", len);
+			memcpy(&(pCB->start), info, len);
+
+			pCB->hash_idx = query.getIntField("index0");
+			memcpy(pCB->john,pCT->m_crackhash_list[pCB->hash_idx]->m_john,sizeof(pCT->m_crackhash_list[pCB->hash_idx]->m_john));
+
+			pCB->special = pCT->special;
+			pCB->task = pCT;
+			pCB->m_progress = query.getFloatField("progress");
+			pCB->m_speed = query.getFloatField("speed");
+
+			pCB->m_status = query.getIntField("status");
+			pCB->m_remaintime = query.getIntField("remaintime");
+
+			
+			cur_iter->second->m_crackblock_map.insert(CB_MAP::value_type(pCB->guid,pCB));
+					
+			block_map.insert(CB_MAP::value_type(pCB->guid,pCB));
+		       
+			query.nextRow();
 		}
-
-		memset(pCB->john,0,sizeof(pCB->john));
-
-		
-		memset(pCB->m_comp_guid,0,sizeof(pCB->m_comp_guid));
-		memset(pCB->guid,0,sizeof(pCB->guid));
-	
-		memcpy(pCB->m_comp_guid,query.fieldValue("compip"),strlen(query.fieldValue("compip")));
-		memcpy(pCB->guid,query.fieldValue("blockid"),strlen(query.fieldValue("blockid")));
-				
-		pCB->algo = pCT->algo;
-		pCB->charset = pCT->charset;
-		pCB->type = query.getIntField("type");
-		int len;
-		const unsigned char* info = query.getBlobField("info", len);
-		memcpy(&(pCB->start), info, len);
-
-		pCB->hash_idx = query.getIntField("index0");
-		memcpy(pCB->john,pCT->m_crackhash_list[pCB->hash_idx]->m_john,sizeof(pCT->m_crackhash_list[pCB->hash_idx]->m_john));
-
-		pCB->special = pCT->special;
-		pCB->task = pCT;
-		pCB->m_progress = query.getFloatField("progress");
-		printf("%f\n", pCB->m_progress);
-		pCB->m_speed = query.getFloatField("speed");
-
-		pCB->m_status = query.getIntField("status");
-		pCB->m_remaintime = query.getIntField("remaintime");
-
-		
-		cur_iter->second->m_crackblock_map.insert(CB_MAP::value_type(pCB->guid,pCB));
-				
-		block_map.insert(CB_MAP::value_type(pCB->guid,pCB));
-	       
-        query.nextRow();
-    }
+	}
 
 	return ret;
 }
