@@ -56,7 +56,7 @@ void CClientInfo::EraseTask(const char* guid, CCrackTask* task)
 	}
 }
 
-int CClientInfo::Init(const void* data, const char* ip, int port, unsigned int sock)
+int CClientInfo::Init(const void* data, const char* ip, int port, UINT_PTR sock)
 {
 	client_login_req *pC = (client_login_req *)data;
 	CLog::Log(LOG_LEVEL_NOMAL, "[%s:%d] os=%s host=%s\n", ip, port, pC->m_osinfo, pC->m_hostinfo);
@@ -74,6 +74,10 @@ int CClientInfo::Init(const void* data, const char* ip, int port, unsigned int s
 	if(this->m_type == COMPUTE_TYPE_CLIENT)
 	{
 		this->SetCPUGPU(pC->m_cputhreads, pC->m_gputhreads);
+	}
+	else if(this->m_type == SUPER_CONTROL_TYPE_CLIENT)
+	{
+		strcpy(this->m_hostname, "SuperAdmin");
 	}
 
 	return 0;

@@ -13,7 +13,7 @@ public:
 	CClientInfo(void);
 	~CClientInfo(void);
 
-	int Init(const void* data, const char* ip, int port, unsigned int sock);
+	int Init(const void* data, const char* ip, int port, UINT_PTR sock);
 
 	virtual void SetCPUGPU(int cpu, int gpu){}
 
