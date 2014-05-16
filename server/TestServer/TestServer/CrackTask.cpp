@@ -148,42 +148,8 @@ int CCrackTask::SplitTaskFile(const char *guid, const char* john){
 	return ret;
 }
 
-
-CCrackBlock *CCrackTask::GetAReadyWorkItem(){
-	
-	CCrackBlock *pCB = NULL;
-	CB_MAP::iterator iter_block;
-	CB_MAP::iterator iter_block_end = m_crackblock_map.end();
-	CB_MAP::iterator iter_block_begin = m_crackblock_map.begin();
-
-	iter_block = cur_crack_block;
-	do{
-		if (iter_block->second->m_status == WI_STATUS_READY){
-
-			pCB = iter_block->second;
-	//		pCB->m_status = WI_STATUS_RUNNING;
-			pCB->m_status = WI_STATUS_LOCK;  //工作项首先被计算节点锁定，然后根据处理状态返回Unlock,Running
-			m_runing_num ++;
-
-			break;
-		}
-
-		iter_block++;
-		if(iter_block == iter_block_end)
-			iter_block = iter_block_begin;
-
-	}while(iter_block != cur_crack_block);
-
-	cur_crack_block = ++iter_block;
-	if(cur_crack_block == iter_block_end)
-		cur_crack_block = iter_block_begin;
-	
-	return pCB;
-}
-
-
 //新增加的获取block 函数，增加了对block 中的comp_guid 的赋值
-CCrackBlock *CCrackTask::GetAReadyWorkItem2(const char *ipinfo){
+CCrackBlock *CCrackTask::GetAReadyWorkItem2(const char *owner){
 
 	CCrackBlock *pCB = NULL;
 	CB_MAP::iterator iter_block;
@@ -200,7 +166,7 @@ CCrackBlock *CCrackTask::GetAReadyWorkItem2(const char *ipinfo){
 			m_runing_num ++;
 
 			//将计算节点的信息赋值给block,ipinfo内容为ip:port
-			memcpy(pCB->m_comp_guid,ipinfo,strlen(ipinfo));
+			memcpy(pCB->m_comp_guid,owner,strlen(owner));
 
 			
 			break;
@@ -323,6 +289,11 @@ void CCrackTask::resetProgress(){
 	memset(m_result,0,32);
 	m_runing_num = 0;
 
+}
+
+void CCrackTask::InitAvailableBlock()
+{
+	cur_crack_block = m_crackblock_map.begin();
 }
 
 //任务更新到 Running 状态

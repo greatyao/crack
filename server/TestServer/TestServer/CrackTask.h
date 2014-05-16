@@ -23,14 +23,14 @@ public:
 	//出始化相关内容
 	int Init(crack_task *pCrackTask);
 
+	//初始化游标
+	void InitAvailableBlock();
+
 	int SplitTaskFile(const char *guid, const char* john = NULL);
 	
 	int SetStatus(char status);
 
-	CCrackBlock *GetAReadyWorkItem();
-
-
-	CCrackBlock *GetAReadyWorkItem2(const char *ipinfo);
+	CCrackBlock *GetAReadyWorkItem2(const char *owner);
 
 	
 	int updateStatusToFinish(struct crack_result *result,int hash_index);
