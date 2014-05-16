@@ -68,6 +68,7 @@ int CClientInfo::Init(const void* data, const char* ip, int port, UINT_PTR sock)
 	memcpy(this->m_osinfo, pC->m_osinfo,sizeof(this->m_osinfo));
 	memcpy(this->m_hostname,pC->m_hostinfo, sizeof(this->m_hostname));
 	this->m_logintime = time(NULL);
+	
 	//这里guid是client的唯一标志,
 	memcpy(this->m_guid, pC->m_hostinfo, sizeof(this->m_guid));
 
@@ -77,7 +78,12 @@ int CClientInfo::Init(const void* data, const char* ip, int port, UINT_PTR sock)
 	}
 	else if(this->m_type == SUPER_CONTROL_TYPE_CLIENT)
 	{
-		strcpy(this->m_hostname, "SuperAdmin");
+		strcpy(this->m_guid, "SuperAdmin");
+	}
+	else if(this->m_type == CONTROL_TYPE_CLIENT)
+	{
+		if(pC->m_user[0] != 0)
+			memcpy(this->m_guid, pC->m_user, sizeof(pC->m_user));
 	}
 
 	return 0;
