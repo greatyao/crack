@@ -807,7 +807,7 @@ int comp_get_a_workitem(void *pclient,unsigned char *pdata,UINT len){
 	SOCKET cliSocket = client->GetSocket();
 
 	//处理业务逻辑
-	ret = g_CrackBroker.GetAWorkItem2(ip,&pcrackblock);
+	ret = g_CrackBroker.GetAWorkItem2(owner,&pcrackblock);
 	if (ret < 0 ){
 		CLog::Log(LOG_LEVEL_WARNING,"get_workitem: [%s, %s:%d] Get error %d\n", owner, ip, port, ret);
 		resLen = 0;	
