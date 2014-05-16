@@ -50,7 +50,7 @@ public:
 	//////////////////////	计算节点业务逻辑处理函数 /////////////////////////
 	/////////////////////////////////////////////////////////////////////////
 	
-	int GetAWorkItem2(const char *ipinfo, struct crack_block **pRes); //增加传入参数计算节点ip地址和端口
+	int GetAWorkItem2(const char *worker, struct crack_block **pRes); //增加传入参数计算节点ip地址和端口
 
 	int GetWIStatus(struct crack_status *pReq);
 
@@ -86,10 +86,10 @@ private:
 
 	///add the block<---->computer op
 	//int addNewCompBlock(char *ipinfo,char *blockguid,char status);
-	int deleteCompBlock(const char *ipinfo,char *blockguid);
-	int setCompBlockStatus(const char *ipinfo,char *blockguid,char status);
+	int deleteCompBlock(const char *worker,char *blockguid);
+	int setCompBlockStatus(const char *worker,char *blockguid,char status);
 
-	int getBlockByComp(const char *ipinfo,CBN_VECTOR& cbnvector,char status);
+	int getBlockByComp(const char *worker,CBN_VECTOR& cbnvector,char status);
 
 	int setNoticByHash(CCrackBlock *pCB,int index);
 
