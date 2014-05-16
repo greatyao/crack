@@ -118,7 +118,7 @@ INT CSockServer::StartServer(void)
 		if(m <= 0 || cmd != CMD_LOGIN)
 		{
 			CLog::Log(LOG_LEVEL_WARNING, "[%s:%d] Invalid client, close it\n", ip, port);
-			closesocket(clientSocket);
+			conn_close((conn)clientSocket);
 			continue;
 		}
 
@@ -128,7 +128,7 @@ INT CSockServer::StartServer(void)
 		if(m != 0)
 		{
 			CLog::Log(LOG_LEVEL_WARNING, "[%s:%d] Authentication failure, close it\n", ip, port);
-			closesocket(clientSocket);
+			conn_close((conn)clientSocket);
 			continue;
 		}
 
@@ -137,7 +137,7 @@ INT CSockServer::StartServer(void)
 		hThread = CreateThread(NULL, 0, LPTHREAD_START_ROUTINE(&DispatchThread), client, 0, NULL);
 		if (hThread == 0){
 			CLog::Log(LOG_LEVEL_WARNING,"Create Thread Process Client Connection Error.\n");
-			closesocket(clientSocket);
+			conn_close((conn)clientSocket);
 			continue;
 		}
 
