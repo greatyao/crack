@@ -18,12 +18,26 @@ public:
 
 	bool OpenDB(const char* name, bool use_leveldb = false);
 
+	//持久化一个任务
 	int PersistTask(const CCrackTask* task, Action action);
 
+	//持久化某任务所有的hash
 	int PersistHash(const char* guid, const CRACK_HASH_LIST& hash, Action action);
+	
+	//持久化某任务下的单个hash
+	int UpdateOneHash(const CCrackHash* hash, const char* task_guid, int hash_idx);
+	
+	//持久化某任务下的所有workitem
 	int PersistBlockMap(const CB_MAP& block_map, Action action);
+	
+	//持久化某任务下的的单个workitem
+	int UpdateOneBlock(const CCrackBlock* item);
+
+	//持久化调度就绪队列
 	int PersistReadyTaskQueue(const CT_DEQUE& ready_list);
+	
 	int PersistClientInfo(const CI_VECTOR& client_list);
+	
 	int PersistNoticeMap(const CCB_MAP& notice_map);
 
 

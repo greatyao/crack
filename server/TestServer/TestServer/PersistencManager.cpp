@@ -225,8 +225,10 @@ int CPersistencManager::PersistTask(const CCrackTask *pCT, Action action)
 		}
 		else if(action == Update)
 		{
-			sprintf(cmd,"update Task set status=%d,count=%d,splitnum=%d,success=%d where taskid='%s'",
-				pCT->m_status, pCT->count, pCT->m_split_num, pCT->m_bsuccess, pCT->guid);
+			sprintf(cmd,"update Task set status=%d,count=%d,splitnum=%d,success=%d,finishnum=%d, "
+						"progress=%f,speed=%f,starttime=%d,runtime=%d where taskid='%s'",
+						pCT->m_status, pCT->count, pCT->m_split_num, pCT->m_bsuccess, pCT->m_finish_num,
+						pCT->m_progress, pCT->m_speed, pCT->m_start_time, pCT->m_running_time, pCT->guid);
 			m_SQLite3DB.execDML(cmd);
 		}
 		else if(action == Delete)
@@ -279,6 +281,14 @@ int CPersistencManager::PersistHash(const char* guid, const CRACK_HASH_LIST& has
 			}
 		}
 	}
+	else if(action == Update)
+	{
+		int size = hash.size();
+		for(int i = 0 ;i < size ;i ++){
+			CCrackHash* pCH = hash[i];
+			UpdateOneHash(pCH, guid, i);
+		}
+	}
 	else if(action == Delete)
 	{
 		sprintf(cmd,"delete from Hash where taskid='%s'", guid);
@@ -286,10 +296,38 @@ int CPersistencManager::PersistHash(const char* guid, const CRACK_HASH_LIST& has
 			m_SQLite3DB.execDML(cmd);
 		}catch(CppSQLite3Exception& ex){
 			CLog::Log(LOG_LEVEL_WARNING,"Failed to delete hash %s: %s\n", guid, ex.errorMessage());
+			return -1;
 		}
 	}
 
 	return 0;
+}
+
+int CPersistencManager::UpdateOneHash(const CCrackHash* hash, const char* task_guid, int hash_idx)
+{
+	if(m_useLevelDB)
+	{
+		leveldb::WriteOptions wo;
+		wo.sync = false;
+		leveldb::Status s;
+		s = m_LevelDB->Put(wo, HASH_KEY(task_guid, hash_idx), leveldb::Slice((char*)hash, sizeof(CCrackHash)));
+
+		return 0;
+	}
+	else
+	{
+		char cmd[1024];
+		_snprintf(cmd, sizeof(cmd), "update Hash set result='%s', status=%d, progress=%f where taskid='%s' and index0=%d", 
+			hash->m_result, hash->m_status, hash->m_progress, task_guid, hash_idx);
+		try{
+			m_SQLite3DB.execDML(cmd);
+		}catch(CppSQLite3Exception& ex){
+			CLog::Log(LOG_LEVEL_WARNING,"Failed to update hash (%s,%d): %s\n", task_guid, hash_idx, ex.errorMessage());
+			return -1;
+		}
+
+		return 0;
+	}
 }
 
 //插入一个任务的所有workitem
@@ -366,6 +404,14 @@ int CPersistencManager::PersistBlockMap(const CB_MAP& block_map, Action action){
 			}
 		}
 	}
+	else if(action == Update)
+	{
+		for(block_iter = begin_block;block_iter!=end_block;block_iter++)
+		{
+			CCrackBlock* pCB = block_iter->second;
+			UpdateOneBlock(pCB);
+		}
+	}
 	else if(action == Delete)
 	{
 		if(begin_block != end_block)
@@ -383,6 +429,34 @@ int CPersistencManager::PersistBlockMap(const CB_MAP& block_map, Action action){
 
 
 	return ret;
+}
+
+int CPersistencManager::UpdateOneBlock(const CCrackBlock* item)
+{
+	
+	if(m_useLevelDB)
+	{
+		leveldb::WriteOptions wo;
+		wo.sync = false;
+		leveldb::Status s;
+		s = m_LevelDB->Put(wo, item->guid, leveldb::Slice((char*)item, sizeof(CCrackBlock)));
+		return 0;
+	}
+	else
+	{
+		char cmd[1024];
+		sprintf(cmd,"update Block set status=%d,compip='%s' where blockid='%s'",
+			item->m_status, item->m_comp_guid, item->guid);
+		
+		try{
+			m_SQLite3DB.execDML(cmd);
+		}catch(CppSQLite3Exception& ex){
+			CLog::Log(LOG_LEVEL_WARNING,"Failed to Update block %s: %s\n", item->guid, ex.errorMessage());
+			return -1;
+		}
+
+		return 0;
+	}
 }
 
 int CPersistencManager::PersistReadyTaskQueue(const CT_DEQUE& ready_list){
@@ -618,18 +692,22 @@ int CPersistencManager::LoadHash(CT_MAP &task_map){
 			char* guid = it->first;
 
 			pCT->m_crackhash_list.resize(pCT->count);
+
+			//m_crackhash_list是连在一起的，所以必须一次性初始化，详见CCrackTask::SplitTaskFile
+			CCrackHash *pCHs = new CCrackHash[pCT->count];
+			if (!pCHs){
+				CLog::Log(LOG_LEVEL_ERROR,"Alloc New Hash Error\n");
+				return -1;
+			}
+
 			for(int i = 0; i < pCT->count; i++)
 			{
 				s = m_LevelDB->Get(ro, HASH_KEY(guid, i), &value);
 				if(!s.ok()) continue;
 
 				CCrackHash* hash = (CCrackHash*)value.data();
-				CCrackHash *pCH = new CCrackHash(*hash);
-				if (!pCH){
-					CLog::Log(LOG_LEVEL_ERROR,"Alloc New Hash Error\n");
-					return -1;
-				}
-
+				CCrackHash* pCH = pCHs + i;
+				*pCH = *hash;
 				pCT->m_crackhash_list[i] = pCH;
 			}
 		}
@@ -647,18 +725,20 @@ int CPersistencManager::LoadHash(CT_MAP &task_map){
 		//必须将容器初始化大小
 		pCT->m_crackhash_list.resize(pCT->count);
 
+		//m_crackhash_list是连在一起的，所以必须一次性初始化，详见CCrackTask::SplitTaskFile
+		CCrackHash *pCHs = new (std::nothrow)CCrackHash[pCT->count];
+		if (!pCHs){
+			CLog::Log(LOG_LEVEL_ERROR,"Alloc New Hash Error\n");
+			return -1;
+		}
+
 		CppSQLite3Query query = m_SQLite3DB.execQuery(cmd);
 
 		while (!query.eof())
 		{
-			CCrackHash *pCH = new CCrackHash();
-			if (!pCH){
-				CLog::Log(LOG_LEVEL_ERROR,"Alloc New Hash Error\n");
-				return -1;
-			}
-
 			int tmpIndex = query.getIntField("index0");
-
+			CCrackHash *pCH = pCHs + tmpIndex;
+			
 			pCT->m_crackhash_list[tmpIndex] = pCH;
 
 			memset(pCH->m_john,0,sizeof(pCH->m_john));
@@ -690,6 +770,12 @@ int CPersistencManager::LoadBlockMap(CB_MAP &block_map,CT_MAP &task_map){
 			leveldb::Status s;
 			string value;
 			int actual_num = 0;
+			//连在一起申请，不然在deleteTask函数释放时会出错
+			CCrackBlock* pCBs = new (std::nothrow)CCrackBlock[pCT->m_split_num];
+			if (!pCBs){
+				CLog::Log(LOG_LEVEL_ERROR, "Alloc %d Block Error\n", pCT->m_split_num);
+				return -2;
+			}
 
 			for(int i = 0; i < pCT->m_split_num; i++)
 			{
@@ -701,12 +787,11 @@ int CPersistencManager::LoadBlockMap(CB_MAP &block_map,CT_MAP &task_map){
 
 				actual_num ++;
 				CCrackBlock* item = (CCrackBlock*) value.data();
-				CCrackBlock *pCB = new CCrackBlock(*item);
-				if (!pCB){
-					CLog::Log(LOG_LEVEL_ERROR,"Alloc New Block Error\n");
-					return -2;
-				}
-
+				CCrackBlock *pCB = pCBs + i;
+				*pCB = *item;
+				pCB->task = pCT;
+	
+				pCT->m_crackblock_map.insert(CB_MAP::value_type(pCB->guid,pCB));
 				block_map.insert(CB_MAP::value_type(pCB->guid, pCB));
 			}
 
@@ -726,19 +811,21 @@ int CPersistencManager::LoadBlockMap(CB_MAP &block_map,CT_MAP &task_map){
 	{
 		char* guid = cur_iter->first;
 		pCT = cur_iter->second;
+		
+		//连在一起申请，不然在deleteTask函数释放时会出错
+		CCrackBlock* pCBs = new (std::nothrow)CCrackBlock[pCT->m_split_num];
+		if (!pCBs){
+			CLog::Log(LOG_LEVEL_ERROR, "Alloc %d Block Error\n", pCT->m_split_num);
+			return -2;
+		}
+
 		char cmd[1024];
 		_snprintf(cmd, sizeof(cmd), "select * from Block where taskid='%s'", guid);
-
 		CppSQLite3Query query = m_SQLite3DB.execQuery(cmd);
-
 		while (!query.eof())
 		{
-			CCrackBlock *pCB = new CCrackBlock();
-			if (!pCB){
-
-				CLog::Log(LOG_LEVEL_ERROR,"Alloc New Block Error\n");
-				return -2;
-			}
+			int tmpIndex = query.getIntField("index0");
+			CCrackBlock *pCB = pCBs + tmpIndex;
 
 			memset(pCB->john,0,sizeof(pCB->john));
 
@@ -755,7 +842,7 @@ int CPersistencManager::LoadBlockMap(CB_MAP &block_map,CT_MAP &task_map){
 			const unsigned char* info = query.getBlobField("info", len);
 			memcpy(&(pCB->start), info, len);
 
-			pCB->hash_idx = query.getIntField("index0");
+			pCB->hash_idx = tmpIndex;
 			memcpy(pCB->john,pCT->m_crackhash_list[pCB->hash_idx]->m_john,sizeof(pCT->m_crackhash_list[pCB->hash_idx]->m_john));
 
 			pCB->special = pCT->special;
@@ -824,6 +911,7 @@ int CPersistencManager::LoadReadyTaskQueue(CT_DEQUE &ready_list,const CT_MAP& ta
 		if (cur_iter == end_iter){
 
 			CLog::Log(LOG_LEVEL_ERROR,"Task List and Ready Task List is not Matched\n");
+			query.nextRow();
 			continue;
 		}
 
