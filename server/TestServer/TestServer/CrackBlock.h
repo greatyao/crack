@@ -25,7 +25,7 @@ public:
 	unsigned int m_remaintime;
 
 	
-	unsigned char m_comp_guid[40];
+	char m_comp_guid[40];
 
 
 
