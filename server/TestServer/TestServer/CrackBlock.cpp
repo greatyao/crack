@@ -21,8 +21,9 @@ void CCrackBlock::Init(struct crack_block *pCrackBlock){
 
 	m_progress = 0.0;
 	m_speed = 0.0;
-	//m_remaintime = -1;
+	m_starttime = 0;
 	m_remaintime = 0;
+	m_finishtime = 0;
 
 	memset(m_comp_guid,0,40);
 

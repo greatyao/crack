@@ -27,6 +27,6 @@ public:
 	
 	char m_comp_guid[40];
 
-
-
+	unsigned int m_starttime;
+	unsigned int m_finishtime;
 };
