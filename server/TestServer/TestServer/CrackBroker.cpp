@@ -74,7 +74,7 @@ int CCrackBroker::ClientLogin2(const void* data, const char* ip, int port, unsig
 	for(CT_MAP::iterator it = m_cracktask_map.begin(); it!= m_cracktask_map.end(); it++)
 	{
 		if(strcmp(it->second->m_owner, pCI->GetOwner()) == 0)
-			pCI->InsetTask(it->first, it->second);
+			pCI->InsetTask(it->first.c_str(), it->second);
 	}
 	
 	return 0;
@@ -635,7 +635,7 @@ int CCrackBroker::GetAWorkItem2(const char *worker,struct crack_block **pRes){
 		return ERR_NOREADYITEM;
 	}
 
-	iter_task = m_cracktask_map.find((char*)guid.c_str());
+	iter_task = m_cracktask_map.find(guid);
 	if (iter_task == m_cracktask_map.end()){
 
 		CLog::Log(LOG_LEVEL_WARNING,"GetAWorkItem2: Can't find task with guid %s\n", guid.c_str());

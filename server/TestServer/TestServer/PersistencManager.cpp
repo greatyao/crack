@@ -759,7 +759,7 @@ int CPersistencManager::LoadHash(CT_MAP &task_map){
 		for(CT_MAP::iterator it = task_map.begin(); it != task_map.end(); it++)
 		{
 			CCrackTask* pCT = it->second;
-			char* guid = it->first;
+			const char* guid = it->first.c_str();
 
 			pCT->m_crackhash_list.resize(pCT->count);
 
@@ -788,7 +788,7 @@ int CPersistencManager::LoadHash(CT_MAP &task_map){
 	
 	for(CT_MAP::iterator it = task_map.begin(); it != task_map.end(); it++)
 	{
-		char* guid = it->first;
+		const char* guid = it->first.c_str();
 		CCrackTask *pCT = it->second;
 		char cmd[1024];
 		_snprintf(cmd, sizeof(cmd), "select * from Hash where taskid='%s'", guid);
@@ -834,7 +834,7 @@ int CPersistencManager::LoadBlockMap(CB_MAP &block_map,CT_MAP &task_map){
 	{
 		for(CT_MAP::iterator it = task_map.begin(); it != task_map.end(); it++)
 		{
-			char* guid = it->first;
+			const char* guid = it->first.c_str();
 			CCrackTask* pCT = it->second;
 			leveldb::ReadOptions ro;
 			leveldb::Status s;
@@ -879,7 +879,7 @@ int CPersistencManager::LoadBlockMap(CB_MAP &block_map,CT_MAP &task_map){
 
 	for(cur_iter = task_map.begin(); cur_iter != end_iter; cur_iter++)
 	{
-		char* guid = cur_iter->first;
+		const char* guid = cur_iter->first.c_str();
 		pCT = cur_iter->second;
 		
 		//连在一起申请，不然在deleteTask函数释放时会出错
@@ -892,10 +892,11 @@ int CPersistencManager::LoadBlockMap(CB_MAP &block_map,CT_MAP &task_map){
 		char cmd[1024];
 		_snprintf(cmd, sizeof(cmd), "select * from Block where taskid='%s'", guid);
 		CppSQLite3Query query = m_SQLite3DB.execQuery(cmd);
+		int idx = 0;
 		while (!query.eof())
 		{
-			int tmpIndex = query.getIntField("index0");
-			CCrackBlock *pCB = pCBs + tmpIndex;
+			CCrackBlock *pCB = pCBs + idx;
+			idx ++;
 
 			memset(pCB->john,0,sizeof(pCB->john));
 			memset(pCB->m_comp_guid,0,sizeof(pCB->m_comp_guid));
@@ -911,6 +912,7 @@ int CPersistencManager::LoadBlockMap(CB_MAP &block_map,CT_MAP &task_map){
 			const unsigned char* info = query.getBlobField("info", len);
 			memcpy(&(pCB->start), info, len);
 
+			int tmpIndex = query.getIntField("index0");
 			pCB->hash_idx = tmpIndex;
 			memcpy(pCB->john,pCT->m_crackhash_list[pCB->hash_idx]->m_john,sizeof(pCT->m_crackhash_list[pCB->hash_idx]->m_john));
 
@@ -923,7 +925,7 @@ int CPersistencManager::LoadBlockMap(CB_MAP &block_map,CT_MAP &task_map){
 			pCB->m_remaintime = query.getIntField("remaintime");
 
 			
-			cur_iter->second->m_crackblock_map.insert(CB_MAP::value_type(pCB->guid,pCB));
+			cur_iter->second->m_crackblock_map.insert(CB_MAP::value_type(pCB->guid,pCB));		
 					
 			block_map.insert(CB_MAP::value_type(pCB->guid,pCB));
 		       
