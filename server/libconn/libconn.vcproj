@@ -247,7 +247,7 @@
 				OmitFramePointers="true"
 				WholeProgramOptimization="false"
 				PreprocessorDefinitions="WIN64;NDEBUG;_LIB"
-				RuntimeLibrary="2"
+				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
