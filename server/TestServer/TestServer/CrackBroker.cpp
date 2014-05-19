@@ -35,6 +35,7 @@ int CCrackBroker::LoadFromPersistence(bool use_leveldb)
 	g_Persistence.LoadHash(m_cracktask_map);
 	g_Persistence.LoadBlockMap(m_total_crackblock_map, m_cracktask_map);
 	g_Persistence.LoadReadyTaskQueue(m_cracktask_ready_queue, m_cracktask_map);
+	g_Persistence.LoadNoticeMap(m_comp_block_map);
 
 	for(CT_MAP::iterator it = m_cracktask_map.begin(); it !=m_cracktask_map.end(); it++)
 	{
@@ -79,7 +80,7 @@ int CCrackBroker::ClientLogin2(const void* data, const char* ip, int port, unsig
 }
 
 //处理心跳
-int CCrackBroker::ClientKeepLive2(const char *ip, void* s, unsigned char* cmd, void** data)
+int CCrackBroker::ClientKeepLive2(const char *owner, void* s, unsigned char* cmd, void** data)
 {
 	SOCKET sock = (SOCKET)s;
 	CClientInfo *pCI = NULL;
@@ -95,6 +96,18 @@ int CCrackBroker::ClientKeepLive2(const char *ip, void* s, unsigned char* cmd, v
 		}
 	}
 
+	if(pCI == NULL)
+	{
+		for (int i = 0 ;i < m_client_list.size(); i ++){
+			CClientInfo* client = m_client_list[i];
+			if(strcmp(owner, client->GetOwner()) == 0)
+			{
+				pCI = client;
+				break;
+			}
+		}
+	}
+
 	//不是计算节点，直接发送简单的心跳回应包
 	if(pCI == NULL || pCI->m_type != COMPUTE_TYPE_CLIENT)
 	{
@@ -104,7 +117,7 @@ int CCrackBroker::ClientKeepLive2(const char *ip, void* s, unsigned char* cmd, v
 
 
 	//获得需要通知的block列表
-	getBlockByComp(pCI->m_ip,tmpcbn,STATUS_NOTICE_FINISH | STATUS_NOTICE_STOP);
+	getBlockByComp(pCI->GetOwner(),tmpcbn,STATUS_NOTICE_FINISH | STATUS_NOTICE_STOP);
 	int size = tmpcbn.size();
 
 
@@ -156,9 +169,6 @@ int	CCrackBroker::CreateTask(struct crack_task *pReq, void* pclient){
 	client->InsetTask(pTask->guid, pTask);
 	strncpy(pTask->m_owner, client->GetOwner(), sizeof(pTask->m_owner));
 
-	//OK,现在将其持久化(不过可以将其放在SplitTask成功之后持久化)
-	//g_Persistence.PersistTask(pTask);
-
 //	m_cracktask_cs.Unlock();
 	return ret;
 }
@@ -173,7 +183,7 @@ int CCrackBroker::SplitTask(const char *guid, const char* john){
 	iter_task = m_cracktask_map.find((char*)guid);
 	if (iter_task == m_cracktask_map.end()){
 		
-		CLog::Log(LOG_LEVEL_WARNING,"SplitTask: Can't find Task With GUID %s\n",guid);
+		CLog::Log(LOG_LEVEL_WARNING,"SplitTask: Can't find task with guid %s\n",guid);
 		return ERR_NO_THISTASK;
 	}
 
@@ -182,7 +192,7 @@ int CCrackBroker::SplitTask(const char *guid, const char* john){
 	ret = pCT->SplitTaskFile(guid, john);
 	if (ret < 0 ){
 		
-		CLog::Log(LOG_LEVEL_WARNING,"SplitTask: Split Task File %s Error %d\n",guid, ret);
+		CLog::Log(LOG_LEVEL_WARNING,"SplitTask: Split task file %s Error %d\n",guid, ret);
 		return ret;
 		
 	}
@@ -222,7 +232,7 @@ int	CCrackBroker::StartTask(struct task_start_req *pReq, void* pclient){
 	iter_task = m_cracktask_map.find((char *)pReq->guid);
 	if (iter_task == m_cracktask_map.end()){
 			
-		CLog::Log(LOG_LEVEL_WARNING,"StartTask: Can't find Task With GUID %s\n",pReq->guid);
+		CLog::Log(LOG_LEVEL_WARNING,"StartTask: Can't find task with guid %s\n",pReq->guid);
 		return ERR_NO_THISTASK;
 	}else{
 		
@@ -274,7 +284,7 @@ int CCrackBroker::StopTask(struct task_stop_req *pReq, void* pclient){
 	iter_task = m_cracktask_map.find((char *)pReq->guid);
 	if (iter_task == m_cracktask_map.end()){
 			
-		CLog::Log(LOG_LEVEL_WARNING,"StopTask: Can't find Task With GUID %s\n",pReq->guid);
+		CLog::Log(LOG_LEVEL_WARNING,"StopTask: Can't find task with guid %s\n",pReq->guid);
 		return ERR_NO_THISTASK;
 	}else{
 		
@@ -341,7 +351,7 @@ int CCrackBroker::DeleteTask(struct task_delete_req *pReq, void* pclient){
 	iter_task = m_cracktask_map.find((char *)pReq->guid);
 	if (iter_task == m_cracktask_map.end()){
 			
-		CLog::Log(LOG_LEVEL_WARNING,"DeleteTask: Can't find Task With GUID %s\n",pReq->guid);
+		CLog::Log(LOG_LEVEL_WARNING,"DeleteTask: Can't find task with guid %s\n",pReq->guid);
 		return ERR_NO_THISTASK;
 
 	}else{
@@ -351,7 +361,7 @@ int CCrackBroker::DeleteTask(struct task_delete_req *pReq, void* pclient){
 		//如果任务正在运行的话，不允许删除
 		if (pCT->m_status == CT_STATUS_RUNNING){
 
-			CLog::Log(LOG_LEVEL_WARNING,"DeleteTask: Task %s is Running, Can't Delete!\n",pReq->guid);
+			CLog::Log(LOG_LEVEL_WARNING,"DeleteTask: Task %s is Running, Can't delete!\n",pReq->guid);
 			return ERR_CONVERTDELETE;
 
 		}
@@ -412,7 +422,7 @@ int CCrackBroker::PauseTask(struct task_pause_req *pReq, void* pclient){
 	iter_task = m_cracktask_map.find((char *)pReq->guid);
 	if (iter_task == m_cracktask_map.end()){
 			
-		CLog::Log(LOG_LEVEL_WARNING,"PauseTask: Can't find Task With GUID %s\n",pReq->guid);
+		CLog::Log(LOG_LEVEL_WARNING,"PauseTask: Can't find task with guid %s\n",pReq->guid);
 		return ERR_NO_THISTASK;
 
 	}else{
@@ -450,7 +460,7 @@ int CCrackBroker::GetTaskResult(struct task_result_req *pReq,struct task_result_
 	iter_task = m_cracktask_map.find((char *)pReq->guid);
 	if (iter_task == m_cracktask_map.end()){
 		
-		CLog::Log(LOG_LEVEL_WARNING,"GetTaskResult: Can't find Task With GUID %s\n",pReq->guid);
+		CLog::Log(LOG_LEVEL_WARNING,"GetTaskResult: Can't find task with guid %s\n",pReq->guid);
 		return ERR_NO_THISTASK;
 	}else{
 
@@ -619,7 +629,7 @@ int CCrackBroker::GetAWorkItem2(const char *worker,struct crack_block **pRes){
 	CLog::Log(LOG_LEVEL_WARNING,"Front task guid = %s\n", guid.c_str());
 	if (guid.empty()){
 
-		CLog::Log(LOG_LEVEL_WARNING,"GetAWorkItem2: Available Task is Null\n");
+		CLog::Log(LOG_LEVEL_WARNING,"GetAWorkItem2: Available task is empty\n");
 //		m_cracktask_cs.Unlock();
 		return ERR_NOREADYITEM;
 	}
@@ -627,7 +637,7 @@ int CCrackBroker::GetAWorkItem2(const char *worker,struct crack_block **pRes){
 	iter_task = m_cracktask_map.find((char*)guid.c_str());
 	if (iter_task == m_cracktask_map.end()){
 
-		CLog::Log(LOG_LEVEL_WARNING,"GetAWorkItem2: Can't find Task With GUID %s\n", guid.c_str());
+		CLog::Log(LOG_LEVEL_WARNING,"GetAWorkItem2: Can't find task with guid %s\n", guid.c_str());
 		m_cracktask_ready_queue.pop_front();
 		ret =  ERR_NOREADYITEM;
 //		m_cracktask_cs.Unlock();
@@ -643,7 +653,7 @@ int CCrackBroker::GetAWorkItem2(const char *worker,struct crack_block **pRes){
 	pCB = pCT->GetAReadyWorkItem2(worker);
 	if (pCB == NULL){
 		
-		CLog::Log(LOG_LEVEL_WARNING,"GetAWorkItem2: Can't find A Ready Item from Task %s\n", guid.c_str());
+		CLog::Log(LOG_LEVEL_WARNING,"GetAWorkItem2: Can't find ready item from task %s\n", guid.c_str());
 		m_cracktask_ready_queue.pop_front();
 		return ERR_NOREADYITEM;
 	}
@@ -685,7 +695,7 @@ int CCrackBroker::QueryTaskByWI(char* task_guid, const char* block_guid)
 	iter_block = m_total_crackblock_map.find((char*)block_guid);
 	if (iter_block == m_total_crackblock_map.end()){
 
-		CLog::Log(LOG_LEVEL_DEBUG,"QueryTaskByWI: Can't find item With GUID %s\n", block_guid);
+		CLog::Log(LOG_LEVEL_DEBUG,"QueryTaskByWI: Can't find item with guid %s\n", block_guid);
 		return  ERR_NO_THISITEM;
 	}
 
@@ -708,7 +718,7 @@ int CCrackBroker::GetWIStatus(struct crack_status *pReq){
 	iter_block = m_total_crackblock_map.find(pReq->guid);
 	if (iter_block == m_total_crackblock_map.end()){
 
-		CLog::Log(LOG_LEVEL_DEBUG,"GetWIStatus: Can't find item With GUID %s %d\n",pReq->guid, pReq->progress);
+		CLog::Log(LOG_LEVEL_DEBUG,"GetWIStatus: Can't find item with guid %s %d\n",pReq->guid, pReq->progress);
 		return ERR_NO_THISITEM;
 	}
 
@@ -736,7 +746,7 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 	iter_block = m_total_crackblock_map.find(pReq->guid);
 	if (iter_block == m_total_crackblock_map.end()){
 
-		CLog::Log(LOG_LEVEL_DEBUG,"GetWIResult: Can't find item With GUID %s\n",pReq->guid);
+		CLog::Log(LOG_LEVEL_DEBUG,"GetWIResult: Can't find item with guid %s\n",pReq->guid);
 		return ERR_NO_THISITEM;
 	}
 	
@@ -1172,78 +1182,6 @@ void CCrackBroker::checkReadyQueue(CCrackTask *pCT){
 	}
 }
 
-//添加新的block 
-/*
-int CCrackBroker::addNewCompBlock(char *ipinfo,char *blockguid,char status){
-	
-	int ret =0;
-	int size = 0;
-	int tmpi = 0;
-	CCB_MAP::iterator comp_iter;
-	CBlockNotice *pBN = NULL;
-	CBN_VECTOR tmpcbn;
-
-	//被锁定的任务加入到计算节点和block 映射表中
-	comp_iter = m_comp_block_map.find(ipinfo);
-	if (comp_iter == m_comp_block_map.end()){
-		
-		pBN = new CBlockNotice();
-		if (!pBN){
-			
-			CLog::Log(LOG_LEVEL_WARNING,"Create BlockNotice Error.CompIP : %s,Block : %s\n",ipinfo,blockguid);
-			ret = -10;
-			return ret;
-		}
-		
-		memset(pBN->m_guid,0,40);
-		memcpy(pBN->m_guid,blockguid,strlen(blockguid));
-
-		pBN->m_status = status;
-
-		tmpcbn.push_back(pBN);
-
-		m_comp_block_map.insert(CCB_MAP::value_type(ipinfo,tmpcbn));
-
-	}else{
-		
-		tmpcbn = comp_iter->second;
-		size = tmpcbn.size();
-		for(tmpi = 0;tmpi < size ;tmpi ++ ){
-
-			pBN = tmpcbn[tmpi];
-			if (strcmp(pBN->m_guid,blockguid,40) == 0){
-
-				pBN->m_status = status;
-				break;
-			}
-
-		}
-
-		if (tmpi == size){
-
-			pBN = new CBlockNotice();
-			if (!pBN){
-				
-				CLog::Log(LOG_LEVEL_WARNING,"Create BlockNotice Error.CompIP : %s,Block : %s\n",ipinfo,blockguid);
-				ret = -10;
-				return ret;
-			}
-			
-			memset(pBN->m_guid,0,40);
-			memcpy(pBN->m_guid,blockguid,strlen(blockguid));
-
-			pBN->m_status = status;
-
-			tmpcbn.push_back(pBN);
-
-		}
-
-	}
-
-	return ret;
-}
-
-*/
 //从映射表中删除block
 int CCrackBroker::deleteCompBlock(const char *worker,char *blockguid){
 
@@ -1285,6 +1223,9 @@ int CCrackBroker::deleteCompBlock(const char *worker,char *blockguid){
 		if (size == 1){
 			m_comp_block_map.erase(comp_iter);
 		}
+
+		//持久化comp和block的映射
+		g_Persistence.PersistNoticeMap(worker, tmpcbn);
 	}
 
 	return ret;
@@ -1307,7 +1248,7 @@ int CCrackBroker::setCompBlockStatus(const char *worker,char *blockguid,char sta
 		pBN = new CBlockNotice();
 		if (!pBN){
 			
-			CLog::Log(LOG_LEVEL_WARNING,"setCompBlockStatus: Create Object CBlockNotice <%s,%s> error.\n",worker,blockguid);
+			CLog::Log(LOG_LEVEL_WARNING,"setCompBlockStatus: Create object CBlockNotice <%s,%s> error.\n",worker,blockguid);
 			return ERR_OUTOFMEMORY;
 		}
 
@@ -1318,6 +1259,9 @@ int CCrackBroker::setCompBlockStatus(const char *worker,char *blockguid,char sta
 		tmpcbn.push_back(pBN);
 
 		m_comp_block_map[worker] = tmpcbn;
+
+		//持久化comp和block的映射
+		g_Persistence.PersistNoticeMap(worker, tmpcbn);
 
 	}else{
 		
@@ -1339,11 +1283,10 @@ int CCrackBroker::setCompBlockStatus(const char *worker,char *blockguid,char sta
 			pBN = new CBlockNotice();
 			if (!pBN){
 				
-				CLog::Log(LOG_LEVEL_WARNING,"setCompBlockStatus: Create Object CBlockNotice <%s,%s> error.\n",worker,blockguid);			
+				CLog::Log(LOG_LEVEL_WARNING,"setCompBlockStatus: Create object CBlockNotice <%s,%s> error.\n",worker,blockguid);			
 				return ERR_OUTOFMEMORY;
 			}
 			
-			memset(pBN->m_guid,0,40);
 			memcpy(pBN->m_guid,blockguid,strlen(blockguid));
 
 			pBN->m_status = status;
@@ -1351,6 +1294,10 @@ int CCrackBroker::setCompBlockStatus(const char *worker,char *blockguid,char sta
 			tmpcbn.push_back(pBN);
 
 		}
+
+		//持久化comp和block的映射
+		g_Persistence.PersistNoticeMap(worker, tmpcbn);
+
 
 	}
 

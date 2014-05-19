@@ -26,11 +26,12 @@ int client_keeplive(void *pclient, unsigned char * pdata, UINT len){
 	CClientInfo* client = (CClientInfo*)pclient;
 	char* ip = client->GetIP();
 	int port = client->GetPort();
+	char* owner = client->GetOwner();
 	SOCKET cliSocket = client->GetSocket();
 
 	unsigned char cmd;
 	char* data = NULL;
-	nRet = g_CrackBroker.ClientKeepLive2(ip, (void *)cliSocket, &cmd, (void **)&data);
+	nRet = g_CrackBroker.ClientKeepLive2(owner, (void *)cliSocket, &cmd, (void **)&data);
 	int m = Write(cliSocket, cmd, 0, data, nRet, true);
 	g_CrackBroker.Free(data);
 	

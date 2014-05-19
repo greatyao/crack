@@ -17,7 +17,7 @@ public:
 	int ClientLogin2(const void* data, const char* ip, int port, unsigned int sock, CClientInfo ** res);
 
 	//keepalive
-	int ClientKeepLive2(const char *ip, void* s, unsigned char* cmd, void** data);
+	int ClientKeepLive2(const char *owner, void* s, unsigned char* cmd, void** data);
 
 	//ÍË³ö
 	int DoClientQuit(const char *ip,int port);
