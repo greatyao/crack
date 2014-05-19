@@ -5,6 +5,8 @@
 #include "ResPacket.h"
 #include "macros.h"
 
+class CCrackTask;
+
 class CCrackBroker
 {
 public:
@@ -68,6 +70,8 @@ public:
 	static void GetTaskFileByGuid(const char* guid, char* fn, int n);
 
 private:
+	friend class CCrackTask;
+
 	int GetComputeNodesNum();
 	int removeFromQueue(const char *guid);
 

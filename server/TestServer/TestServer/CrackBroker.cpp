@@ -36,7 +36,7 @@ int CCrackBroker::LoadFromPersistence(bool use_leveldb)
 	g_Persistence.LoadBlockMap(m_total_crackblock_map, m_cracktask_map);
 	g_Persistence.LoadReadyTaskQueue(m_cracktask_ready_queue, m_cracktask_map);
 	g_Persistence.LoadNoticeMap(m_comp_block_map);
-
+	
 	for(CT_MAP::iterator it = m_cracktask_map.begin(); it !=m_cracktask_map.end(); it++)
 	{
 		CCrackTask* pCT = it->second;
@@ -44,6 +44,7 @@ int CCrackBroker::LoadFromPersistence(bool use_leveldb)
 		pCT->calcProgressByBlock();
 		pCT->RefreshRemainTime();
 	}
+	CLog::Log(LOG_LEVEL_NOMAL, "Load task from %s OK\n", path);
 
 	return 0;
 }
@@ -626,7 +627,7 @@ int CCrackBroker::GetAWorkItem2(const char *worker,struct crack_block **pRes){
 	}
 
 	guid = m_cracktask_ready_queue.front();
-	CLog::Log(LOG_LEVEL_WARNING,"Front task guid = %s\n", guid.c_str());
+	CLog::Log(LOG_LEVEL_NOMAL,"Front task guid=%s\n", guid.c_str());
 	if (guid.empty()){
 
 		CLog::Log(LOG_LEVEL_WARNING,"GetAWorkItem2: Available task is empty\n");
@@ -677,6 +678,7 @@ int CCrackBroker::GetAWorkItem2(const char *worker,struct crack_block **pRes){
 	///设置block 和comp 对应关系
 	//STATUS_NOTICE_RUN
 	strncpy(pCB->m_comp_guid,  worker, sizeof(pCB->m_comp_guid));
+	pCB->m_starttime = time(NULL);
 	g_Persistence.UpdateOneBlock(pCB);
 	ret = setCompBlockStatus(worker,pCB->guid,STATUS_NOTICE_RUN);
 	CLog::Log(LOG_LEVEL_NOMAL,"GetAWorkItem2: Add Map <%s, %s> %s\n",worker,pCB->guid,(ret<0?"Error":"OK"));
@@ -768,6 +770,7 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 
 			//block状态持久化
 			pCB->m_comp_guid[0] = 0;
+			pCB->m_starttime = 0;
 			g_Persistence.UpdateOneBlock(pCB);
 
 			break;
@@ -778,11 +781,10 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 			CLog::Log(LOG_LEVEL_SUCCEED, "** Running item [guid=%s, tool=%s, algo=%d, type=%d] **\n", pReq->guid, pReq->password, pCB->algo, pCB->type);
 			
 			//判断是否是第一个开始运行的Block ,如果是的话更新任务计时器
-			pCT = (CCrackTask *)pCB->task;
+			pCT = (CCrackTask *)(pCB->task);
 			pCT->startTime();				
 
-
-			checkReadyQueue((CCrackTask *)(pCB->task));
+			checkReadyQueue(pCT);
 
 			//block状态持久化
 			g_Persistence.UpdateOneBlock(pCB);
@@ -791,10 +793,11 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 		case WI_STATUS_CRACKED:
 			CLog::Log(LOG_LEVEL_SUCCEED, "** Recover item [guid=%s] password=\"%s\" **\n",pReq->guid,pReq->password);
 			pCB->m_status = WI_STATUS_CRACKED;
-			pCT =(CCrackTask *)pCB->task;
+			pCT =(CCrackTask *)(pCB->task);
 
 			//更新剩余时间
 			pCB->m_remaintime = 0;
+			pCB->m_finishtime = time(NULL);
 			pCT->RefreshRemainTime();
 						
 			//解密成功，同一个hash下的block将不需要继续计算
@@ -827,6 +830,7 @@ int CCrackBroker::GetWIResult(struct crack_result *pReq){
 
 			//更新剩余时间
 			pCB->m_remaintime = 0;
+			pCB->m_finishtime = time(NULL);
 			pCT->RefreshRemainTime();
 
 
