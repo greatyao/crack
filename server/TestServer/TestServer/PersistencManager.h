@@ -38,8 +38,8 @@ public:
 	
 	int PersistClientInfo(const CI_VECTOR& client_list);
 	
-	int PersistNoticeMap(const CCB_MAP& notice_map);
-
+	//持久化某个计算节点所有正在解密中的block
+	int PersistNoticeMap(const char* comp, const CBN_VECTOR& notice);
 
 	int LoadTaskMap(CT_MAP &task_map);
 	int LoadHash(CT_MAP &task_map);

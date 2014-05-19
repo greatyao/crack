@@ -10,11 +10,13 @@ using std::vector;
 
 CPersistencManager g_Persistence;
 
-#define TASK_KEY			"task"
-#define TASK_RUN_KEY		"task_run"
-#define TASK_COUNT			"task_count"
-#define TASK_FINISH_COUNT	"task_fin_count"
-#define TASK_RUN_COUNT		"task_run_count"
+#define TASK_KEY			"__task"
+#define TASK_RUN_KEY		"__task_run"
+#define TASK_COUNT			"__task_count"
+#define TASK_FINISH_COUNT	"__task_fin_count"
+#define TASK_RUN_COUNT		"__task_run_count"
+#define NOTICE_MAP_COUNT	"__notice_count"
+#define NOTICE_MAP_KEY		"__notice_"
 
 static inline string TASK_IDX(const char* key, unsigned int id) 
 { 
@@ -37,6 +39,26 @@ static inline string BLOCK_IDX(const char* guid, int id)
 	return string(buf); 
 }
 
+static inline string NOTICE_MAP_IDX(int idx)
+{
+	char buf[128]; 
+	_snprintf(buf, sizeof(buf), "%s_%d", NOTICE_MAP_KEY, idx); 
+	return string(buf); 
+}
+
+static inline string NOTICE_COUNT(const char* guid)
+{
+	char buf[128]; 
+	_snprintf(buf, sizeof(buf), "%s_notice_num", guid); 
+	return string(buf); 
+}
+
+static inline string NOTICE_IDX(const char* guid, int idx)
+{
+	char buf[128]; 
+	_snprintf(buf, sizeof(buf), "%s_notice_%d", guid, idx); 
+	return string(buf); 
+}
 
 CPersistencManager::CPersistencManager()
 {
@@ -47,7 +69,7 @@ CPersistencManager::CPersistencManager()
 	m_TaskTable = "create table Task (taskid char(40) primary key,algo short,charset short,type short,filetag short,single short,info blob,owner char(64),status short,splitnum int,finishnum int,success short,progress real,speed real,starttime int,runtime int,remaintime int,count int)";
 	m_HashTable = "create table Hash (taskid char(40),index0 int,john char(260),result char(32),status short,progress real)";
 	m_BlockTable = "create table Block (blockid char(40) primary key,taskid char(40), type short, index0 int, info blob, status short,progress real,speed real,remaintime int,compip char(20))";
-	m_NoticeTable = "create table Notice (hostip char(20),blockid char(40),status char(1))";
+	m_NoticeTable = "create table Notice (hostip char(40),blockid char(40),status short, primary key(hostip,blockid))";
 	m_ReadyTaskTable = "create table ReadyTask (taskid char(40))";
 	m_ClientTable = "create table Client (ip char(20),type char(1),hostname char(64),osinfo char(64),livetime char(20),logintime char(20),gpu int,cpu int)";
 }
@@ -543,41 +565,78 @@ int CPersistencManager::PersistClientInfo(const CI_VECTOR& client_list){
 	return ret;
 
 }
-int CPersistencManager::PersistNoticeMap(const CCB_MAP& notice_map){
-	int ret = 0;
-	CCB_MAP::const_iterator begin_notice = notice_map.begin();
-	CCB_MAP::const_iterator end_notice = notice_map.end();
-	CCB_MAP::const_iterator notice_iter;
-	CBlockNotice *pCN = NULL;
 
+int CPersistencManager::PersistNoticeMap(const char* comp, const CBN_VECTOR& notice)
+{
 	if(m_useLevelDB)
 	{
-		return 0;
-	}
+		leveldb::Status s;
+		leveldb::WriteOptions wo;
+		leveldb::ReadOptions ro;
+		string value;
+		wo.sync = false;
+		int count = notice.size();
+		int mapcount = 0;
+		int idx;
 
-	char insertsql[1024];
-	for(notice_iter = begin_notice;notice_iter!=end_notice;notice_iter++){
+		//首先读取comp在notice_map中的位置，没有则创建
+		s = m_LevelDB->Get(ro, NOTICE_MAP_COUNT, &value);
+		if(s.ok())
+			mapcount = *(int*)value.data();
+		for(idx = 0; idx < mapcount; idx++)
+		{
+			s = m_LevelDB->Get(ro, NOTICE_MAP_IDX(idx), &value);
+			if(!s.ok()) continue;
 
-		CBN_VECTOR tmpCbn = notice_iter->second;
+			if(value.compare(comp) == 0)
+				break;
+		}
+		if(idx == mapcount)
+		{
+			s = m_LevelDB->Put(wo, NOTICE_MAP_IDX(mapcount), comp);
 
-		for(int i = 0;i < tmpCbn.size();i++){
-
-			pCN = tmpCbn[i];
-
-			memset(insertsql,0,1024);
-			sprintf(insertsql,"insert into Notice values ('%s','%s','%s')",
-				notice_iter->first.c_str(),pCN->m_guid,pCN->m_status);
-
-			m_SQLite3DB.execDML(insertsql);
+			mapcount ++;
+			s = m_LevelDB->Put(wo, NOTICE_MAP_COUNT, leveldb::Slice((char*)&mapcount, sizeof(mapcount)));
 		}
 
+		//存储该计算节点的notice数目
+		s = m_LevelDB->Put(wo, NOTICE_COUNT(comp), leveldb::Slice((char*)&count, sizeof(count)));
+
+		for(int i = 0; i < count; i++){
+			CBlockNotice* nt = notice[i];
+			s = m_LevelDB->Put(wo, NOTICE_IDX(comp, i), leveldb::Slice((char*)nt, sizeof(CBlockNotice)));
+		}
+
+		return 0;
 	}
+	else
+	{
+		char cmd[1024];
 
+		_snprintf(cmd, sizeof(cmd), "delete from Notice where hostip='%s'", comp);
+		try{
+			m_SQLite3DB.execDML(cmd);
+		}catch(CppSQLite3Exception& ex){
+			CLog::Log(LOG_LEVEL_WARNING,"Failed to delete BlockNotice %s: %s\n", comp, ex.errorMessage());
+		}	
+			
+		for(int i = 0; i < notice.size(); i++)
+		{
+			CBlockNotice *pCN = notice[i];
 
-	return ret;
+			_snprintf(cmd, sizeof(cmd), "insert into Notice values ('%s','%s',%d)",
+				comp, pCN->m_guid, pCN->m_status);
+			try{
+				m_SQLite3DB.execDML(cmd);
+			}catch(CppSQLite3Exception& ex){
+				CLog::Log(LOG_LEVEL_WARNING,"Failed to Insert Notice <%s,%s>: %s\n", comp, pCN->m_guid, ex.errorMessage());
+				continue;
+			}
+		}
 
+		return 0;
+	}
 }
-
 
 int CPersistencManager::LoadTaskMap(CT_MAP &task_map){
 
@@ -592,6 +651,7 @@ int CPersistencManager::LoadTaskMap(CT_MAP &task_map){
 		s = m_LevelDB->Get(ro, TASK_COUNT, &value);
 		if(s.ok())
 			task_count = *(int*)value.data();
+		CLog::Log(LOG_LEVEL_DEBUG, "LoadTaskMap: count=%d\n", task_count);
 
 		for(int i = 1; i <= task_count; i++)
 		{
@@ -599,7 +659,6 @@ int CPersistencManager::LoadTaskMap(CT_MAP &task_map){
 			if(s.ok())
 			{
 				allguids.push_back(value);
-				CLog::Log(LOG_LEVEL_WARNING, "%s\n", value.c_str());
 			}
 		}
 
@@ -631,7 +690,7 @@ int CPersistencManager::LoadTaskMap(CT_MAP &task_map){
         CCrackTask *pCT = new CCrackTask();
 		if (!pCT){
 
-			CLog::Log(LOG_LEVEL_ERROR,"Alloc New Task Error\n");
+			CLog::Log(LOG_LEVEL_ERROR,"Alloc object CCrackTask Error\n");
 			return -1;
 		}
 
@@ -696,7 +755,7 @@ int CPersistencManager::LoadHash(CT_MAP &task_map){
 			//m_crackhash_list是连在一起的，所以必须一次性初始化，详见CCrackTask::SplitTaskFile
 			CCrackHash *pCHs = new CCrackHash[pCT->count];
 			if (!pCHs){
-				CLog::Log(LOG_LEVEL_ERROR,"Alloc New Hash Error\n");
+				CLog::Log(LOG_LEVEL_ERROR,"Alloc object CCrackHash Error\n");
 				return -1;
 			}
 
@@ -728,7 +787,7 @@ int CPersistencManager::LoadHash(CT_MAP &task_map){
 		//m_crackhash_list是连在一起的，所以必须一次性初始化，详见CCrackTask::SplitTaskFile
 		CCrackHash *pCHs = new (std::nothrow)CCrackHash[pCT->count];
 		if (!pCHs){
-			CLog::Log(LOG_LEVEL_ERROR,"Alloc New Hash Error\n");
+			CLog::Log(LOG_LEVEL_ERROR,"Alloc object CCrackHash Error\n");
 			return -1;
 		}
 
@@ -773,7 +832,7 @@ int CPersistencManager::LoadBlockMap(CB_MAP &block_map,CT_MAP &task_map){
 			//连在一起申请，不然在deleteTask函数释放时会出错
 			CCrackBlock* pCBs = new (std::nothrow)CCrackBlock[pCT->m_split_num];
 			if (!pCBs){
-				CLog::Log(LOG_LEVEL_ERROR, "Alloc %d Block Error\n", pCT->m_split_num);
+				CLog::Log(LOG_LEVEL_ERROR, "Alloc object %d CCrackBlock Error\n", pCT->m_split_num);
 				return -2;
 			}
 
@@ -815,7 +874,7 @@ int CPersistencManager::LoadBlockMap(CB_MAP &block_map,CT_MAP &task_map){
 		//连在一起申请，不然在deleteTask函数释放时会出错
 		CCrackBlock* pCBs = new (std::nothrow)CCrackBlock[pCT->m_split_num];
 		if (!pCBs){
-			CLog::Log(LOG_LEVEL_ERROR, "Alloc %d Block Error\n", pCT->m_split_num);
+			CLog::Log(LOG_LEVEL_ERROR, "Alloc object %d CCrackBlock Error\n", pCT->m_split_num);
 			return -2;
 		}
 
@@ -828,7 +887,6 @@ int CPersistencManager::LoadBlockMap(CB_MAP &block_map,CT_MAP &task_map){
 			CCrackBlock *pCB = pCBs + tmpIndex;
 
 			memset(pCB->john,0,sizeof(pCB->john));
-
 			memset(pCB->m_comp_guid,0,sizeof(pCB->m_comp_guid));
 			memset(pCB->guid,0,sizeof(pCB->guid));
 		
@@ -877,6 +935,7 @@ int CPersistencManager::LoadReadyTaskQueue(CT_DEQUE &ready_list,const CT_MAP& ta
 		s = m_LevelDB->Get(ro, TASK_RUN_COUNT, &value);
 		if(s.ok())
 			ready_count = *(int*)value.data();
+		CLog::Log(LOG_LEVEL_DEBUG, "LoadReadyTaskQueue: count=%d\n", ready_count);
 
 		for(int i = 0; i < ready_count; i++)
 		{
@@ -884,12 +943,12 @@ int CPersistencManager::LoadReadyTaskQueue(CT_DEQUE &ready_list,const CT_MAP& ta
 			if(s.ok())
 			{
 				if(task_map.find((char*)value.c_str()) == task_map.end()){
-					CLog::Log(LOG_LEVEL_ERROR,"Task List and Ready Task List is not Matched\n");
+					CLog::Log(LOG_LEVEL_WARNING, "Task List and Ready Task List is not Matched\n");
 					continue;
 				}
 
 				ready_list.push_back(value);
-				CLog::Log(LOG_LEVEL_WARNING, "** %s\n", value.c_str());
+				CLog::Log(LOG_LEVEL_DEBUG, "Ready task %d:%s\n", i, value.c_str());
 			}
 		}
 
@@ -941,7 +1000,7 @@ int CPersistencManager::LoadClientInfo(CI_VECTOR &client_list){
         CClientInfo *pCI = new CClientInfo();
 		if (!pCI){
 
-			CLog::Log(LOG_LEVEL_ERROR,"Alloc New Client Info Error\n");
+			CLog::Log(LOG_LEVEL_ERROR,"Alloc object CClientInfo Error\n");
 			return -1;
 		}
 		
@@ -980,6 +1039,44 @@ int CPersistencManager::LoadClientInfo(CI_VECTOR &client_list){
 int CPersistencManager::LoadNoticeMap(CCB_MAP &notice_map){
 	if(m_useLevelDB)
 	{
+		leveldb::Status s;
+		leveldb::ReadOptions ro;
+		string value;
+		int mapcount = 0;
+		
+		s = m_LevelDB->Get(ro, NOTICE_MAP_COUNT, &value);
+		if(s.ok())
+			mapcount = *(int*)value.data();
+
+		CLog::Log(LOG_LEVEL_DEBUG, "LoadNoticeMap: %d\n", mapcount);
+
+		for(int idx = 0; idx < mapcount; idx++)
+		{
+			s = m_LevelDB->Get(ro, NOTICE_MAP_IDX(idx), &value);
+			if(!s.ok()) continue;
+			string comp = value;
+			CLog::Log(LOG_LEVEL_DEBUG, "LoadNoticeMap: comp=%s\n", comp.c_str());
+			
+			s = m_LevelDB->Get(ro, NOTICE_COUNT(comp.c_str()), &value);
+			if(!s.ok()) continue;
+			int count = *(int*)value.data();
+			CLog::Log(LOG_LEVEL_DEBUG, "LoadNoticeMap: comp=%s count=%d\n", comp.c_str(), count);
+
+			for(int i = 0; i < count; i++)
+			{
+				s = m_LevelDB->Get(ro, NOTICE_IDX(comp.c_str(), i), &value);
+				if(!s.ok()) continue;
+
+				CBlockNotice *pCN = new CBlockNotice();
+				if (!pCN){
+					CLog::Log(LOG_LEVEL_ERROR,"Alloc object CBlockNotice Error\n");
+					continue;
+				}
+				memcpy(pCN, value.data(), sizeof(CBlockNotice));
+				notice_map[comp].push_back(pCN);
+			}
+		}
+
 		return 0;
 	}
 	
@@ -993,17 +1090,17 @@ int CPersistencManager::LoadNoticeMap(CCB_MAP &notice_map){
         CBlockNotice *pCN = new CBlockNotice();
 		if (!pCN){
 
-			CLog::Log(LOG_LEVEL_ERROR,"Alloc New Block Notice Error\n");
+			CLog::Log(LOG_LEVEL_ERROR,"Alloc object CBlockNotice Error\n");
 			return -1;
 		}
 
-		memset(pCN->m_guid,0,sizeof(pCN->m_guid));
-		memcpy(pCN->m_guid,query.fieldValue("blockid"),strlen(query.fieldValue("blockid")));
+		const char* blockid = query.fieldValue("blockid");
+		memset(pCN->m_guid, 0, sizeof(pCN->m_guid));
+		memcpy(pCN->m_guid, blockid, strlen(blockid));
 
-		pCN->m_status = *query.fieldValue("status");
+		pCN->m_status = query.getIntField("status");
 
-		string str;
-		str = query.fieldValue("hostip");
+		string str= query.fieldValue("hostip");
 
 		cur_iter = notice_map.find(str);
 		if (cur_iter == notice_map.end()){
