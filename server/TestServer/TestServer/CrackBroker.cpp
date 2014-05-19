@@ -1343,6 +1343,9 @@ int CCrackBroker::getBlockByComp(const char *worker,CBN_VECTOR &cbnvector,char s
 
 		}
 
+		//持久化
+		g_Persistence.PersistNoticeMap(worker, tmpcbn);
+
 
 		//客户端退出情况
 		if (status == STATUS_NOTICE_RUN){
