@@ -8,6 +8,8 @@
 using std::string;
 using std::vector;
 
+#define USE_PLACEMANT_NEW
+
 CPersistencManager g_Persistence;
 
 #define TASK_KEY			"__task"
@@ -68,7 +70,7 @@ CPersistencManager::CPersistencManager()
 	
 	m_TaskTable = "create table Task (taskid char(40) primary key,algo short,charset short,type short,filetag short,single short,info blob,owner char(64),status short,splitnum int,finishnum int,success short,progress real,speed real,starttime int,runtime int,remaintime int,count int)";
 	m_HashTable = "create table Hash (taskid char(40),index0 int,john char(260),result char(32),status short,progress real)";
-	m_BlockTable = "create table Block (blockid char(40) primary key,taskid char(40), type short, index0 int, info blob, status short,progress real,speed real,remaintime int,compip char(20))";
+	m_BlockTable = "create table Block (blockid char(40) primary key,taskid char(40), type short, index0 int, info blob, status short,progress real,speed real,remaintime int,compip char(20),starttime int,finishtime int)";
 	m_NoticeTable = "create table Notice (hostip char(40),blockid char(40),status short, primary key(hostip,blockid))";
 	m_ReadyTaskTable = "create table ReadyTask (taskid char(40))";
 	m_ClientTable = "create table Client (ip char(20),type char(1),hostname char(64),osinfo char(64),livetime char(20),logintime char(20),gpu int,cpu int)";
@@ -411,9 +413,9 @@ int CPersistencManager::PersistBlockMap(const CB_MAP& block_map, Action action){
 		for(block_iter = begin_block;block_iter!=end_block;block_iter++){
 
 			pCB = block_iter->second;
-			sprintf(cmd,"insert into Block values ('%s','%s', %d, %d, ?, %d, %f, %f, %d, '%s')",
+			sprintf(cmd,"insert into Block values ('%s','%s', %d, %d, ?, %d, %f, %f, %d, '%s', %d, %d)",
 				pCB->guid,pCB->task->guid, pCB->type, pCB->hash_idx, pCB->m_status, pCB->m_progress,
-				pCB->m_speed,pCB->m_remaintime, pCB->m_comp_guid);
+				pCB->m_speed,pCB->m_remaintime, pCB->m_comp_guid, pCB->m_starttime, pCB->m_finishtime);
 
 			try{
 				CppSQLite3Statement statement = m_SQLite3DB.compileStatement(cmd);			
@@ -467,8 +469,8 @@ int CPersistencManager::UpdateOneBlock(const CCrackBlock* item)
 	else
 	{
 		char cmd[1024];
-		sprintf(cmd,"update Block set status=%d,compip='%s' where blockid='%s'",
-			item->m_status, item->m_comp_guid, item->guid);
+		_snprintf(cmd, sizeof(cmd), "update Block set status=%d,compip='%s',starttime=%d,finishtime=%d where blockid='%s'",
+			item->m_status, item->m_comp_guid, item->m_starttime, item->m_finishtime, item->guid);
 		
 		try{
 			m_SQLite3DB.execDML(cmd);
@@ -670,10 +672,19 @@ int CPersistencManager::LoadTaskMap(CT_MAP &task_map){
 			//CCrackTask类里面有类，不能直接拷贝构造函数将内存按字节拷贝，咳!
 			CCrackTask* task = (CCrackTask*)value.data();
 			CCrackTask* pCT = new CCrackTask();
+
+#ifndef USE_PLACEMANT_NEW
 			memcpy(pCT, (crack_task*)task, sizeof(crack_task));
 			memcpy(pCT->m_owner, task->m_owner, sizeof(task->m_owner));
 			int len = (char*)&task->m_filelen - (char*)&task->m_status + sizeof(task->m_filelen);
 			memcpy(&pCT->m_status, &task->m_status, len);
+#else
+			memcpy(pCT, task, sizeof(CCrackTask));
+			//调用placement new对类成员进行初始化
+			new (&pCT->m_crackblock_map) CB_MAP();
+			new (&pCT->cur_crack_block) CB_MAP::iterator();
+			new (&pCT->m_crackhash_list) CRACK_HASH_LIST();
+#endif
 
 			task_map.insert(CT_MAP::value_type(pCT->guid,pCT));
 		}
