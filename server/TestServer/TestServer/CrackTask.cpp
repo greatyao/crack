@@ -13,6 +13,8 @@
 #include "CrackHash.h"
 #include "CrackBlock.h"
 #include "CrackBroker.h"
+#include "BlockNotice.h"
+#include "PersistencManager.h"
 
 CCrackTask::CCrackTask(void)
 {
@@ -541,6 +543,7 @@ int CCrackTask::updateStatusToFinish(struct crack_result *result,int hash_index)
 			setCrackBlockStatus(WI_STATUS_NOT_NEED,hash_index);
 			
 
+			//可能这里会多算了一个
 			this->m_finish_num +=1;
 
 			//判断任务Task 是否结束
@@ -627,30 +630,31 @@ int CCrackTask::setCrackBlockStatus(char status,int hash_index){
 
 		pCB = iter_block->second;
 
-	/*	if((pCB->hash_idx == hash_index) && ((pCB->m_status == WI_STATUS_READY) || (pCB->m_status ==WI_STATUS_RUNNING))){
-
-			pCB->m_status = status;
-			this->m_runing_num +=1;
-
-		}
-	*/
 		if (pCB->hash_idx == hash_index){
 			
 			if (pCB->m_status == WI_STATUS_READY){
 
 				pCB->m_status = status;
+				pCB->m_starttime = pCB->m_finishtime = time(NULL);
 				this->m_runing_num +=1;
 				m_finish_num +=1;
+
+				//持久化
+				g_Persistence.UpdateOneBlock(pCB);
 
 
 			}else if ((pCB->m_status == WI_STATUS_RUNNING) ||(pCB->m_status == WI_STATUS_LOCK)){
 
 				pCB->m_status = status;
+				pCB->m_finishtime = time(NULL);
 				m_finish_num +=1;
+
+				//持久化
+				g_Persistence.UpdateOneBlock(pCB);
 
 
 				//添加通过心跳通知机制
-
+				g_CrackBroker.setCompBlockStatus(pCB->m_comp_guid, pCB->guid, STATUS_NOTICE_STOP);
 				
 			}
 
