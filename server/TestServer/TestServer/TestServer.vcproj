@@ -547,6 +547,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\common\memory_pool.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\common\ncx_slab.cc"
+				>
+			</File>
+			<File
 				RelativePath=".\PacketProcess.cpp"
 				>
 			</File>
@@ -1238,6 +1246,42 @@
 					>
 				</File>
 			</Filter>
+		</Filter>
+		<Filter
+			Name="mempool"
+			>
+			<File
+				RelativePath="..\..\..\common\ngx_alloc.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\common\ngx_alloc.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\common\ngx_core.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\common\ngx_log.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\common\ngx_palloc.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\common\ngx_palloc.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\common\ngx_slab.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\common\ngx_slab.h"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt"
