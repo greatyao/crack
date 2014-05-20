@@ -201,19 +201,19 @@ void CCrackTask::calcProgressByBlock(){
 	CCrackBlock *pCB = NULL;
 	float fprogress = 0.0;
 	float speed = 0;
+	unsigned char status;
 
 	for (iter_block = m_crackblock_map.begin();iter_block != m_crackblock_map.end();iter_block++){
 
 		pCB = iter_block->second;
-		if (pCB->m_status == WI_STATUS_RUNNING){
-
-			CLog::Log(1, "pCB->m_speed %f\n", pCB->m_speed);
+		status = pCB->m_status;
+		if (status == WI_STATUS_RUNNING){
 			
 			fprogress += pCB->m_progress;
 			if(speed < pCB->m_speed)
 				speed = pCB->m_speed;
-		}else if ((pCB->m_status == WI_STATUS_WAITING) || (pCB->m_status == WI_STATUS_READY )||
-			(pCB->m_status == WI_STATUS_LOCK)||(pCB->m_status == WI_STATUS_UNLOCK)){
+		}else if ((status == WI_STATUS_WAITING) || (status == WI_STATUS_READY )||
+			(status == WI_STATUS_LOCK)||(status == WI_STATUS_UNLOCK)){
 			
 			fprogress +=0;
 

@@ -66,6 +66,7 @@ public:
 
 	void *Alloc(int size);
 	void Free(void *p);
+	void *ReAlloc(void* mem, int size);
 
 	static void GetTaskFileByGuid(const char* guid, char* fn, int n);
 

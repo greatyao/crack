@@ -10,6 +10,7 @@
 #include "CrackBroker.h"
 #include "BlockNotice.h"
 #include <Shlwapi.h>
+#include <math.h>
 
 #pragma comment(lib,"Shlwapi.lib")
 
@@ -497,7 +498,6 @@ int CCrackBroker::GetTaskResult(struct task_result_req *pReq,struct task_result_
 int CCrackBroker::GetTasksStatus(struct task_status_info **pRes,unsigned int *resNum, void* pclient){
 	
 	int ret = 0;
-	int task_num = 0;
 	CT_MAP::iterator iter_task;
 	struct task_status_info *pres = NULL;
 	CCrackTask *pCT = NULL;
@@ -505,18 +505,32 @@ int CCrackBroker::GetTasksStatus(struct task_status_info **pRes,unsigned int *re
 	CClientInfo* client = (CClientInfo*)pclient;
 	char* owner = client->GetOwner();
 	bool super = client->SuperUser();
+	int task_num  = client->GetTasks();
+	int len = sizeof(struct task_status_info);
 
-	task_num = m_cracktask_map.size();
-
-	pres = (struct task_status_info *)Alloc(sizeof(struct task_status_info)*task_num);
+	if(super) task_num = m_cracktask_map.size();
+	if(task_num == 0) task_num = 8;
+	
+	pres = (struct task_status_info *)Alloc(len*task_num);
 	if (!pres)
 	{	
-		CLog::Log(LOG_LEVEL_WARNING,"GetTasksStatus: Alloc task_status_info object Error\n");
+		CLog::Log(LOG_LEVEL_WARNING,"GetTasksStatus: Alloc %d task_status_info object Error\n", task_num);
 		return ERR_OUTOFMEMORY;
 	}
 	
 	for(iter_task = m_cracktask_map.begin();iter_task != m_cracktask_map.end();iter_task++){
 		
+		if(j >= task_num)
+		{
+			task_num = ceil(1.5*task_num);		
+			pres = (struct task_status_info *)ReAlloc(pres, len*task_num);
+			if (!pres)
+			{	
+				CLog::Log(LOG_LEVEL_WARNING,"GetTasksStatus: ReAlloc %d task_status_info object Error\n", task_num);
+				return ERR_OUTOFMEMORY;
+			}
+		}
+
 		pCT = iter_task->second;
 		//超级用户或者该task的创建者
 		if(super || strcmp(owner, pCT->m_owner) == 0)
@@ -716,20 +730,23 @@ int CCrackBroker::GetWIStatus(struct crack_status *pReq){
 	CCrackBlock *pCB = NULL;
 	CCrackTask *pCT = NULL;
 
-
 	iter_block = m_total_crackblock_map.find(pReq->guid);
 	if (iter_block == m_total_crackblock_map.end()){
 
 		CLog::Log(LOG_LEVEL_DEBUG,"GetWIStatus: Can't find item with guid %s %d\n",pReq->guid, pReq->progress);
 		return ERR_NO_THISITEM;
 	}
-
 		
 	pCB = iter_block->second;
-
+	if(pCB->m_status <= WI_STATUS_LOCK)//即wait/ready/lock三个状态
+		pCB->m_status = WI_STATUS_RUNNING;
+	
 	pCB->m_progress = pReq->progress;
 	pCB->m_speed = pReq->speed;
 	pCB->m_remaintime = pReq->remainTime;
+	
+	if((time(NULL) - pCB->m_starttime) % 10 == 0)
+		g_Persistence.UpdateOneBlock(pCB);
 
 	pCT = (CCrackTask *)(pCB->task);
 	
@@ -1396,6 +1413,13 @@ int CCrackBroker::setNoticByHash(CCrackBlock *pCB,int index){
 
 	return ret;
 }
+
+void *CCrackBroker::ReAlloc(void* mem, int size)
+{
+	void* p = realloc(mem, size);
+	return p;
+}
+
 
 void *CCrackBroker::Alloc(int size){
 	
