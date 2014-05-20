@@ -547,14 +547,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\common\memory_pool.cc"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\common\ncx_slab.cc"
-				>
-			</File>
-			<File
 				RelativePath=".\PacketProcess.cpp"
 				>
 			</File>

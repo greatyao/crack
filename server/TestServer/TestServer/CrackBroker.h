@@ -66,8 +66,7 @@ public:
 
 	void *Alloc(int size);
 	void Free(void *p);
-	void *ReAlloc(void* mem, int size);
-
+	
 	static void GetTaskFileByGuid(const char* guid, char* fn, int n);
 
 private:
@@ -97,6 +96,9 @@ private:
 	int getBlockByComp(const char *worker,CBN_VECTOR& cbnvector,char status);
 
 	int setNoticByHash(CCrackBlock *pCB,int index);
+
+	typedef struct ngx_pool_s  ngx_pool_t;
+	ngx_pool_t* m_pool;
 
 public :
 	

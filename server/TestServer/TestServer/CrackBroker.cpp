@@ -3,6 +3,7 @@
 #include "ClientInfo.h"
 #include "err.h"
 #include "CLog.h"
+#include "ngx_palloc.h"
 #include "PersistencManager.h"
 #include "CrackTask.h"
 #include "CrackHash.h"
@@ -13,9 +14,12 @@
 #include <math.h>
 
 #pragma comment(lib,"Shlwapi.lib")
+#define USE_MEMPOOL 1
 
 CCrackBroker::CCrackBroker(void)
 {
+	ngx_log_t log;
+	m_pool = ngx_create_pool(1024*1024*16, &log);
 }
 
 CCrackBroker::~CCrackBroker(void)
@@ -522,13 +526,19 @@ int CCrackBroker::GetTasksStatus(struct task_status_info **pRes,unsigned int *re
 		
 		if(j >= task_num)
 		{
-			task_num = ceil(1.5*task_num);		
-			pres = (struct task_status_info *)ReAlloc(pres, len*task_num);
-			if (!pres)
+			int new_num = ceil(1.5*task_num);		
+			struct task_status_info* pp = (struct task_status_info *)Alloc(new_num*len);
+			if (!pp)
 			{	
-				CLog::Log(LOG_LEVEL_WARNING,"GetTasksStatus: ReAlloc %d task_status_info object Error\n", task_num);
+				CLog::Log(LOG_LEVEL_WARNING,"GetTasksStatus: ReAlloc %d task_status_info object Error\n", new_num);
+				Free(pres);
 				return ERR_OUTOFMEMORY;
 			}
+
+			memcpy(pp, pres, task_num*len);
+			Free(pres);
+			pres = pp;
+			task_num = new_num;
 		}
 
 		pCT = iter_task->second;
@@ -1414,23 +1424,25 @@ int CCrackBroker::setNoticByHash(CCrackBlock *pCB,int index){
 	return ret;
 }
 
-void *CCrackBroker::ReAlloc(void* mem, int size)
-{
-	void* p = realloc(mem, size);
-	return p;
-}
-
-
 void *CCrackBroker::Alloc(int size){
 	
+#if USE_MEMPOOL
+	void* ptr = ngx_palloc(m_pool, size);
+#else
 	void *ptr = NULL;
 	ptr = malloc(size);
+#endif
+	CLog::Log(1, "Alloc %d %p\n", size, ptr);
 	return ptr;
 }
 
 void CCrackBroker::Free(void *p){
 
+#if USE_MEMPOOL
+	ngx_pfree(m_pool, p);
+#else
 	free(p);
+#endif
 	p = NULL;
 }
 
