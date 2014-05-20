@@ -22,6 +22,7 @@ public:
 	UINT_PTR GetSocket() {return m_clientsock;}
 	char* GetOwner() {return m_guid;}
 	bool SuperUser() {return m_type == SUPER_CONTROL_TYPE_CLIENT;}
+	int GetTasks()	{return m_mytasks.size();}
 
 	bool OwnTask(const char* guid);
 	void InsetTask(const char* guid, CCrackTask* task);
