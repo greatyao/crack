@@ -3,6 +3,10 @@
 
 CCrackBlock::CCrackBlock(void)
 {
+	memset(m_comp_guid, 0, sizeof(m_comp_guid));
+	memset(guid, 0, sizeof(guid));
+	m_status = WI_STATUS_WAITING;
+	task = NULL;
 }
 
 CCrackBlock::~CCrackBlock(void)

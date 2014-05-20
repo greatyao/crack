@@ -18,6 +18,12 @@
 
 CCrackTask::CCrackTask(void)
 {
+	memset(guid, 0, sizeof(guid));
+	memset(m_result, 0, sizeof(m_result));
+	memset(m_control_guid, 0, sizeof(m_control_guid));
+	m_status = CT_STATUS_READY;
+	count = 0;
+	hashes = NULL;
 }
 
 CCrackTask::~CCrackTask(void)
@@ -200,6 +206,8 @@ void CCrackTask::calcProgressByBlock(){
 
 		pCB = iter_block->second;
 		if (pCB->m_status == WI_STATUS_RUNNING){
+
+			CLog::Log(1, "pCB->m_speed %f\n", pCB->m_speed);
 			
 			fprogress += pCB->m_progress;
 			if(speed < pCB->m_speed)
